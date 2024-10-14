@@ -1,0 +1,17 @@
+services:
+  app:
+    build: 
+      context: .
+      target: runtime
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        DEV: ${DEV:-false}
+        POETRY_VERSION: ${POETRY_VERSION:-1.5.1}
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    tty: true
+    stdin_open: true
