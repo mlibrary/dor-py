@@ -2,3 +2,16 @@
 .bash_history
 .python_history
 .cache/
+.pytest_cache
+__pycache__
+.dotnet/
+.vscode-server
+.local
+.gitconfig
+.venv
+.ssh
+htmlcov/
+.coverage
+.gnupg
+requirements.txt
+output/

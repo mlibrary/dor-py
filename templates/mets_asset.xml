@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" OBJID="{{ object_identifier }}" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
+
+  <METS:metsHdr RECORDSTATUS="{{ action }}" CREATEDATE="{{ create_date }}" ID="HDR1">
+    <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
+      <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
+    </METS:agent>
+  </METS:metsHdr>
+
+  <METS:mdSec>
+    <METS:md USE="PROVENANCE" ID="PREMIS1">
+      <METS:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+        <METS:xmlData>
+          <PREMIS:premis version="3.0">
+            <PREMIS:object xsi:type="PREMIS:representation">
+              <PREMIS:objectIdentifier>
+                <PREMIS:objectIdentifierType>LOCAL</PREMIS:objectIdentifierType>
+                <PREMIS:objectIdentifierValue>_{{ event.object_identifier }}</PREMIS:objectIdentifierValue>
+              </PREMIS:objectIdentifier>
+            </PREMIS:object>
+            <PREMIS:event>
+              <PREMIS:eventIdentifier>
+                <PREMIS:eventIdentifierType>UUID</PREMIS:eventIdentifierType>
+                <PREMIS:eventIdentifierValue>{{ event.identifier }}</PREMIS:eventIdentifierValue>
+              </PREMIS:eventIdentifier>
+              <PREMIS:eventType>{{ event.type }}</PREMIS:eventType>
+              <PREMIS:eventDateTime>{{ event.date_time }}</PREMIS:eventDateTime>
+              <PREMIS:eventDetailInformation>
+                <PREMIS:eventDetail>{{ event.detail }}</PREMIS:eventDetail>
+              </PREMIS:eventDetailInformation>
+              <PREMIS:linkingAgentIdentifier>
+                <PREMIS:linkingAgentIdentifierType>{{ event.linking_agent.type }}</PREMIS:linkingAgentIdentifierType>
+                <PREMIS:linkingAgentIdentifierValue>{{ event.linking_agent.value }}</PREMIS:linkingAgentIdentifierValue>
+              </PREMIS:linkingAgentIdentifier>
+            </PREMIS:event>
+          </PREMIS:premis>
+        </METS:xmlData>
+      </METS:mdWrap>
+    </METS:md>
+    {% for md in md_group.items %}
+    <METS:md USE="{{ md.use }}" ID="_{{ md.id }}"><METS:mdRef LOCREF="{{ md.locref }}" LOCTYPE="URL" MDTYPE="{{ md.mdtype }}" CHECKSUM="{{ md.checksum }}" CHECKSUMTYPE="SHA-512" /></METS:md>
+    {% endfor %}
+  </METS:mdSec>
+
+  <METS:fileSec>
+    {% for file in file_group.files %}
+    <METS:file ID="_{{ file.id }}" USE="{{ file.use }}" SEQ="{{ seq }}" MIMETYPE="{{ file.mimetype }}" MDID="_{{ file.mdid }}" CHECKSUM="{{ file.checksum }}" CHECKSUMTYPE="SHA-512">
+      <METS:FLocat LOCTYPE="SYSTEM" LOCREF="{{ file.locref }}" />
+    </METS:file>
+    {% endfor %}
+  </METS:fileSec>
+</METS:mets>

@@ -1,15 +1,24 @@
 [tool.poetry]
-name = "python-starter"
+name = "dor"
 version = "0.1.0"
-description = "Boilerplate code for developing a python app in docker"
-authors = ["Monique Rio <mrio@umich.edu>, Samuel Sciolla <ssciolla@umich.edu>, Lianet Sepulveda Torres <lisepul@umich.edu>, "]
+description = "DOR scripts"
+authors = ["Roger Espinosa <roger@umich.edu>"]
 readme = "README.md"
-packages = [{include = "python_starter"}]
+packages = [{include = "dor"}]
+
+[tool.poetry.scripts]
+dor = "dor.cli.main:app"
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
-requests = "^2.31.0"
-
+bagit = "^1.8.1"
+faker = "^30.3.0"
+faker-biology = "^0.6.4"
+pillow = "^10.4.0"
+typer = "^0.12.5"
+uuid6 = "^2024.7.10"
+jinja2 = "^3.1.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"

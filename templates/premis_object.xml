@@ -1,0 +1,21 @@
+<premis:object xmlns:premis="http://www.loc.gov/premis/v3" xsi:type="premis:file"
+  xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd"
+  version="3.0">
+  <premis:objectIdentifier>
+    <premis:objectIdentifierType>local</premis:objectIdentifierType>
+    <premis:objectIdentifierValue>{{ object_identifier_value }}</premis:objectIdentifierValue>
+  </premis:objectIdentifier>
+  <premis:preservationLevel>
+    <premis:preservationLevelType>logical preservation</premis:preservationLevelType>
+    <premis:preservationLevelValue>migration</premis:preservationLevelValue>
+    <premis:preservationLevelRole authority="preservationLevelRole"
+      authorityURI="http://id.loc.gov/vocabulary/preservation/preservationLevelRole.html"
+      valueURI="http://id.loc.gov/vocabulary/preservation/preservationLevelRole/int.html">intention</premis:preservationLevelRole>
+    <premis:preservationLevelRationale>institutional policy</premis:preservationLevelRationale>
+    <premis:preservationLevelDateAssigned>{{ date_assigned }}</premis:preservationLevelDateAssigned>
+  </premis:preservationLevel>
+  <premis:significantProperties>
+    <premis:significantPropertiesType>page count</premis:significantPropertiesType>
+    <premis:significantPropertiesValue>{{ page_count }}</premis:significantPropertiesValue>
+  </premis:significantProperties>
+</premis:object>
