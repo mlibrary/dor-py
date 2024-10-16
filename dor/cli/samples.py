@@ -13,7 +13,7 @@ app = typer.Typer()
 
 @app.command()
 def generate(
-    collid: str = None,
+    collid: str,
     action: ActionChoices = ActionChoices.store,
     num_scans: int = -1,
     include_desc: bool = True,

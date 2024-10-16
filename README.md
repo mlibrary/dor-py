@@ -1,75 +1,57 @@
-# python-docker-boilerplate
+# dor-py
 
-Boilerplate code for starting a python project with docker and docker-compose
+Python code for the DOR project.
 
-## How to set up your python environment
+## Setup
 
-### Install python
+1. Clone the repo
 
-On mac,
+```
+git clone https://github.com/mlibrary/aim-py.git
+cd aim-py
+```
 
-* You can read this blog to install python in a right way in
-      python: https://opensource.com/article/19/5/python-3-default-mac
-      
-* **Recommendation**: Install python using brew and pyenv
-
-### Managing python dependencies
-
-* **Install poetry**
-
-* On Mac OS, Windows and Linux,
-  * Install poetry:
-       * ``curl -sSL https://install.python-poetry.org | python3 -``
-         * This way allows poetry and its dependencies to be isolated from your dependencies. I don't recommend to use 
-         * pip to install poetry because poetry and your application dependencies will be installed in the same environment.
-       * ```poetry init```: 
-         * Use this command to set up your local environment, repository details, and dependencies. 
-         * It will generate a pyproject.toml file with the information you provide.
-           * Package name [python-starter]:
-           * Version [0.1.0]:
-           * Description []:
-           * Author []:  n 
-           * License []:
-           * Compatible Python versions [^3.11]: 
-           * Would you like to define your main dependencies interactively? (yes/no) [yes]: no
-           * Would you like to define your development dependencies interactively? (yes/no) no
-       * ```poetry install```: 
-         * Use this command to automatically install the dependencies specified in the pyproject.toml file.
-         * It will generate a poetry.lock file with the dependencies and their versions.
-         * It will create a virtual environment in the home directory, e.g. /Users/user_name/Library/Caches/pypoetry/..
-       * ```poetry env use python```: 
-         * Use this command to find the virtual environment directory, created by poetry.
-       * ```source ~/Library/Caches/pypoetry/virtualenvs/python-starter-0xoBsgdA-py3.11/bin/activate```
-         * Use this command to activate the virtual environment.
-       * ```poetry shell```: 
-         * Use this command to activate the virtual environment.
-       * ```poetry add pytest```: 
-         * Use this command to add dependencies.
-       * ```poetry add --dev pytest```:
-         * Use this command to add development dependencies.
-       * `` poetry update ``: 
-         * Use this command if you change your .toml file and want to generate a new version the .lock file
-
-## Set up in a docker environment
-
+2. In the terminal, run the `init.sh` 
 ```
 ./init.sh
 ```
-
 This will:
 
-* copy the project folder
+* set up the initial environment variables file
 * build the docker image
-* install the dependencies
-* create a container with the application
+* install the python dependencies
+* Set up the database for digifeeds
 
-## How to run the application
+`./init.sh` can be run more than once. 
+  
+3. Edit `.env` with actual environment variables
 
-``docker compose exec app python --version``
+4. In the app container, use `poetry shell` to enable the virtual environment. Otherwise use:
+```
+ docker compose run --rm app poetry run YOUR_COMMAND
+```
 
+## Generating Samples
 
-## Tests
+To generate sample packages, on the command line run:
 
-## Background
-This repository goes with this documentation:
-https://mlit.atlassian.net/wiki/spaces/LD/pages/10092544004/Python+in+LIT
+```
+docker compose run --rm app poetry run dor samples generate --collid xyzzy --num-scans 5 --total 1 --versions 1
+```
+
+This will generate a submission package in BagIt format for the collection `xyzzy` for one item made up of 5 page scans.
+
+The complete list of options:
+
+```
+--collid: str -- required
+--action: store|stage|purge
+--num_scans: int = None -- if unspecified, a random number of scans will be generated
+--total: int = 1 -- number of items to generate
+--versions: int = 1 --- number of versions to generate
+--output_pathname: str -- default is the "output" directory at the root of this repository
+```
+
+How does `versions` work? The first version of the item will contain all the scans. 
+The next versions will only contain a random subset of updated scans.
+
