@@ -2,7 +2,7 @@ services:
   app:
     build: 
       context: .
-      target: runtime
+      target: development
       dockerfile: Dockerfile
       args:
         UID: ${UID:-1000}

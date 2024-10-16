@@ -14,3 +14,6 @@ fi
 
 echo "🚢 Build docker images"
 docker compose build
+
+echo "📦 Build python packages"
+docker compose run --rm app poetry install
