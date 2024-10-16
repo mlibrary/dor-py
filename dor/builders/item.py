@@ -40,7 +40,7 @@ def build_item(package_pathname, version=1):
                 asset_identifiers=asset_identifiers,
                 object_identifier=object_identifier,
                 action=S.action.value,
-                create_date=datetime.now(tz=UTC),
+                create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 version=version,
                 event=build_event(event_type='update', linking_agent_type='collection manager'),
             )
@@ -96,7 +96,7 @@ def build_item(package_pathname, version=1):
         )
     )
 
-    object_pathname.joinpath("descriptor", object_identifier + ".mets2.xml").open(
+    object_pathname.joinpath("descriptor", object_identifier + ".root.mets2.xml").open(
         "w"
     ).write(
         item_template.render(
@@ -104,7 +104,7 @@ def build_item(package_pathname, version=1):
             object_identifier=object_identifier,
             desc_group=desc_group,
             action=S.action.value,
-            create_date=datetime.now(tz=UTC),
+            create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             version=version,
             event=build_event(
                 event_type="ingest", linking_agent_type="collection manager"

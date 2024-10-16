@@ -156,7 +156,7 @@ def build_asset(seq, object_pathname, version):
     )
 
     file = File(
-        id=generate_md5(image_filename),
+        id=generate_md5(text_filename),
         use=str(FileUses.source.value),
         mdid=md_group.items[-1].id,
         locref=f"../data/{text_filename}",
@@ -173,7 +173,7 @@ def build_asset(seq, object_pathname, version):
             seq=seq,
             action=S.action.value,
             event=premis_event,
-            create_date=datetime.now(tz=UTC)
+            create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         )
     )
 
