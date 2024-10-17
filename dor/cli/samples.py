@@ -11,16 +11,17 @@ import sys
 
 app = typer.Typer()
 
+# future? options commented out
 @app.command()
 def generate(
     collid: str = typer.Option(default=...),
     action: ActionChoices = ActionChoices.store,
     num_scans: int = -1,
-    include_desc: bool = True,
-    include_admin: bool = True,
-    include_structure: bool = True,
-    images: bool = True,
-    texts: bool = True,
+    # include_desc: bool = True,
+    # include_admin: bool = True,
+    # include_structure: bool = True,
+    # images: bool = True,
+    # texts: bool = True,
     total: int = 1,
     versions: int = 1,
     output_pathname: str = pathlib.Path(__file__).resolve().parent.parent.parent.joinpath("output"),
@@ -30,11 +31,11 @@ def generate(
         collid=collid,
         action=action,
         num_scans=num_scans,
-        include_desc=include_desc,
-        include_admin=include_admin,
-        include_structure=include_structure,
-        images=images,
-        texts=texts,
+        # include_desc=include_desc,
+        # include_admin=include_admin,
+        # include_structure=include_structure,
+        # images=images,
+        # texts=texts,
         total=total,
         output_pathname=output_pathname,
     )

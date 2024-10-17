@@ -52,6 +52,9 @@ The complete list of options:
 --output_pathname: str -- default is the "output" directory at the root of this repository
 ```
 
-How does `versions` work? The first version of the item will contain all the scans. 
+**How does the `versions` option work?** The first version of the item will contain all the scans. 
 The next versions will only contain a random subset of updated scans.
 
+**Can you validate the METS2 documents?** The schemas for METS2 and PREMIS3 are in the `etc/xsd` 
+directory. With `xmllint --schema` you can only use _one_ of these schemas, so validating a METS2
+document will always complain about the `PREMIS:object` type.
