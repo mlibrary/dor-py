@@ -7,8 +7,8 @@ Python code for the DOR project.
 1. Clone the repo
 
 ```
-git clone https://github.com/mlibrary/aim-py.git
-cd aim-py
+git clone https://github.com/mlibrary/dor-py.git
+cd dor-py
 ```
 
 2. In the terminal, run the `init.sh` 
@@ -20,13 +20,12 @@ This will:
 * set up the initial environment variables file
 * build the docker image
 * install the python dependencies
-* Set up the database for digifeeds
 
 `./init.sh` can be run more than once. 
   
-3. Edit `.env` with actual environment variables
+1. Edit `.env` with actual environment variables
 
-4. In the app container, use `poetry shell` to enable the virtual environment. Otherwise use:
+2. In the app container, use `poetry shell` to enable the virtual environment. Otherwise use:
 ```
  docker compose run --rm app poetry run YOUR_COMMAND
 ```
