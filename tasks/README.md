@@ -22,3 +22,4 @@ docker compose exec app bash
 poetry run python
 >>> from tasks.test_task import sleep_and_say_hi
 >>> [sleep_and_say_hi.send() for i in range(10)]
+```
