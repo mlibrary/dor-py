@@ -3,11 +3,14 @@ from random import randrange
 
 import dramatiq
 
-from tasks.broker import set_up_rabbitmq_broker
+from tasks.broker import DramatiqRabbitmqBroker
 
-set_up_rabbitmq_broker()
+QUEUE_NAME = "sleep"
 
-@dramatiq.actor
+BROKER = DramatiqRabbitmqBroker.from_env()
+BROKER.set_up_queue(QUEUE_NAME)
+
+@dramatiq.actor(queue_name=QUEUE_NAME)
 def sleep_and_say_hi() -> None:
     sleep_period = randrange(1, 10)
     time.sleep(sleep_period)
