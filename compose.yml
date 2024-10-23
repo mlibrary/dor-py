@@ -1,5 +1,7 @@
 services:
   app:
+    depends_on:
+      - rabbitmq
     build: 
       context: .
       target: development
@@ -15,3 +17,11 @@ services:
       - .:/app
     tty: true
     stdin_open: true
+  rabbitmq:
+    image: 'rabbitmq:4.0-management'
+    environment:
+      - 'RABBITMQ_DEFAULT_USER=admin'
+      - 'RABBITMQ_DEFAULT_PASS=secret'
+    ports:
+      - '5672:5672'
+      - '15672:15672'
