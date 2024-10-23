@@ -1,0 +1,12 @@
+# app/subscriber/Dockerfile
+FROM python:3.9-slim
+
+# Install redis-tools for redis-cli
+RUN apt-get update && apt-get install -y redis-tools
+
+WORKDIR /app
+COPY subscriber.py .
+
+RUN pip install redis
+
+CMD ["python", "subscriber.py"]
