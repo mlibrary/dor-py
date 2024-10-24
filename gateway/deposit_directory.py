@@ -12,5 +12,4 @@ class DepositDirectory:
         return os.path.join(self.path, sub_path)
 
     def get_package(self, package_path: str) -> Package:
-        return Package(self.resolve(package_path))
-    
+        return Package(self, package_path)
