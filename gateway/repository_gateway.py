@@ -6,6 +6,10 @@ from gateway.package import Package
 class RepositoryGateway(metaclass=ABCMeta):
 
     @abstractmethod
+    def create_empty_object(self, id: str) -> None:
+        pass
+
+    @abstractmethod
     def stage_object_files(
         self,
         id: str,

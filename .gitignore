@@ -15,3 +15,5 @@ htmlcov/
 .gnupg
 requirements.txt
 output/
+
+tests/test_storage

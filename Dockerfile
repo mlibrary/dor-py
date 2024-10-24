@@ -27,12 +27,18 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   python3-dev \ 
   build-essential \ 
   pkg-config \
-  vim-tiny
+  vim-tiny \
+  curl \
+  unzip
 
 # Set the working directory to /app
 WORKDIR /app
 
 ENV PYTHONPATH="/app"
+
+# Download rocfl and place in /usr/local/bin
+RUN curl -LO https://github.com/pwinckles/rocfl/releases/download/v1.7.0/rocfl-linux-x86_64-no-s3.zip && \
+  unzip -d /usr/local/bin rocfl-linux-x86_64-no-s3.zip
 
 CMD ["tail", "-f", "/dev/null"]
 
