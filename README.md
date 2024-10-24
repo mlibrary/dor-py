@@ -29,7 +29,13 @@ This will:
 ```
  docker compose run --rm app poetry run YOUR_COMMAND
 ```
+## Behave
+Behavior driven development with [behave](https://behave.readthedocs.io/en/stable/) 
 
+[Advanced Guide to Behavior-Driven Development with Behave in Python](https://behave.readthedocs.io/en/stable/install.html)
+```commandline
+docker compose run --rm app poetry run behave
+```
 ## Generating Samples
 
 To generate sample packages, on the command line run:
