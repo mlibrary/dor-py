@@ -125,6 +125,26 @@ class OcflRepositoryGatewayTest(TestCase):
         # Check that object is gone
         self.assertFalse(os.path.exists(full_object_path))
 
+    def test_gateway_indicates_it_does_not_have_an_object(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        result = gateway.has_object("deposit_zero")
+
+        self.assertEqual(False, result)
+
+    def test_gateway_indicates_it_does_have_an_object(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_empty_object("deposit_one")
+        package = self.deposit_dir.get_package("deposit_one")
+        gateway.stage_object_files("deposit_one", package)
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+        )
+        result = gateway.has_object("deposit_one")
+
+        self.assertEqual(True, result)
+
     def test_gateway_provides_file_paths(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()

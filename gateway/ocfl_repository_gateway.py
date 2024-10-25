@@ -42,11 +42,16 @@ class OcflRepositoryGateway(RepositoryGateway):
         subprocess.run(args, check=True)
 
     def purge_object(self, id: str) -> None:
-        args = ["rocfl", "purge", "-f", id]
+        args = ["rocfl", "-r", self.storage_path, "purge", "-f", id]
         subprocess.run(args, check=True)
 
     def has_object(self, id: str) -> bool:
-        raise NotImplementedError()
+        args = ["rocfl", "-r", self.storage_path, "ls", id]
+        try:
+            subprocess.run(args, check=True)
+            return True
+        except subprocess.CalledProcessError:
+            return False
 
     def get_file_paths(self, id: str) -> list[str]:
         args = ["rocfl", "-r", self.storage_path, "ls", id]
