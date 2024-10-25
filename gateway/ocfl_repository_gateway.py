@@ -17,14 +17,11 @@ class OcflRepositoryGateway(RepositoryGateway):
         subprocess.run(["rocfl", "-r", self.storage_path, "new", id], check=True)
 
     def stage_object_files(self, id: str, source_package: Package):
-        root_path = source_package.get_root_path()
-        for file_path in source_package.get_file_paths():
-            full_file_path = os.path.join(root_path, file_path)
-            args = [
-                "rocfl", "-r", self.storage_path,
-                "cp", "-r", id, full_file_path, "--", file_path
-            ]
-            subprocess.run(args, check=True)
+        command = " ".join([
+            "rocfl", "-r", self.storage_path,
+            "cp", "-r", id, os.path.join(source_package.get_root_path(), "*"), "--", "/"
+        ])
+        subprocess.run(command, check=True, shell=True)
 
     def commit_object_changes(
         self,
