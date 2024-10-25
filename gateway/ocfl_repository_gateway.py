@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 from gateway.coordinator import Coordinator
@@ -16,11 +17,14 @@ class OcflRepositoryGateway(RepositoryGateway):
         subprocess.run(["rocfl", "-r", self.storage_path, "new", id], check=True)
 
     def stage_object_files(self, id: str, source_package: Package):
-        args = [
-            "rocfl", "-r", self.storage_path,
-             "cp", "-r", id, source_package.get_root_path(), "--", "/"
-        ]
-        subprocess.run(args, check=True)
+        root_path = source_package.get_root_path()
+        for file_path in source_package.get_file_paths():
+            full_file_path = os.path.join(root_path, file_path)
+            args = [
+                "rocfl", "-r", self.storage_path,
+                "cp", "-r", id, full_file_path, "--", file_path
+            ]
+            subprocess.run(args, check=True)
 
     def commit_object_changes(
         self,
@@ -54,7 +58,10 @@ class OcflRepositoryGateway(RepositoryGateway):
         raise NotImplementedError()
 
     def get_file_paths(self, id: str):
-        raise NotImplementedError()
+        args = ["rocfl", "-r", self.storage_path, "ls", id]
+        result = subprocess.run(args, check=True, capture_output=True)
+        data = result.stdout.decode()
+        return data.split()
 
     def get_storage_relative_file_paths(self, id: str):
         raise NotImplementedError()
