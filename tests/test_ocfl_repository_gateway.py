@@ -90,8 +90,7 @@ class OcflRepositoryGatewayTest(TestCase):
         )
 
         # Check for changes in storage root
-        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
-        full_object_path = os.path.join(self.pres_storage, object_path)
+        full_object_path = os.path.join(self.pres_storage, "deposit_one")
         self.assertTrue(os.path.exists(full_object_path))
 
         inventory_path = os.path.join(full_object_path, "inventory.json")
