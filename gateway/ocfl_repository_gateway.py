@@ -6,12 +6,17 @@ from gateway.package import Package
 from gateway.repository_gateway import RepositoryGateway
 
 class OcflRepositoryGateway(RepositoryGateway):
-    
+    storage_layout = "0002-flat-direct-storage-layout"
+
     def __init__(self, storage_path: str):
         self.storage_path = storage_path
 
     def create_repository(self):
-        subprocess.run(["rocfl", "-r", self.storage_path, "init"], check=True)
+        args = [
+            "rocfl", "-r", self.storage_path, "init",
+            "-l", self.storage_layout
+        ]
+        subprocess.run(args, check=True)
 
     def create_empty_object(self, id: str) -> None:
         subprocess.run(["rocfl", "-r", self.storage_path, "new", id], check=True)
