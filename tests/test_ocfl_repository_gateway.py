@@ -36,7 +36,7 @@ class OcflRepositoryGatewayTest(TestCase):
     ) -> str:
         digest = hashlib.sha256(bytes(object_id, 'utf-8')).hexdigest()
         n_tuple = tuple(
-            digest[i:i+tuple_size]
+            digest[i:i + tuple_size]
             for i in range(0, tuple_size * num_tuples, tuple_size)
         )
         return os.path.join(*n_tuple, digest)
@@ -74,7 +74,10 @@ class OcflRepositoryGatewayTest(TestCase):
         inventory_data = OcflRepositoryGatewayTest.read_inventory(inventory_path)
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
-        self.assertTrue(len(head_version["state"].keys()) == 3)
+        logical_paths = [path for paths in head_version["state"].values() for path in paths]
+        self.assertSetEqual(
+            set(["A.txt", "B/B.txt", "C/D/D.txt"]), set(logical_paths)
+        )
 
     def test_gateway_commits_changes(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
@@ -95,8 +98,23 @@ class OcflRepositoryGatewayTest(TestCase):
         inventory_data = OcflRepositoryGatewayTest.read_inventory(inventory_path)
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
-        self.assertTrue(len(head_version["state"].keys()) == 3)
+        logical_paths = [path for paths in head_version["state"].values() for path in paths]
+        self.assertSetEqual(
+            set(["A.txt", "B/B.txt", "C/D/D.txt"]), set(logical_paths)
+        )
 
         self.assertEqual("Adding first version!", head_version["message"])
         self.assertEqual("test", head_version["user"]["name"])
         self.assertEqual("mailto:test@example.edu", head_version["user"]["address"])
+
+    def test_gateway_provides_file_paths(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_empty_object("deposit_one")
+        package = self.deposit_dir.get_package("deposit_one")
+        gateway.stage_object_files("deposit_one", package)
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+        )
+        file_paths = gateway.get_file_paths("deposit_one")
+        self.assertListEqual(["A.txt", "B/B.txt", "C/D/D.txt"], file_paths)
