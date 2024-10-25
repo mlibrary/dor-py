@@ -27,21 +27,7 @@ class RepositoryGateway(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def read_object(self, id: str, output_path: str) -> None:
-        pass
-
-    @abstractmethod
     def purge_object(self, id: str) -> None:
-        pass
-
-    @abstractmethod
-    def delete_object_file(
-        self,
-        id: str,
-        file_path: str,
-        coordinator: Coordinator,
-        message: str
-    ) -> None:
         pass
 
     @abstractmethod
@@ -55,5 +41,3 @@ class RepositoryGateway(metaclass=ABCMeta):
     @abstractmethod
     def get_storage_relative_file_paths(self, id: str) -> list[str]:
         pass
-
-    # def get_versions?

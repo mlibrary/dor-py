@@ -106,6 +106,25 @@ class OcflRepositoryGatewayTest(TestCase):
         self.assertEqual("test", head_version["user"]["name"])
         self.assertEqual("mailto:test@example.edu", head_version["user"]["address"])
 
+    def test_gateway_purges_object(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_empty_object("deposit_one")
+        package = self.deposit_dir.get_package("deposit_one")
+        gateway.stage_object_files("deposit_one", package)
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+        )
+
+        # Check for object in storage root
+        full_object_path = os.path.join(self.pres_storage, "deposit_one")
+        self.assertTrue(os.path.exists(full_object_path))
+
+        gateway.purge_object("deposit_one")
+
+        # Check that object is gone
+        self.assertFalse(os.path.exists(full_object_path))
+
     def test_gateway_provides_file_paths(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()

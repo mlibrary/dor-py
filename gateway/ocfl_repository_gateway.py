@@ -11,7 +11,7 @@ class OcflRepositoryGateway(RepositoryGateway):
     def __init__(self, storage_path: str):
         self.storage_path = storage_path
 
-    def create_repository(self):
+    def create_repository(self) -> None:
         args = [
             "rocfl", "-r", self.storage_path, "init",
             "-l", self.storage_layout
@@ -21,7 +21,7 @@ class OcflRepositoryGateway(RepositoryGateway):
     def create_empty_object(self, id: str) -> None:
         subprocess.run(["rocfl", "-r", self.storage_path, "new", id], check=True)
 
-    def stage_object_files(self, id: str, source_package: Package):
+    def stage_object_files(self, id: str, source_package: Package) -> None:
         command = " ".join([
             "rocfl", "-r", self.storage_path,
             "cp", "-r", id, os.path.join(source_package.get_root_path(), "*"), "--", "/"
@@ -33,7 +33,7 @@ class OcflRepositoryGateway(RepositoryGateway):
         id: str,
         coordinator: Coordinator,
         message: str
-    ):
+    ) -> None:
         args = [
             "rocfl", "-r", self.storage_path, "commit", id,
             "-n", coordinator.username, "-a", f"mailto:{coordinator.email}",
@@ -41,25 +41,14 @@ class OcflRepositoryGateway(RepositoryGateway):
         ]
         subprocess.run(args, check=True)
 
-    def read_object(self, id: str, output_path: str):
+    def purge_object(self, id: str) -> None:
+        args = ["rocfl", "purge", "-f", id]
+        subprocess.run(args, check=True)
+
+    def has_object(self, id: str) -> bool:
         raise NotImplementedError()
 
-    def purge_object(self, id: str):
-        raise NotImplementedError()
-
-    def delete_object_file(
-        self,
-        id: str,
-        file_path: str,
-        coordinator: Coordinator,
-        message: str
-    ):
-        raise NotImplementedError()
-
-    def has_object(self, id: str):
-        raise NotImplementedError()
-
-    def get_file_paths(self, id: str):
+    def get_file_paths(self, id: str) -> list[str]:
         args = ["rocfl", "-r", self.storage_path, "ls", id]
         result = subprocess.run(args, check=True, capture_output=True)
         data = result.stdout.decode()
