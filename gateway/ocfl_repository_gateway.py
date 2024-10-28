@@ -2,7 +2,7 @@ import os
 import subprocess
 
 from gateway.coordinator import Coordinator
-from gateway.file_mapping import FileMapping
+from gateway.object_file import ObjectFile
 from gateway.package import Package
 from gateway.repository_gateway import RepositoryGateway
 
@@ -60,11 +60,11 @@ class OcflRepositoryGateway(RepositoryGateway):
         data = result.stdout.decode()
         return data.split()
 
-    def get_file_mappings(self, id: str) -> list[FileMapping]:
+    def get_object_files(self, id: str) -> list[ObjectFile]:
         args = ["rocfl", "-r", self.storage_path, "ls", "-pt", id]
         result = subprocess.run(args, check=True, capture_output=True)
         data = result.stdout.decode()
         lines = data.strip().split("\n")
         rows = [line.split("\t") for line in lines]
-        file_mappings = [FileMapping(row[0].strip(), row[1].strip()) for row in rows]
-        return file_mappings
+        object_files = [ObjectFile(row[0].strip(), row[1].strip()) for row in rows]
+        return object_files
