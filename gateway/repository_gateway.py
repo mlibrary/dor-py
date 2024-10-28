@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 from gateway.coordinator import Coordinator
+from gateway.file_mapping import FileMapping
 from gateway.package import Package
 
 class RepositoryGateway(metaclass=ABCMeta):
@@ -39,5 +40,5 @@ class RepositoryGateway(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_storage_relative_file_paths(self, id: str) -> list[str]:
+    def get_file_mappings(self, id: str) -> list[FileMapping]:
         pass

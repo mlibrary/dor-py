@@ -2,6 +2,7 @@ import os
 import subprocess
 
 from gateway.coordinator import Coordinator
+from gateway.file_mapping import FileMapping
 from gateway.package import Package
 from gateway.repository_gateway import RepositoryGateway
 
@@ -59,5 +60,11 @@ class OcflRepositoryGateway(RepositoryGateway):
         data = result.stdout.decode()
         return data.split()
 
-    def get_storage_relative_file_paths(self, id: str):
-        raise NotImplementedError()
+    def get_file_mappings(self, id: str) -> list[FileMapping]:
+        args = ["rocfl", "-r", self.storage_path, "ls", "-pt", id]
+        result = subprocess.run(args, check=True, capture_output=True)
+        data = result.stdout.decode()
+        lines = data.strip().split("\n")
+        rows = [line.split("\t") for line in lines]
+        file_mappings = [FileMapping(row[0].strip(), row[1].strip()) for row in rows]
+        return file_mappings
