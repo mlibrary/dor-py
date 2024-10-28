@@ -7,6 +7,7 @@ from unittest import TestCase
 
 from gateway.coordinator import Coordinator
 from gateway.deposit_directory import DepositDirectory
+from gateway.file_mapping import FileMapping
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
 
 class OcflRepositoryGatewayTest(TestCase):
@@ -156,3 +157,32 @@ class OcflRepositoryGatewayTest(TestCase):
         )
         file_paths = gateway.get_file_paths("deposit_one")
         self.assertListEqual(["A.txt", "B/B.txt", "C/D/D.txt"], file_paths)
+
+    def test_gateway_provides_file_mappings(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_empty_object("deposit_one")
+        package = self.deposit_dir.get_package("deposit_one")
+        gateway.stage_object_files("deposit_one", package)
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+        )
+
+        update_package = self.deposit_dir.get_package("deposit_one_update")
+        gateway.stage_object_files("deposit_one", update_package)
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding second version!"
+        )
+
+        file_mappings = gateway.get_file_mappings("deposit_one")
+        prefix = os.path.join(self.pres_storage, "deposit_one")
+        print(file_mappings)
+        self.assertListEqual(
+            [
+                FileMapping("A.txt", os.path.join(prefix, "v1", "content", "A.txt")),
+                FileMapping("B/B.txt", os.path.join(prefix, "v2", "content", "B", "B.txt")),
+                FileMapping("C/D/D.txt", os.path.join(prefix, "v1", "content", "C", "D", "D.txt")),
+                FileMapping("E.txt", os.path.join(prefix, "v2", "content", "E.txt"))
+            ],
+            file_mappings
+        )
