@@ -7,6 +7,7 @@ from unittest import TestCase
 
 from gateway.coordinator import Coordinator
 from gateway.deposit_directory import DepositDirectory
+from gateway.exceptions import ObjectDoesNotExistException
 from gateway.object_file import ObjectFile
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
 
@@ -18,7 +19,8 @@ class OcflRepositoryGatewayTest(TestCase):
         
         self.storage_path = os.path.join("tests", "test_storage")
         self.pres_storage = os.path.join(self.storage_path, "test_preservation_storage")
-        
+        self.extensions_path = os.path.join(self.pres_storage, "extensions", "rocfl-staging")
+
         if os.path.exists(self.storage_path):
             shutil.rmtree(self.storage_path)
         os.makedirs(self.pres_storage)
@@ -49,26 +51,28 @@ class OcflRepositoryGatewayTest(TestCase):
         namaste_path = os.path.join(self.pres_storage, "0=ocfl_1.1")
         self.assertTrue(os.path.exists(namaste_path))
 
-    def test_gateway_creates_empty_object(self):
+    def test_gateway_creates_staged_object(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
-        gateway.create_empty_object("deposit_one")
+        gateway.create_staged_object("deposit_one")
+
+        object_files = gateway.get_object_files("deposit_one")
+        self.assertListEqual([], object_files)
 
         # TO DO: What do I test here? Doesn't seem to be any filesystem side effects...
 
     def test_gateway_stages_changes(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
-        gateway.create_empty_object("deposit_one")
+        gateway.create_staged_object("deposit_one")
         package = self.deposit_dir.get_package("deposit_one")
         gateway.stage_object_files("deposit_one", package)
 
         # Check for changes under extensions
-        extensions_path = os.path.join(self.pres_storage, "extensions", "rocfl-staging")
-        self.assertTrue(os.path.exists(extensions_path))
+        self.assertTrue(os.path.exists(self.extensions_path))
 
         object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
-        full_object_path = os.path.join(extensions_path, object_path)
+        full_object_path = os.path.join(self.extensions_path, object_path)
         self.assertTrue(os.path.exists(full_object_path))
 
         inventory_path = os.path.join(full_object_path, "inventory.json")
@@ -83,7 +87,7 @@ class OcflRepositoryGatewayTest(TestCase):
     def test_gateway_commits_changes(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
-        gateway.create_empty_object("deposit_one")
+        gateway.create_staged_object("deposit_one")
         package = self.deposit_dir.get_package("deposit_one")
         gateway.stage_object_files("deposit_one", package)
         gateway.commit_object_changes(
@@ -107,10 +111,21 @@ class OcflRepositoryGatewayTest(TestCase):
         self.assertEqual("test", head_version["user"]["name"])
         self.assertEqual("mailto:test@example.edu", head_version["user"]["address"])
 
+    def test_gateway_commits_empty_object(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding empty version!"
+        )
+
+        object_files = gateway.get_object_files("deposit_one")
+        self.assertListEqual([], object_files)
+
     def test_gateway_purges_object(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
-        gateway.create_empty_object("deposit_one")
+        gateway.create_staged_object("deposit_one")
         package = self.deposit_dir.get_package("deposit_one")
         gateway.stage_object_files("deposit_one", package)
         gateway.commit_object_changes(
@@ -133,10 +148,18 @@ class OcflRepositoryGatewayTest(TestCase):
 
         self.assertEqual(False, result)
 
+    def test_gateway_indicates_it_does_not_have_an_object_once_staged(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        result = gateway.has_object("deposit_one")
+
+        self.assertEqual(False, result)
+
     def test_gateway_indicates_it_does_have_an_object(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
-        gateway.create_empty_object("deposit_one")
+        gateway.create_staged_object("deposit_one")
         package = self.deposit_dir.get_package("deposit_one")
         gateway.stage_object_files("deposit_one", package)
         gateway.commit_object_changes(
@@ -149,7 +172,7 @@ class OcflRepositoryGatewayTest(TestCase):
     def test_gateway_provides_file_paths(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
-        gateway.create_empty_object("deposit_one")
+        gateway.create_staged_object("deposit_one")
         package = self.deposit_dir.get_package("deposit_one")
         gateway.stage_object_files("deposit_one", package)
         gateway.commit_object_changes(
@@ -161,7 +184,7 @@ class OcflRepositoryGatewayTest(TestCase):
     def test_gateway_provides_object_files(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
-        gateway.create_empty_object("deposit_one")
+        gateway.create_staged_object("deposit_one")
         package = self.deposit_dir.get_package("deposit_one")
         gateway.stage_object_files("deposit_one", package)
         gateway.commit_object_changes(
@@ -176,7 +199,6 @@ class OcflRepositoryGatewayTest(TestCase):
 
         object_files = gateway.get_object_files("deposit_one")
         prefix = os.path.join(self.pres_storage, "deposit_one")
-        print(object_files)
         self.assertListEqual(
             [
                 ObjectFile("A.txt", os.path.join(prefix, "v1", "content", "A.txt")),
@@ -186,3 +208,91 @@ class OcflRepositoryGatewayTest(TestCase):
             ],
             object_files
         )
+
+    def test_gateway_provides_no_object_files_when_there_are_none(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding nothing!"
+        )
+        object_files = gateway.get_object_files("deposit_one")
+        self.assertListEqual([], object_files)
+
+    def test_gateway_provides_object_files_when_only_staged_ones_exist(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        package = self.deposit_dir.get_package("deposit_one")
+        gateway.stage_object_files("deposit_one", package)
+
+        object_files = gateway.get_object_files("deposit_one", True)
+
+        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        prefix = os.path.join(self.extensions_path, object_path)
+
+        self.assertListEqual(
+            [
+                ObjectFile("A.txt", os.path.join(prefix, "v1", "content", "A.txt")),
+                ObjectFile("B/B.txt", os.path.join(prefix, "v1", "content", "B", "B.txt")),
+                ObjectFile("C/D/D.txt", os.path.join(prefix, "v1", "content", "C", "D", "D.txt")),
+            ],
+            object_files
+        )
+
+    def test_gateway_provides_object_files_when_no_staged_ones_exist(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        package = self.deposit_dir.get_package("deposit_one")
+        gateway.stage_object_files("deposit_one", package)
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+        )
+
+        object_files = gateway.get_object_files("deposit_one", True)
+
+        prefix = os.path.join(self.pres_storage, "deposit_one")
+        self.assertListEqual(
+            [
+                ObjectFile("A.txt", os.path.join(prefix, "v1", "content", "A.txt")),
+                ObjectFile("B/B.txt", os.path.join(prefix, "v1", "content", "B", "B.txt")),
+                ObjectFile("C/D/D.txt", os.path.join(prefix, "v1", "content", "C", "D", "D.txt")),
+            ],
+            object_files
+        )
+
+    def test_gateway_provides_object_files_when_versioned_and_staged_files_exist(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        package = self.deposit_dir.get_package("deposit_one")
+        gateway.stage_object_files("deposit_one", package)
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+        )
+
+        update_package = self.deposit_dir.get_package("deposit_one_update")
+        gateway.stage_object_files("deposit_one", update_package)
+
+        object_files = gateway.get_object_files("deposit_one", True)
+
+        storage_prefix = os.path.join(self.pres_storage, "deposit_one")
+        object_path_in_staging = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        staging_prefix = os.path.join(self.extensions_path, object_path_in_staging)
+        self.assertListEqual(
+            [
+                ObjectFile("A.txt", os.path.join(storage_prefix, "v1", "content", "A.txt")),
+                ObjectFile("B/B.txt", os.path.join(staging_prefix, "v2", "content", "B", "B.txt")),
+                ObjectFile("C/D/D.txt", os.path.join(storage_prefix, "v1", "content", "C", "D", "D.txt")),
+                ObjectFile("E.txt", os.path.join(staging_prefix, "v2", "content", "E.txt"))
+            ],
+            object_files
+        )
+
+    def test_gateway_raises_when_object_does_not_exist(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+
+        with self.assertRaises(ObjectDoesNotExistException):
+            gateway.get_object_files("deposit_zero")
