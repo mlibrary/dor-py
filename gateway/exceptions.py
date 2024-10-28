@@ -3,3 +3,6 @@ class ApplicationException(Exception):
 
 class NoContentException(ApplicationException):
     pass
+
+class ObjectDoesNotExistException(ApplicationException):
+    pass

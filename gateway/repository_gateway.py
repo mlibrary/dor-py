@@ -7,7 +7,7 @@ from gateway.package import Package
 class RepositoryGateway(metaclass=ABCMeta):
 
     @abstractmethod
-    def create_empty_object(self, id: str) -> None:
+    def create_staged_object(self, id: str) -> None:
         pass
 
     @abstractmethod
@@ -40,5 +40,5 @@ class RepositoryGateway(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_object_files(self, id: str) -> list[ObjectFile]:
+    def get_object_files(self, id: str, include_staged: bool = False) -> list[ObjectFile]:
         pass
