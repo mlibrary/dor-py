@@ -36,9 +36,5 @@ class RepositoryGateway(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_file_paths(self, id: str) -> list[str]:
-        pass
-
-    @abstractmethod
     def get_object_files(self, id: str, include_staged: bool = False) -> list[ObjectFile]:
         pass
