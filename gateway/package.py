@@ -1,7 +1,7 @@
 import os
 
 import gateway.deposit_directory
-from gateway.exceptions import NoContentException
+from gateway.exceptions import NoContentError
 
 class Package:
 
@@ -11,7 +11,7 @@ class Package:
     def validate_path(self) -> None:
         root_path = self.get_root_path()
         if not os.path.exists(root_path):
-            raise NoContentException(
+            raise NoContentError(
                 f"No content exists at path {root_path}"
             )
 

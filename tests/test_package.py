@@ -2,7 +2,7 @@ import os
 from unittest import TestCase
 
 from gateway.deposit_directory import DepositDirectory
-from gateway.exceptions import NoContentException
+from gateway.exceptions import NoContentError
 from gateway.package import Package
 
 class PackageTest(TestCase):
@@ -27,7 +27,7 @@ class PackageTest(TestCase):
         )
 
     def test_nonexistent_package_fails_validation(self):
-        with self.assertRaises(NoContentException):
+        with self.assertRaises(NoContentError):
             Package(self.deposit_dir, "no_such_deposit")
 
     def test_existing_package_passes_validation(self):

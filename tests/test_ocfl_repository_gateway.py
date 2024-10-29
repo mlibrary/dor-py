@@ -8,9 +8,9 @@ from unittest import TestCase
 from gateway.coordinator import Coordinator
 from gateway.deposit_directory import DepositDirectory
 from gateway.exceptions import (
-    ObjectAlreadyExistsException,
-    ObjectDoesNotExistException,
-    ObjectNotStagedException
+    ObjectAlreadyExistsError,
+    ObjectDoesNotExistError,
+    ObjectNotStagedError
 )
 from gateway.object_file import ObjectFile
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
@@ -76,7 +76,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
 
-        with self.assertRaises(ObjectAlreadyExistsException):
+        with self.assertRaises(ObjectAlreadyExistsError):
             gateway.create_staged_object("deposit_one")
 
     def test_gateway_stages_changes(self):
@@ -106,7 +106,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         package = self.deposit_dir.get_package("deposit_one")
-        with self.assertRaises(ObjectDoesNotExistException):
+        with self.assertRaises(ObjectDoesNotExistError):
             gateway.stage_object_files("deposit_one", package)
 
     def test_gateway_commits_changes(self):
@@ -140,7 +140,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
 
-        with self.assertRaises(ObjectNotStagedException):
+        with self.assertRaises(ObjectNotStagedError):
             gateway.commit_object_changes(
                 "deposit_zero",
                 Coordinator("test", "test@example.edu"),
@@ -324,5 +324,5 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
 
-        with self.assertRaises(ObjectDoesNotExistException):
+        with self.assertRaises(ObjectDoesNotExistError):
             gateway.get_object_files("deposit_zero")
