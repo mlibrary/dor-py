@@ -86,12 +86,6 @@ class OcflRepositoryGateway(RepositoryGateway):
                 return False
             raise e
 
-    def get_file_paths(self, id: str) -> list[str]:
-        args = ["rocfl", "-r", self.storage_path, "ls", id]
-        result = subprocess.run(args, check=True, capture_output=True)
-        data = result.stdout.decode()
-        return data.split()
-
     def has_staged_object_changes(self, id: str):
         args = ["rocfl", "-r", self.storage_path, "status", id]
         try:

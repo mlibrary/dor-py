@@ -211,18 +211,6 @@ class OcflRepositoryGatewayTest(TestCase):
 
         self.assertEqual(True, result)
 
-    def test_gateway_provides_file_paths(self):
-        gateway = OcflRepositoryGateway(self.pres_storage)
-        gateway.create_repository()
-        gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package("deposit_one")
-        gateway.stage_object_files("deposit_one", package)
-        gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
-        )
-        file_paths = gateway.get_file_paths("deposit_one")
-        self.assertListEqual(["A.txt", "B/B.txt", "C/D/D.txt"], file_paths)
-
     def test_gateway_provides_object_files(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
