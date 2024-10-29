@@ -3,7 +3,11 @@ import os
 import subprocess
 
 from gateway.coordinator import Coordinator
-from gateway.exceptions import ObjectDoesNotExistException
+from gateway.exceptions import (
+    ObjectAlreadyExistsException,
+    ObjectDoesNotExistException,
+    ObjectNotStagedException
+)
 from gateway.object_file import ObjectFile
 from gateway.package import Package
 from gateway.repository_gateway import RepositoryGateway
@@ -24,14 +28,29 @@ class OcflRepositoryGateway(RepositoryGateway):
         subprocess.run(args, check=True)
 
     def create_staged_object(self, id: str) -> None:
-        subprocess.run(["rocfl", "-r", self.storage_path, "new", id], check=True)
+        args = ["rocfl", "-r", self.storage_path, "new", id]
+        try:
+            subprocess.run(args, check=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            already_exists_message = (
+                f"Illegal state: Cannot create object {id} because it already exists in staging"
+            )
+            if already_exists_message in e.stderr.decode():
+                raise ObjectAlreadyExistsException()
+            raise e
 
     def stage_object_files(self, id: str, source_package: Package) -> None:
         command = " ".join([
             "rocfl", "-r", self.storage_path,
             "cp", "-r", id, os.path.join(source_package.get_root_path(), "*"), "--", "/"
         ])
-        subprocess.run(command, check=True, shell=True)
+        try:
+            subprocess.run(command, check=True, shell=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            not_found_message = f"Not found: Object {id}"
+            if not_found_message in e.stderr.decode():
+                raise ObjectDoesNotExistException()
+            raise e
 
     def commit_object_changes(
         self,
@@ -44,7 +63,13 @@ class OcflRepositoryGateway(RepositoryGateway):
             "-n", coordinator.username, "-a", f"mailto:{coordinator.email}",
             "-m", message
         ]
-        subprocess.run(args, check=True)
+        try:
+            subprocess.run(args, check=True, capture_output=True)
+        except subprocess.CalledProcessError as e:
+            no_staged_changes_message = f"No staged changes found for object {id}"
+            if no_staged_changes_message in e.stderr.decode():
+                raise ObjectNotStagedException()
+            raise e
 
     def purge_object(self, id: str) -> None:
         args = ["rocfl", "-r", self.storage_path, "purge", "-f", id]
@@ -53,10 +78,13 @@ class OcflRepositoryGateway(RepositoryGateway):
     def has_object(self, id: str) -> bool:
         args = ["rocfl", "-r", self.storage_path, "info", id]
         try:
-            subprocess.run(args, check=True)
+            subprocess.run(args, check=True, capture_output=True)
             return True
-        except subprocess.CalledProcessError:
-            return False
+        except subprocess.CalledProcessError as e:
+            not_found_message = f"Not found: Object {id}"
+            if not_found_message in e.stderr.decode():
+                return False
+            raise e
 
     def get_file_paths(self, id: str) -> list[str]:
         args = ["rocfl", "-r", self.storage_path, "ls", id]
@@ -73,16 +101,15 @@ class OcflRepositoryGateway(RepositoryGateway):
             return False
 
     def get_object_files(self, id: str, include_staged: bool = False) -> list[ObjectFile]:
-        if not self.has_object(id) and not self.has_staged_object_changes(id):
-            raise ObjectDoesNotExistException()
+        object_has_staged_changes = self.has_staged_object_changes(id)
+        if not self.has_object(id) and not object_has_staged_changes:
+            raise ObjectDoesNotExistException(
+                f"No object or staged changes found for id {id}"
+            )
 
-        flags = "-ptS" if include_staged and self.has_staged_object_changes(id) else "-pt"
+        flags = "-ptS" if include_staged and object_has_staged_changes else "-pt"
         args = ["rocfl", "-r", self.storage_path, "ls", flags, id]
-        try:
-            result = subprocess.run(args, check=True, capture_output=True)
-        except subprocess.CalledProcessError as e:
-            logger.error(e)
-            return []
+        result = subprocess.run(args, check=True, capture_output=True)
         data = result.stdout.decode()
         if len(data) == 0:
             return []
