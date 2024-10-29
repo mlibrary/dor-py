@@ -6,3 +6,9 @@ class NoContentException(ApplicationException):
 
 class ObjectDoesNotExistException(ApplicationException):
     pass
+
+class ObjectAlreadyExistsException(ApplicationException):
+    pass
+
+class ObjectNotStagedException(ApplicationException):
+    pass
