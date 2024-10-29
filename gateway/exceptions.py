@@ -1,14 +1,14 @@
-class ApplicationException(Exception):
+class NoContentError(Exception):
     pass
 
-class NoContentException(ApplicationException):
+class RepositoryGatewayError(Exception):
     pass
 
-class ObjectDoesNotExistException(ApplicationException):
+class ObjectDoesNotExistError(RepositoryGatewayError):
     pass
 
-class ObjectAlreadyExistsException(ApplicationException):
+class ObjectAlreadyExistsError(RepositoryGatewayError):
     pass
 
-class ObjectNotStagedException(ApplicationException):
+class ObjectNotStagedError(RepositoryGatewayError):
     pass
