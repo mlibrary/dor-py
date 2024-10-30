@@ -9,7 +9,7 @@
 # wheel packages, which are both needed for installing applications like Pandas and Numpy.
 
 # The base layer will contain the dependencies shared by the other layers
-FROM python:3.11-slim-bookworm AS base
+FROM python:3.12-slim-bookworm AS base
 
 # Allowing the argumenets to be read into the dockerfile. Ex:  .env > compose.yml > Dockerfile
 ARG POETRY_VERSION=1.8.4
