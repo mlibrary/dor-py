@@ -1,6 +1,6 @@
 import logging
-import os
 import subprocess
+from pathlib import Path
 from subprocess import CalledProcessError
 
 from gateway.coordinator import Coordinator
@@ -19,8 +19,8 @@ logger = logging.getLogger(__file__)
 class OcflRepositoryGateway(RepositoryGateway):
     storage_layout = "0002-flat-direct-storage-layout"
 
-    def __init__(self, storage_path: str):
-        self.storage_path = storage_path
+    def __init__(self, storage_path: Path):
+        self.storage_path: Path = storage_path
 
     def create_repository(self) -> None:
         args = [
@@ -46,8 +46,8 @@ class OcflRepositoryGateway(RepositoryGateway):
 
     def stage_object_files(self, id: str, source_package: Package) -> None:
         command = " ".join([
-            "rocfl", "-r", self.storage_path,
-            "cp", "-r", id, os.path.join(source_package.get_root_path(), "*"), "--", "/"
+            "rocfl", "-r", str(self.storage_path),
+            "cp", "-r", id, str(source_package.get_root_path() / "*"), "--", "/"
         ])
         try:
             subprocess.run(command, check=True, shell=True, capture_output=True)
@@ -124,5 +124,5 @@ class OcflRepositoryGateway(RepositoryGateway):
             return []
         lines = data.strip().split("\n")
         rows = [line.split("\t") for line in lines]
-        object_files = [ObjectFile(row[0].strip(), row[1].strip()) for row in rows]
+        object_files = [ObjectFile(Path(row[0].strip()), Path(row[1].strip())) for row in rows]
         return object_files
