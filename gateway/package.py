@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import gateway.deposit_directory
@@ -12,9 +11,7 @@ class Package:
     def validate_path(self) -> None:
         root_path = self.get_root_path()
         if not root_path.exists():
-            raise NoContentError(
-                f"No content exists at path {root_path}"
-            )
+            raise NoContentError(f"No content exists at path {root_path}")
 
     def __init__(self, deposit_dir: 'gateway.deposit_directory.DepositDirectory', path: Path):
         self.deposit_dir: 'gateway.deposit_directory.DepositDirectory' = deposit_dir
