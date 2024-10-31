@@ -46,12 +46,14 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def stage_object_files(self, id: str, source_package: Package) -> None:
-        command = " ".join([
+        root_path = source_package.get_root_path()
+        full_child_paths = ((root_path / child) for child in source_package.get_children())
+        command = [
             "rocfl", "-r", str(self.storage_path),
-            "cp", "-r", id, str(source_package.get_root_path() / "*"), "--", "/"
-        ])
+            "cp", "-r", id, *full_child_paths, "--", "/"
+        ]
         try:
-            subprocess.run(command, check=True, shell=True, capture_output=True)
+            subprocess.run(command, check=True, capture_output=True)
         except CalledProcessError as e:
             not_found_message = f"Not found: Object {id}"
             if not_found_message in e.stderr.decode():

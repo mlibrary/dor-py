@@ -44,3 +44,15 @@ class PackageTest(TestCase):
             set([Path("A.txt"), Path("B/B.txt"), Path("C/D/D.txt")]),
             set(package.get_file_paths())
         )
+
+    def test_empty_package_provides_children(self):
+        package = Package(self.deposit_dir, Path("empty_deposit"))
+        self.assertTrue(len(package.get_children()) == 0)
+
+    def test_mixed_package_provides_children(self):
+        package = Package(self.deposit_dir, Path("deposit_one"))
+        self.assertSetEqual(
+            set([Path("A.txt"), Path("B"), Path("C")]),
+            set(package.get_children())
+        )
+ 
