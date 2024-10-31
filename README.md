@@ -6,15 +6,17 @@ Python code for the DOR project.
 
 1. Clone the repo
 
-```
+```sh
 git clone https://github.com/mlibrary/dor-py.git
 cd dor-py
 ```
 
-2. In the terminal, run the `init.sh` 
-```
+1. In the terminal, run the `init.sh`
+
+```sh
 ./init.sh
 ```
+
 This will:
 
 * set up the initial environment variables file
@@ -25,22 +27,35 @@ This will:
   
 1. Edit `.env` with actual environment variables
 
-2. In the app container, use `poetry shell` to enable the virtual environment. Otherwise use:
-```
+1. In the app container, use `poetry shell` to enable the virtual environment. Otherwise use:
+
+```sh
  docker compose run --rm app poetry run YOUR_COMMAND
 ```
+
 ## Behave
+
 Behavior driven development with [behave](https://behave.readthedocs.io/en/stable/) 
 
 [Advanced Guide to Behavior-Driven Development with Behave in Python](https://behave.readthedocs.io/en/stable/install.html)
-```commandline
+
+```sh
 docker compose run --rm app poetry run behave
 ```
+
+## Tests
+
+To run the tests located in the [`tests`](/tests/) directory, use the following command:
+
+```sh
+docker compose run app poetry run pytest
+```
+
 ## Generating Samples
 
 To generate sample packages, on the command line run:
 
-```
+```sh
 docker compose run --rm app poetry run dor samples generate --collid xyzzy --num-scans 5 --total 1 --versions 1
 ```
 
@@ -48,7 +63,7 @@ This will generate a submission package in BagIt format for the collection `xyzz
 
 The complete list of options:
 
-```
+```sh
 --collid: str -- required
 --action: store|stage|purge
 --num_scans: int = None -- if unspecified, a random number of scans will be generated
