@@ -7,15 +7,15 @@ from gateway.package import Package
 class RepositoryGateway(metaclass=ABCMeta):
 
     @abstractmethod
+    def create_repository(self) -> None:
+        pass
+
+    @abstractmethod
     def create_staged_object(self, id: str) -> None:
         pass
 
     @abstractmethod
-    def stage_object_files(
-        self,
-        id: str,
-        source_package: Package
-    ) -> None:
+    def stage_object_files(self, id: str, source_package: Package) -> None:
         pass
 
     @abstractmethod
