@@ -9,9 +9,10 @@ from unittest import TestCase
 from gateway.coordinator import Coordinator
 from gateway.deposit_directory import DepositDirectory
 from gateway.exceptions import (
-    ObjectAlreadyExistsError,
+    NoStagedChangesError,
     ObjectDoesNotExistError,
-    ObjectNotStagedError
+    StagedObjectAlreadyExistsError,
+    StagedObjectDoesNotExistError
 )
 from gateway.object_file import ObjectFile
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
@@ -51,7 +52,6 @@ class OcflRepositoryGatewayTest(TestCase):
     def test_gateway_creates_repository(self):
         OcflRepositoryGateway(self.pres_storage).create_repository()
 
-        # Check for namaste file
         namaste_path = self.pres_storage / "0=ocfl_1.1"
         self.assertTrue(namaste_path.exists())
 
@@ -64,8 +64,7 @@ class OcflRepositoryGatewayTest(TestCase):
         full_object_path = self.extensions_path / object_path
         self.assertTrue(full_object_path.exists())
 
-        inventory_path = full_object_path / "inventory.json"
-        inventory_data = OcflRepositoryGatewayTest.read_inventory(inventory_path)
+        inventory_data = OcflRepositoryGatewayTest.read_inventory(full_object_path / "inventory.json")
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
         logical_paths = [path for paths in head_version["state"].values() for path in paths]
@@ -76,7 +75,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
 
-        with self.assertRaises(ObjectAlreadyExistsError):
+        with self.assertRaises(StagedObjectAlreadyExistsError):
             gateway.create_staged_object("deposit_one")
 
     def test_gateway_stages_changes(self):
@@ -86,15 +85,13 @@ class OcflRepositoryGatewayTest(TestCase):
         package = self.deposit_dir.get_package(Path("deposit_one"))
         gateway.stage_object_files("deposit_one", package)
 
-        # Check for changes under extensions
         self.assertTrue(self.extensions_path.exists())
 
         object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
         full_object_path = self.extensions_path / object_path
         self.assertTrue(full_object_path.exists())
 
-        inventory_path = full_object_path / "inventory.json"
-        inventory_data = OcflRepositoryGatewayTest.read_inventory(inventory_path)
+        inventory_data = OcflRepositoryGatewayTest.read_inventory(full_object_path / "inventory.json")
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
         logical_paths = [path for paths in head_version["state"].values() for path in paths]
@@ -106,7 +103,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         package = self.deposit_dir.get_package(Path("deposit_one"))
-        with self.assertRaises(ObjectDoesNotExistError):
+        with self.assertRaises(StagedObjectDoesNotExistError):
             gateway.stage_object_files("deposit_one", package)
 
     def test_gateway_commits_changes(self):
@@ -119,12 +116,10 @@ class OcflRepositoryGatewayTest(TestCase):
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
 
-        # Check for changes in storage root
         full_object_path = self.pres_storage / "deposit_one"
         self.assertTrue(full_object_path.exists())
 
-        inventory_path = full_object_path / "inventory.json"
-        inventory_data = OcflRepositoryGatewayTest.read_inventory(inventory_path)
+        inventory_data = OcflRepositoryGatewayTest.read_inventory(full_object_path / "inventory.json")
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
         logical_paths = [path for paths in head_version["state"].values() for path in paths]
@@ -140,7 +135,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
 
-        with self.assertRaises(ObjectNotStagedError):
+        with self.assertRaises(NoStagedChangesError):
             gateway.commit_object_changes(
                 "deposit_zero",
                 Coordinator("test", "test@example.edu"),
@@ -168,16 +163,13 @@ class OcflRepositoryGatewayTest(TestCase):
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
 
-        # Check for object in storage root
         full_object_path = self.pres_storage / "deposit_one"
         self.assertTrue(full_object_path.exists())
 
         gateway.purge_object("deposit_one")
 
-        # Check that object is gone
         self.assertFalse(full_object_path.exists())
 
-    # TO DO: Do we want to enforce this ourselves?
     def test_gateway_does_not_raise_when_purging_object_that_does_not_exist(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
