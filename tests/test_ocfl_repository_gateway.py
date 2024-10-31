@@ -150,8 +150,12 @@ class OcflRepositoryGatewayTest(TestCase):
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding empty version!"
         )
 
-        object_files = gateway.get_object_files("deposit_one")
-        self.assertListEqual([], object_files)
+        full_object_path = self.pres_storage / "deposit_one"
+        inventory_data = OcflRepositoryGatewayTest.read_inventory(full_object_path / "inventory.json")
+        self.assertEqual("deposit_one", inventory_data["id"])
+        head_version = inventory_data["versions"][inventory_data["head"]]
+        logical_paths = [path for paths in head_version["state"].values() for path in paths]
+        self.assertListEqual([], logical_paths)
 
     def test_gateway_purges_object(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
@@ -252,7 +256,6 @@ class OcflRepositoryGatewayTest(TestCase):
 
         object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
         prefix = self.extensions_path / object_path
-
         self.assertListEqual(
             [
                 ObjectFile(Path("A.txt"), prefix.joinpath("v1", "content", "A.txt")),
@@ -273,7 +276,6 @@ class OcflRepositoryGatewayTest(TestCase):
         )
 
         object_files = gateway.get_object_files("deposit_one", True)
-
         prefix = self.pres_storage / "deposit_one"
         self.assertListEqual(
             [
@@ -293,7 +295,6 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
-
         update_package = self.deposit_dir.get_package(Path("deposit_one_update"))
         gateway.stage_object_files("deposit_one", update_package)
 
