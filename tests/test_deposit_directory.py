@@ -6,7 +6,7 @@ from gateway.deposit_directory import DepositDirectory
 class DepositDirectoryTest(TestCase):
 
     def setUp(self):
-        self.test_deposit_path: Path = Path("tests/fixtures/test_deposit")
+        self.test_deposit_path = Path("tests/fixtures/test_deposit")
         self.deposit_dir = DepositDirectory(self.test_deposit_path)
 
         return super().setUp()
@@ -19,4 +19,4 @@ class DepositDirectoryTest(TestCase):
         )
 
     def test_deposit_directory_provides_access_to_packages(self):
-        self.deposit_dir.get_package("deposit_one")
+        self.deposit_dir.get_package(Path("deposit_one"))
