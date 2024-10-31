@@ -4,11 +4,14 @@ class NoContentError(Exception):
 class RepositoryGatewayError(Exception):
     pass
 
+class NoStagedChangesError(RepositoryGatewayError):
+    pass
+
 class ObjectDoesNotExistError(RepositoryGatewayError):
     pass
 
-class ObjectAlreadyExistsError(RepositoryGatewayError):
+class StagedObjectAlreadyExistsError(RepositoryGatewayError):
     pass
 
-class ObjectNotStagedError(RepositoryGatewayError):
+class StagedObjectDoesNotExistError(RepositoryGatewayError):
     pass

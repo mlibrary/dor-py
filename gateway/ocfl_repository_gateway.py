@@ -5,9 +5,10 @@ from subprocess import CalledProcessError
 
 from gateway.coordinator import Coordinator
 from gateway.exceptions import (
-    ObjectAlreadyExistsError,
+    NoStagedChangesError,
+    StagedObjectAlreadyExistsError,
+    StagedObjectDoesNotExistError,
     ObjectDoesNotExistError,
-    ObjectNotStagedError,
     RepositoryGatewayError
 )
 from gateway.object_file import ObjectFile
@@ -41,7 +42,7 @@ class OcflRepositoryGateway(RepositoryGateway):
                 f"Illegal state: Cannot create object {id} because it already exists in staging"
             )
             if already_exists_message in e.stderr.decode():
-                raise ObjectAlreadyExistsError()
+                raise StagedObjectAlreadyExistsError() from e
             raise RepositoryGatewayError() from e
 
     def stage_object_files(self, id: str, source_package: Package) -> None:
@@ -54,7 +55,7 @@ class OcflRepositoryGateway(RepositoryGateway):
         except CalledProcessError as e:
             not_found_message = f"Not found: Object {id}"
             if not_found_message in e.stderr.decode():
-                raise ObjectDoesNotExistError()
+                raise StagedObjectDoesNotExistError() from e
             raise RepositoryGatewayError() from e
 
     def commit_object_changes(
@@ -73,7 +74,7 @@ class OcflRepositoryGateway(RepositoryGateway):
         except CalledProcessError as e:
             no_staged_changes_message = f"No staged changes found for object {id}"
             if no_staged_changes_message in e.stderr.decode():
-                raise ObjectNotStagedError()
+                raise NoStagedChangesError() from e
             raise RepositoryGatewayError() from e
 
     def purge_object(self, id: str) -> None:
