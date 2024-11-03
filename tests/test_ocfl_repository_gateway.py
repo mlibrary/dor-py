@@ -15,7 +15,7 @@ from gateway.exceptions import (
     StagedObjectDoesNotExistError
 )
 from gateway.object_file import ObjectFile
-from gateway.ocfl_repository_gateway import OcflRepositoryGateway
+from gateway.ocfl_repository_gateway import OcflRepositoryGateway, StorageLayout
 
 class OcflRepositoryGatewayTest(TestCase):
 
@@ -130,6 +130,23 @@ class OcflRepositoryGatewayTest(TestCase):
         self.assertEqual("Adding first version!", head_version["message"])
         self.assertEqual("test", head_version["user"]["name"])
         self.assertEqual("mailto:test@example.edu", head_version["user"]["address"])
+
+    def test_gateway_can_use_a_different_storage_layout_for_committed_object(self):
+        gateway = OcflRepositoryGateway(
+            storage_path=self.pres_storage,
+            storage_layout=StorageLayout.HASHED_N_TUPLE
+        )
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        package = self.deposit_dir.get_package(Path("deposit_one"))
+        gateway.stage_object_files("deposit_one", package)
+        gateway.commit_object_changes(
+            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+        )
+
+        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        full_object_path = self.pres_storage / object_path
+        self.assertTrue(full_object_path.exists())
 
     def test_gateway_raises_when_committing_an_object_that_is_not_staged(self):
         gateway = OcflRepositoryGateway(self.pres_storage)

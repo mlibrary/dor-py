@@ -1,5 +1,5 @@
-import logging
 import subprocess
+from enum import Enum
 from pathlib import Path
 from subprocess import CalledProcessError
 
@@ -15,18 +15,24 @@ from gateway.object_file import ObjectFile
 from gateway.package import Package
 from gateway.repository_gateway import RepositoryGateway
 
-logger = logging.getLogger(__file__)
+class StorageLayout(Enum):
+    FLAT_DIRECT = '0002-flat-direct-storage-layout'
+    HASHED_N_TUPLE = '0004-hashed-n-tuple-storage-layout'
 
 class OcflRepositoryGateway(RepositoryGateway):
-    storage_layout = "0002-flat-direct-storage-layout"
 
-    def __init__(self, storage_path: Path):
+    def __init__(
+        self,
+        storage_path: Path,
+        storage_layout: StorageLayout = StorageLayout.FLAT_DIRECT
+    ):
         self.storage_path: Path = storage_path
+        self.storage_layout: StorageLayout = storage_layout
 
     def create_repository(self) -> None:
         args = [
             "rocfl", "-r", self.storage_path, "init",
-            "-l", self.storage_layout
+            "-l", self.storage_layout.value
         ]
         try:
             subprocess.run(args, check=True, capture_output=True)
