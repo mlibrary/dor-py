@@ -8,21 +8,23 @@ import json
 from dor.mockyrie.persistence.metadata_adapter import MetadataAdapter
 from dor.mockyrie.models import Asset, Monograph
 
+from dor.settings import S
+
 import datetime
 
 def get_engine():
-    engine = create_engine("postgresql+psycopg://roger@localhost/dor_test", echo=True)
+    engine = create_engine(S.engine_url, echo=True)
     return engine
 
 def get_session():
-    engine = create_engine("postgresql+psycopg://roger@localhost/dor_test", echo=True)
+    engine = get_engine()
     return Session(engine)
 
 app = typer.Typer()
 
 @app.command()
 def setup():
-    adapter = MetadataAdapter(engine=get_engine())
+    adapter = MetadataAdapter(session=get_session())
     adapter.setup()
 
     print("setup")
@@ -37,8 +39,9 @@ def set_alternate_id(id: int, alternate_identifier: str):
     resource = adapter.persister.save(resource=resource)
     print(resource)
 
+
 @app.command()
-def save_monograph(alternate_id: str = None, num_assets: int = 0):
+def save_monograph(alternate_identifier: str = None, num_assets: int = 0):
     faker = Faker()
     with get_engine().connect() as conn:
         with Session(bind=conn) as session:
@@ -47,10 +50,8 @@ def save_monograph(alternate_id: str = None, num_assets: int = 0):
             resource.created_at = datetime.datetime.now(datetime.UTC)
             resource.updated_at = resource.created_at
             resource.metadata = {"common": {"title": faker.sentence()}}
-            if alternate_id:
-                resource.alternate_ids.append({
-                    "id": alternate_id
-                })
+            if alternate_identifier:
+                resource.alternate_ids.append({"id": alternate_identifier})
 
             for _ in range(0, num_assets):
                 asset = Asset()
@@ -69,6 +70,7 @@ def save_monograph(alternate_id: str = None, num_assets: int = 0):
             resource = adapter.persister.save(resource=resource)
 
     print("save_monograph", resource)
+
 
 @app.command()
 def find_all():
