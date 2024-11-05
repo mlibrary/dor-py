@@ -40,6 +40,12 @@ ENV PYTHONPATH="/app"
 RUN curl -LO https://github.com/pwinckles/rocfl/releases/download/v1.7.0/rocfl-linux-x86_64-no-s3.zip && \
   unzip -d /usr/local/bin rocfl-linux-x86_64-no-s3.zip
 
+# Install rust toolchain
+USER app
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/app/.cargo/bin:$PATH"
+
+USER root
 CMD ["tail", "-f", "/dev/null"]
 
 # Both build and development need poetry, so it is its own step.
