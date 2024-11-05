@@ -143,3 +143,18 @@ resource = cls(**( orm_object.data )
   
 - [ ] `mockyrie.persistence.resource_factory.ResourceFactory` is a simplified version [Vaklyrie::Persistence::Postgres::ResourceConvert](https://github.com/samvera/valkyrie/blob/v2.0.0/lib/valkyrie/persistence/postgres/resource_factory.rb) and [Vaklyrie::Persistence::Postgres::ResourceConvert](https://github.com/samvera/valkyrie/blob/v2.0.0/lib/valkyrie/persistence/postgres/resource_converter.rb); the Valyrie versions do some extra work to generate instances vs. plain Ruby hashes/arrays when thawing JSONB 
 
+## Regrets
+
+**Is this an abuse of `dataclass`?** I couldn't find a definitive answer and the pattern was a blessed relief from boilerplate
+
+```perl
+sub new {
+    my $class = shift;
+    my $self = { @_ };
+    bless $self, $class;
+    $self->initialize;
+    return $self;
+}
+```
+
+**Is this the best way to pass the SQLAlchemy session around?** Valkyrie --- in the end --- is backed by Rails and `ActiveRecord` which means it has magical access to database sessions.
