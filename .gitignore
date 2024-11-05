@@ -2,11 +2,14 @@
 .bash_history
 .python_history
 .cache/
+.cargo/
+.rustup/
 .pytest_cache
 __pycache__
 .dotnet/
 .vscode-server
 .local
+.profile
 .gitconfig
 .venv
 .ssh
@@ -16,3 +19,4 @@ htmlcov/
 requirements.txt
 output/
 tests/test_storage
+pyrocfl.*
