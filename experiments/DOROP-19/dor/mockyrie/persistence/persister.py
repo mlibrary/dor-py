@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Mapping
 
-# from .metadata_adapter import MetadataAdapter
 from dor.mockyrie.models import Base
 
-from sqlalchemy.orm import Session
-from sqlalchemy import Engine
+import logging
+
 
 @dataclass
 class Persister:
@@ -16,5 +15,5 @@ class Persister:
             orm_object = self.adapter.resource_factory.from_resource(resource=resource)
             session.add(orm_object)
             session.commit()
-            print("persister.save", orm_object)
+            logging.info(f"persister.save: {orm_object.id} {resource.__class__.__name__} saved")
         return self.adapter.resource_factory.to_resource(orm_object=orm_object)

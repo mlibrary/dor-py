@@ -12,12 +12,17 @@ from dor.settings import S
 
 import datetime
 
-def get_engine():
-    engine = create_engine(S.engine_url, echo=True)
+import logging
+logging.basicConfig(level=logging.INFO)
+
+from pydantic import TypeAdapter
+
+def get_engine(echo=False):
+    engine = create_engine(S.engine_url, echo=echo)
     return engine
 
-def get_session():
-    engine = get_engine()
+def get_session(echo=False):
+    engine = get_engine(echo=echo)
     return Session(engine)
 
 app = typer.Typer()
@@ -41,9 +46,9 @@ def set_alternate_id(id: int, alternate_identifier: str):
 
 
 @app.command()
-def save_monograph(alternate_identifier: str = None, num_assets: int = 0):
+def save_monograph(alternate_identifier: str = None, num_assets: int = 0, echo: bool = False):
     faker = Faker()
-    with get_engine().connect() as conn:
+    with get_engine(echo=echo).connect() as conn:
         with Session(bind=conn) as session:
             adapter = MetadataAdapter(session=session)
             resource = Monograph()
@@ -69,19 +74,17 @@ def save_monograph(alternate_identifier: str = None, num_assets: int = 0):
 
             resource = adapter.persister.save(resource=resource)
 
-    print("save_monograph", resource)
-
+    print(f"∆ save_monograph: {resource} / {len(resource.member_ids)} assets")
 
 @app.command()
 def find_all():
     adapter = MetadataAdapter(session=get_session())
     resources = adapter.query_service.find_all()
 
-    for resource in resources:
-        print(resource)
+    for index, resource in enumerate(resources):
+        print(f"[{index}] {resource}")
 
-    print("find_all", len(resources))
-
+    print(f"∆ find_all: {len(resources)} total")
 
 @app.command()
 def find_by(id: int):
@@ -89,10 +92,9 @@ def find_by(id: int):
 
     try:
         resource = adapter.query_service.find_by(id)
-        print("find_by", id, resource)
+        print(f"∆ find_by {resource}")
     except Exception:
-        print("find_by", id, "404")
-
+        print(f"⚀ find_by", id, "404 Not Found")
 
 @app.command()
 def find_by_alternate_identifier(alternate_identifier: str):
@@ -100,15 +102,32 @@ def find_by_alternate_identifier(alternate_identifier: str):
 
     try:
         resource = adapter.query_service.find_by_alternate_identifier(alternate_identifier)
-        print("find_by_alternate_identifier", alternate_identifier, resource)
+        print(f"∆ find_by_alternate_identifier : {alternate_identifier} -> {resource}")
     except Exception as e:
-        print("find_by_alternate_identifier", alternate_identifier, "404", e)
+        print("⚀ find_by_alternate_identifier", alternate_identifier, "404 Not Found", e)
 
 @app.command()
 def find_members(id: int):
     adapter = MetadataAdapter(session=get_session())
     resource = adapter.query_service.find_by(id)
     members = adapter.query_service.find_members(resource)
-    print(resource)
+    print(f"∆ find_members {resource}")
     for member in members:
-        print("-", member)
+        print("\t-", member)
+
+@app.command()
+def dump_resource(id: int):
+    adapter = MetadataAdapter(session=get_session())
+    resource = adapter.query_service.find_by(id)
+    print(f"∆ dump_resource {resource}")
+    print(TypeAdapter(resource.__class__).dump_json(resource, indent=2).decode('utf-8'))
+
+@app.command()
+def update_monograph(id: int, key: str = 'title', value: str = 'xyzzy'):
+    adapter = MetadataAdapter(session=get_session())
+    resource = adapter.query_service.find_by(id)
+    resource.metadata['common'][key] = value
+    resource = adapter.persister.save(resource=resource)
+
+    print(f"∆ update_monograph {resource}")
+    print(TypeAdapter(resource.__class__).dump_json(resource, indent=2).decode("utf-8"))

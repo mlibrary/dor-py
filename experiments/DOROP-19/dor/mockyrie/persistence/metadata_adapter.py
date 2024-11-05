@@ -10,7 +10,6 @@ from .resource import Base
 
 @dataclass
 class MetadataAdapter:
-    # engine: Engine
     session: Session
 
     def setup(self):

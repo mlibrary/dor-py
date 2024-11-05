@@ -24,7 +24,8 @@ class QueryService:
         return self.adapter.resource_factory.to_resource(row)
 
     def find_by_alternate_identifier(self, alternate_identifier: str):
-        # oh now we get something interesting
+        # query the JSONB with the @> contains operator
+        # using sqlalchemy abstractions
         stmt = select(Resource).where(
             Resource.data['alternate_ids'].op('@>')(
                 cast([{"id": alternate_identifier}], JSONB)
@@ -40,6 +41,7 @@ class QueryService:
     # via sqlalchemy only yields an instance of sqlalchemy.sql.sqltypes.Integer
     def find_members(self, resource=None):
         id_column_type = self.adapter.get_column_type(Resource.id)
+        # use SQL because abstractions can be exhausting sometimes
         stmt = text(f"""
                     SELECT member.* FROM mock_resource a,
                     jsonb_array_elements(a.data->'member_ids') WITH ORDINALITY AS b(member, member_pos)
