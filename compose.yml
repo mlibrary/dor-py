@@ -1,5 +1,9 @@
 services:
   app:
+    hostname: app.local
+    networks:
+      default:
+        aliases: [ "app" ]
     build: 
       context: .
       target: development
@@ -15,3 +19,5 @@ services:
       - .:/app
     tty: true
     stdin_open: true
+networks:
+  default:
