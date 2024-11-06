@@ -17,3 +17,4 @@ htmlcov/
 requirements.txt
 output/
 tests/test_storage
+pyrocfl.*
