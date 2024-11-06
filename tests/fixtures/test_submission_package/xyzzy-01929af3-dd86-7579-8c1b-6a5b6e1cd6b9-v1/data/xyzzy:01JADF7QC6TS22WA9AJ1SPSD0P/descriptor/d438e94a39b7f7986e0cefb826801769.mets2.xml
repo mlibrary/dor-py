@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" OBJID="urn:umich.edu:dor:asset:d438e94a39b7f7986e0cefb826801769" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
+
+  <METS:metsHdr RECORDSTATUS="store" CREATEDATE="2024-10-17T14:48:46Z" ID="HDR1">
+    <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
+      <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
+    </METS:agent>
+  </METS:metsHdr>
+
+  <METS:mdSec>
+    <METS:md USE="PROVENANCE" ID="PREMIS1">
+      <METS:mdWrap MDTYPE="PREMIS" MIMETYPE="text/xml">
+        <METS:xmlData>
+          <PREMIS:premis version="3.0">
+            <PREMIS:object xsi:type="PREMIS:representation">
+              <PREMIS:objectIdentifier>
+                <PREMIS:objectIdentifierType>LOCAL</PREMIS:objectIdentifierType>
+                <PREMIS:objectIdentifierValue>_d55b7e356f21f21601652cc12a1c6250</PREMIS:objectIdentifierValue>
+              </PREMIS:objectIdentifier>
+            </PREMIS:object>
+            <PREMIS:event>
+              <PREMIS:eventIdentifier>
+                <PREMIS:eventIdentifierType>UUID</PREMIS:eventIdentifierType>
+                <PREMIS:eventIdentifierValue>b27a32be-0841-4d82-b390-f4a501a57e70</PREMIS:eventIdentifierValue>
+              </PREMIS:eventIdentifier>
+              <PREMIS:eventType>generate access derivative</PREMIS:eventType>
+              <PREMIS:eventDateTime>2004-08-20T07:00:06Z</PREMIS:eventDateTime>
+              <PREMIS:eventDetailInformation>
+                <PREMIS:eventDetail>Million anyone these compare assume stage.</PREMIS:eventDetail>
+              </PREMIS:eventDetailInformation>
+              <PREMIS:linkingAgentIdentifier>
+                <PREMIS:linkingAgentIdentifierType>image processing</PREMIS:linkingAgentIdentifierType>
+                <PREMIS:linkingAgentIdentifierValue>ambervilla@example.net</PREMIS:linkingAgentIdentifierValue>
+              </PREMIS:linkingAgentIdentifier>
+            </PREMIS:event>
+          </PREMIS:premis>
+        </METS:xmlData>
+      </METS:mdWrap>
+    </METS:md>
+    
+    <METS:md USE="TECHNICAL" ID="_01929af3-df23-75fe-8934-35445a2bfe87"><METS:mdRef LOCREF="../metadata/00000005.access.jpg.mix.xml" LOCTYPE="URL" MDTYPE="MIX" CHECKSUM="5c7015eddd1a2ebeda2fdea3a20c44b88004cd687ff09179d2e57a1e9e8e7c8e1854fdb31ac377c949a817a70c397be7324b738300336a302b08979650036c6a" CHECKSUMTYPE="SHA-512" /></METS:md>
+    
+    <METS:md USE="TECHNICAL" ID="_01929af3-df27-7950-b5fd-71e27e490dd3"><METS:mdRef LOCREF="../metadata/00000005.source.jpg.mix.xml" LOCTYPE="URL" MDTYPE="NISOIMG" CHECKSUM="77c4f5d20ca6e20a7cd722e7e2f337de6d52d4cc76fdd0cb5cf68eb1fbdb5dac94956da7bc92f4d31df685f927caf8c2158be343f57602da61a0bda3d3c410b4" CHECKSUMTYPE="SHA-512" /></METS:md>
+    
+    <METS:md USE="TECHNICAL" ID="_01929af3-df29-7b6a-b44f-01e424543dd3"><METS:mdRef LOCREF="../metadata/00000005.plaintext.txt.textmd.xml" LOCTYPE="URL" MDTYPE="TEXTMD" CHECKSUM="881548058157715b6dfe98a985d23b86973f7adc882123d1d330fc8b0797e48334263e80e5da3280998dc0a6c8357f3b2023a9f476d8fd6f7d6ca693f9c27bcf" CHECKSUMTYPE="SHA-512" /></METS:md>
+    
+  </METS:mdSec>
+
+  <METS:fileSec>
+    
+    <METS:file ID="_d55b7e356f21f21601652cc12a1c6250" USE="ACCESS" SEQ="5" MIMETYPE="image/jpeg" MDID="_01929af3-df23-75fe-8934-35445a2bfe87" CHECKSUM="3ebe351d4594ca4ea3ce19fca5c25e59692a9bb428252ec8721abae6f3c89c6a3e93daf34ae2b62c56650d5b3c44fe751b22c36bf57eaa584c06542ea7134041" CHECKSUMTYPE="SHA-512">
+      <METS:FLocat LOCTYPE="SYSTEM" LOCREF="../data/00000005.access.jpg" />
+    </METS:file>
+    
+    <METS:file ID="_3ff1d2cfe172933192607b9c781570ce" USE="SOURCE" SEQ="5" MIMETYPE="image/jpeg" MDID="_01929af3-df27-7950-b5fd-71e27e490dd3" CHECKSUM="541559389cf61e8352d84070490670172b4efeed2d0013592a38bbcb8ee12522ab5d6e776fed2925adbbc00935fbe9ddbd702f83300bb4d0d762e4d2cd35cb48" CHECKSUMTYPE="SHA-512">
+      <METS:FLocat LOCTYPE="SYSTEM" LOCREF="../data/00000005.source.jpg" />
+    </METS:file>
+    
+    <METS:file ID="_f19436c4f7bdec5fc02bbc145cb889eb" USE="SOURCE" SEQ="5" MIMETYPE="text/plain" MDID="_01929af3-df29-7b6a-b44f-01e424543dd3" CHECKSUM="3527646ce0ff2a9e7aee52b26be880349f29a2205bc27fbfe3f628777c54c4ab54694fa72202afd2974c560352a9184f567de0ec66608358436478d53a88aa9d" CHECKSUMTYPE="SHA-512">
+      <METS:FLocat LOCTYPE="SYSTEM" LOCREF="../data/00000005.plaintext.txt" />
+    </METS:file>
+    
+  </METS:fileSec>
+</METS:mets>

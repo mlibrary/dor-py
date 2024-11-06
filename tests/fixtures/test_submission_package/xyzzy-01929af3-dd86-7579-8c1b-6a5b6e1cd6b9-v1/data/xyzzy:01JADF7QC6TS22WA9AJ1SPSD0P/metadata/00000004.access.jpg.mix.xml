@@ -1,0 +1,35 @@
+<mix:mix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mix="http://www.loc.gov/mix/v20" xsi:schemaLocation="http://www.loc.gov/mix/v20">
+    <mix:BasicDigitalObjectInformation>
+        <mix:FormatDesignation>
+            <mix:formatName>image/jpeg</mix:formatName>
+        </mix:FormatDesignation>
+        <mix:ObjectIdentifier>
+            <mix:objectIdentiferType>dor:prep</mix:objectIdentiferType>
+            <mix:objectIdentiferValue>urn:umich.edu:dor:asset:a527173445d117cbf177084bd34e60f2:00000004.access.jpg</mix:objectIdentiferValue>
+        </mix:ObjectIdentifier>
+        <mix:byteOrder>big endian</mix:byteOrder>
+        <mix:Compression>
+            <mix:compressionScheme>JPEG</mix:compressionScheme>
+        </mix:Compression>
+    </mix:BasicDigitalObjectInformation>
+    <mix:BasicImageInformation>
+        <mix:BasicImageCharacteristics>
+            <mix:imageWidth>680</mix:imageWidth>
+            <mix:imageHeight>1024</mix:imageHeight>
+            <mix:PhotometricInterpretation>
+                <mix:colorSpace>YCbCr</mix:colorSpace>
+            </mix:PhotometricInterpretation>
+        </mix:BasicImageCharacteristics>
+        <mix:ImageAssessmentMetadata>
+            <mix:ImageColorEncoding>
+                <mix:BitsPerSample>
+                    <mix:bitsPersampleValue>8</mix:bitsPersampleValue>
+                    <mix:bitsPersampleValue>8</mix:bitsPersampleValue>
+                    <mix:bitsPersampleValue>8</mix:bitsPersampleValue>
+                    <mix:samplesPerPixel>3</mix:samplesPerPixel>
+                </mix:BitsPerSample>
+            </mix:ImageColorEncoding>
+        </mix:ImageAssessmentMetadata>
+    </mix:BasicImageInformation>
+</mix:mix>
