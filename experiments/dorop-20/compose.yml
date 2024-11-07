@@ -1,0 +1,16 @@
+services:
+  app:
+    build: 
+      context: .
+      target: development
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        DEV: ${DEV:-false}
+        POETRY_VERSION: ${POETRY_VERSION:-1.8.4}
+    volumes:
+      - .:/app
+      - ../../tests/fixtures/test_submission_package:/app/tests/fixtures/test_submission_package
+    tty: true
+    stdin_open: true
