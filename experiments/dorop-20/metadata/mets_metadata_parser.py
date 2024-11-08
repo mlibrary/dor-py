@@ -20,11 +20,15 @@ class MetsAssetParser():
         "PREMIS": "http://www.loc.gov/premis/v3"
     }
 
-    def __init__(self, metadata_file_path: Path):
+    @classmethod
+    def from_file(cls, file_path: Path):
         try:
-            text = metadata_file_path.read_text()
+            text = file_path.read_text()
         except FileNotFoundError as e:
             raise MetadataFileNotFoundError from e
+        return cls(text)
+
+    def __init__(self, text: str):
         self.tree = etree.fromstring(text=text)
 
     def get_asset(self) -> Asset:
@@ -58,7 +62,7 @@ class MetsAssetParser():
 
         return Asset(id=asset_id, files=asset_files)
 
-class MetsMetadataParser():
+class MetsItemParser():
     root_metadata_file_suffix = "root.mets2.xml"
    
     namespaces: dict[str, str] = {
@@ -75,18 +79,22 @@ class MetsMetadataParser():
                 paths.append(full_path)
         return paths
 
-    def find_root_metadata_file_path(self) -> Path | None:
-        for file_path in self.get_file_paths(self.content_path):
-            if str(file_path).endswith(self.root_metadata_file_suffix):
+    @classmethod
+    def find_root_metadata_file_path(cls, content_path: Path) -> Path | None:
+        for file_path in cls.get_file_paths(content_path):
+            if str(file_path).endswith(cls.root_metadata_file_suffix):
                 return file_path
 
-    def __init__(self, content_path: Path):
-        self.content_path: Path = content_path
-
-        file_path = self.find_root_metadata_file_path()
+    @classmethod
+    def from_path(cls, content_path: Path):
+        file_path = cls.find_root_metadata_file_path(content_path)
         if not file_path:
             raise MetadataFileNotFoundError
-        self.root_tree = etree.fromstring(text=file_path.read_text())
+
+        return cls(file_path.read_text())
+
+    def __init__(self, text: str):
+        self.root_tree = etree.fromstring(text=text)
 
     def get_identifier(self) -> str:
         return self.root_tree.get("OBJID")
@@ -120,14 +128,21 @@ class MetsMetadataParser():
             asset_dict[order_number] = asset_id
         sorted_keys = sorted(asset_dict.keys())
         return [asset_dict[key] for key in sorted_keys]
-    
-    def get_repository_item(self) -> RepositoryItem:
+
+    def get_repository_item(self, assets: list[Asset] | None = None) -> RepositoryItem:
         return RepositoryItem(
             id=self.get_identifier(),
             record_status=RecordStatus[self.get_record_status().upper()],
             asset_order=self.get_asset_order(),
-            assets=[
-                MetsAssetParser(self.content_path / asset_file_path).get_asset()
-                for asset_file_path in self.get_asset_file_paths()
-            ]
+            assets=assets if assets is not None else []
         )
+
+def parse_metadata(content_path: Path) -> RepositoryItem:
+    parser = MetsItemParser.from_path(content_path)
+    asset_file_paths = parser.get_asset_file_paths()
+    assets = [
+        MetsAssetParser.from_file(content_path / asset_file_path).get_asset()
+        for asset_file_path in asset_file_paths
+    ]
+    item = parser.get_repository_item(assets)
+    return item
