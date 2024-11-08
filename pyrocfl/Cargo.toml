@@ -26,3 +26,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.21.2", features = ["extension-module"] }
+rocfl = { version = "1.7.1-alpha.0", path = "/home/app/rocfl" }
