@@ -3,6 +3,8 @@ from enum import Enum
 from pathlib import Path
 from subprocess import CalledProcessError
 
+import pyrocfl
+
 from gateway.coordinator import Coordinator
 from gateway.exceptions import (
     NoStagedChangesError,
@@ -30,14 +32,17 @@ class OcflRepositoryGateway(RepositoryGateway):
         self.storage_layout: StorageLayout = storage_layout
 
     def create_repository(self) -> None:
-        args = [
-            "rocfl", "-r", self.storage_path, "init",
-            "-l", self.storage_layout.value
-        ]
-        try:
-            subprocess.run(args, check=True, capture_output=True)
-        except CalledProcessError as e:
-            raise RepositoryGatewayError() from e
+        pyrocfl.init_repo(root=str(self.storage_path), _layout=self.storage_layout.value)
+        # args = [
+        #     "rocfl", "-r", self.storage_path, "init",
+        #     "-l", self.storage_layout.value
+        # ]
+        # try:
+        #     subprocess.run(args, check=True, capture_output=True)
+        # except CalledProcessError as e:
+        #     raise RepositoryGatewayError() from e
+
+
 
     def create_staged_object(self, id: str) -> None:
         args = ["rocfl", "-r", self.storage_path, "new", id]
