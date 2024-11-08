@@ -26,7 +26,7 @@ use pyo3::exceptions::PyValueError;
 use rocfl::ocfl::LayoutExtensionName;
 
 #[pyfunction]
-pub fn init_repo(root: &str, _layout: &str) -> PyResult<()>  {
+pub fn init_repo(root: &str, layout: &str) -> PyResult<()>  {
     //         config.root.as_ref().unwrap(),
     //         config.staging_root.as_ref().map(Path::new),
     //         spec_version,
@@ -42,7 +42,13 @@ pub fn init_repo(root: &str, _layout: &str) -> PyResult<()>  {
 //     };
 
     let my_spec_version: SpecVersion = SpecVersion::Ocfl1_1;
-    let my_layout_a: Result<StorageLayout, RocflError> = StorageLayout::new(LayoutExtensionName::FlatDirectLayout, None);
+
+    let my_layout_name = match layout {
+        "0002-flat-direct-storage-layout" => LayoutExtensionName::FlatDirectLayout,
+        "0004-hashed-n-tuple-storage-layout" => LayoutExtensionName::HashedNTupleLayout,
+        _ => return Err(PyValueError::new_err("layout must be one of 0002-flat-direct-storage-layout or 0004-hashed-n-tuple-storage-layout")),
+    };
+    let my_layout_a: Result<StorageLayout, RocflError> = StorageLayout::new(my_layout_name, None);
     let my_layout_b: StorageLayout = match my_layout_a {
         Ok(v) => v,
         Err(e) => return Err(PyValueError::new_err(e.to_string())),
