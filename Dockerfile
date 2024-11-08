@@ -27,23 +27,13 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   python3-dev \ 
   build-essential \ 
   pkg-config \
-  vim-tiny \
-  curl \
-  unzip
+  vim-tiny
 
 # Set the working directory to /app
+RUN mkdir -p /app
+RUN chown -R app:app /app
 WORKDIR /app
 
-# Download rocfl and place in /usr/local/bin
-RUN curl -LO https://github.com/pwinckles/rocfl/releases/download/v1.7.0/rocfl-linux-x86_64-no-s3.zip && \
-  unzip -d /usr/local/bin rocfl-linux-x86_64-no-s3.zip
-
-# Install rust toolchain
-USER app
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/home/app/.cargo/bin:$PATH"
-
-USER root
 CMD ["tail", "-f", "/dev/null"]
 
 # Both build and development need poetry, so it is its own step.
@@ -75,11 +65,50 @@ RUN poetry export --without dev -f requirements.txt --output requirements.txt
 
 # We want poetry on in development
 FROM poetry AS development
+
+ARG GITHUB_BRANCH=umich
+
 RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
-  git
+      ca-certificates \
+      git \
+      wget \
+      curl \
+      unzip
+
+ENV GITHUB_BRANCH=${GITHUB_BRANCH}
+
+# Set the working directory to /home/app
+WORKDIR /home/app
+
+# Install rocfl source
+RUN wget -q https://github.com/mlibrary/rocfl/archive/refs/heads/${GITHUB_BRANCH}.zip && \
+    unzip -q ./${GITHUB_BRANCH}.zip -d . && \
+    rm -rf ./${GITHUB_BRANCH}.zip && \
+    mv ./rocfl-${GITHUB_BRANCH} ./rocfl && \
+    chown -R app:app ./rocfl
 
 # Switch to the non-root user "user"
 USER app
+
+# Install rust toolchain
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/home/app/.cargo/bin:$PATH"
+
+# Install rocfl
+RUN cargo install --path ./rocfl
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Just copy the files needed to install the dependencies
+COPY pyproject.toml poetry.lock README.md ./
+
+# Install dependencies
+RUN poetry install --no-root
+
+# Install pyrocfl
+RUN poetry run python3 -m rustimport build
+
 
 # We don't want poetry on in production, so we copy the needed files form the build stage
 FROM base AS production
