@@ -6,9 +6,9 @@ from metadata.models import (
     Asset, AssetFile, FileMetadataFile, FileMetadataFileType, RecordStatus
 )
 from metadata.exceptions import MetadataFileNotFoundError
-from metadata.mets_metadata_extractor import MetsAssetExtractor, MetsMetadataExtractor
+from metadata.mets_metadata_parser import MetsAssetParser, MetsMetadataParser
 
-class MetsAssetExtractorTest(TestCase):
+class MetsAssetParserTest(TestCase):
 
     def setUp(self):
         fixtures_path = Path("tests/fixtures")
@@ -20,8 +20,8 @@ class MetsAssetExtractorTest(TestCase):
 
         return super().setUp()
 
-    def test_extractor_can_get_asset_with_path(self):
-        asset = MetsAssetExtractor(self.asset_metadata_path).get_asset()
+    def test_parser_can_get_asset_with_path(self):
+        asset = MetsAssetParser(self.asset_metadata_path).get_asset()
         expected_asset = Asset(
             id="cc540920e91f05e4f6e4beb72dd441ac",
             files=[
@@ -59,7 +59,7 @@ class MetsAssetExtractorTest(TestCase):
         )
         self.assertEqual(expected_asset, asset)
 
-class MetsMetadataExtractorTest(TestCase):
+class MetsMetadataParserTest(TestCase):
 
     def setUp(self):
         fixtures_path = Path("tests/fixtures")
@@ -73,20 +73,20 @@ class MetsMetadataExtractorTest(TestCase):
 
         return super().setUp()
     
-    def test_extractor_raises_when_metadata_file_not_found(self):
+    def test_parser_raises_when_metadata_file_not_found(self):
         with self.assertRaises(MetadataFileNotFoundError):
-            MetsMetadataExtractor(self.empty_content_path)
+            MetsMetadataParser(self.empty_content_path)
 
-    def test_extractor_can_get_identifier(self):
-        identifier = MetsMetadataExtractor(self.content_path).get_identifier()
+    def test_parser_can_get_identifier(self):
+        identifier = MetsMetadataParser(self.content_path).get_identifier()
         self.assertEqual("xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P", identifier)
 
-    def test_extractor_can_get_record_status(self):
-        record_status = MetsMetadataExtractor(self.content_path).get_record_status()
+    def test_parser_can_get_record_status(self):
+        record_status = MetsMetadataParser(self.content_path).get_record_status()
         self.assertEqual("store", record_status)
 
-    def test_extractor_can_get_asset_order(self):
-        asset_order = MetsMetadataExtractor(self.content_path).get_asset_order()
+    def test_parser_can_get_asset_order(self):
+        asset_order = MetsMetadataParser(self.content_path).get_asset_order()
         expected_asset_order = [
             "ced165163e51e06e01dc44c35fea3eaf",
             "cc540920e91f05e4f6e4beb72dd441ac",
@@ -96,9 +96,8 @@ class MetsMetadataExtractorTest(TestCase):
         ]
         self.assertEqual(expected_asset_order, asset_order)
 
-    def test_extractor_can_get_repository_item(self):
-        item = MetsMetadataExtractor(self.content_path).get_repository_item()
-        print(item)
+    def test_parser_can_get_repository_item(self):
+        item = MetsMetadataParser(self.content_path).get_repository_item()
         self.assertEqual("xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P", item.id)
         self.assertEqual(RecordStatus.STORE, item.record_status)
         expected_asset_order = [

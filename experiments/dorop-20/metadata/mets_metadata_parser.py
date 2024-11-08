@@ -12,7 +12,7 @@ from metadata.models import (
 
 from lxml import etree
 
-class MetsAssetExtractor():
+class MetsAssetParser():
     asset_prefix = "urn:umich.edu:dor:asset:"
 
     namespaces: dict[str, str] = {
@@ -58,7 +58,7 @@ class MetsAssetExtractor():
 
         return Asset(id=asset_id, files=asset_files)
 
-class MetsMetadataExtractor():
+class MetsMetadataParser():
     root_metadata_file_suffix = "root.mets2.xml"
    
     namespaces: dict[str, str] = {
@@ -127,7 +127,7 @@ class MetsMetadataExtractor():
             record_status=RecordStatus[self.get_record_status().upper()],
             asset_order=self.get_asset_order(),
             assets=[
-                MetsAssetExtractor(self.content_path / asset_file_path).get_asset()
+                MetsAssetParser(self.content_path / asset_file_path).get_asset()
                 for asset_file_path in self.get_asset_file_paths()
             ]
         )
