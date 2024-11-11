@@ -1,13 +1,27 @@
 from pathlib import Path
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 
 class RecordStatus(Enum):
     STAGE = "stage"
     STORE = "store"
 
+@dataclass
+class Actor():
+    address: str
+    role: str
+
+@dataclass
+class PreservationEvent():
+    identifier: str
+    type: str
+    datetime: datetime
+    detail: str
+    actor: Actor
+
 class FileMetadataFileType(Enum):
-    TECHNICAL = 'TECHNICAL'
+    TECHNICAL = "TECHNICAL"
 
 @dataclass
 class FileMetadataFile:
@@ -24,6 +38,7 @@ class AssetFile:
 @dataclass
 class Asset:
     id: str
+    events: list[PreservationEvent]
     files: list[AssetFile]
 
 class StructMapType(Enum):
@@ -46,5 +61,6 @@ class StructMap():
 class RepositoryItem():
     id: str
     record_status: RecordStatus
+    events: list[PreservationEvent]
     struct_map: StructMap
     assets: list[Asset]

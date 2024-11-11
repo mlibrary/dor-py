@@ -1,19 +1,34 @@
+from datetime import datetime
 from pathlib import Path
 
 from metadata.exceptions import MetadataFileNotFoundError
 from metadata.models import (
-    Asset,
-    AssetFile,
-    FileMetadataFile,
-    FileMetadataFileType,
-    RecordStatus,
-    RepositoryItem,
-    StructMap,
-    StructMapItem,
-    StructMapType
+    Actor, Asset, AssetFile, FileMetadataFile, FileMetadataFileType, PreservationEvent,
+    RecordStatus, RepositoryItem, StructMap, StructMapItem, StructMapType
 )
 
 from lxml import etree
+
+class PremisEventParser():
+    namespaces = {"PREMIS": "http://www.loc.gov/premis/v3"}
+
+    def __init__(self, elem):
+        self.elem = elem
+
+    def get_event(self) -> PreservationEvent:
+        event_identifier = self.elem.find(".//PREMIS:eventIdentifierValue", self.namespaces).text
+        event_type = self.elem.find(".//PREMIS:eventType", self.namespaces).text
+        event_datetime = self.elem.find(".//PREMIS:eventDateTime", self.namespaces).text
+        event_detail = self.elem.find(".//PREMIS:eventDetail", self.namespaces).text
+        actor_role = self.elem.find(".//PREMIS:linkingAgentIdentifierType", self.namespaces).text
+        actor_address = self.elem.find(".//PREMIS:linkingAgentIdentifierValue", self.namespaces).text
+        return PreservationEvent(
+            identifier=event_identifier,
+            type=event_type,
+            datetime=datetime.fromisoformat(event_datetime),
+            detail=event_detail,
+            actor=Actor(address=actor_address, role=actor_role)
+        )
 
 class MetsAssetParser():
     asset_prefix = "urn:umich.edu:dor:asset:"
@@ -29,6 +44,10 @@ class MetsAssetParser():
         except FileNotFoundError as e:
             raise MetadataFileNotFoundError from e
         self.tree = etree.fromstring(text=text)
+
+    def get_events(self) -> list[PreservationEvent]:
+        event_elems = self.tree.findall(".//PREMIS:event", self.namespaces)
+        return [PremisEventParser(event_elem).get_event() for event_elem in event_elems]
 
     def get_asset(self) -> Asset:
         asset_id = self.tree.get("OBJID").replace(self.asset_prefix, "")
@@ -59,7 +78,7 @@ class MetsAssetParser():
                 )
             ))
 
-        return Asset(id=asset_id, files=asset_files)
+        return Asset(id=asset_id, events=self.get_events(), files=asset_files)
 
 class MetsMetadataParser():
     root_metadata_file_suffix = "root.mets2.xml"
@@ -109,6 +128,10 @@ class MetsMetadataParser():
             asset_file_paths.append(Path("descriptor") / asset_file_name)
         return asset_file_paths
 
+    def get_events(self) -> list[PreservationEvent]:
+        event_elems = self.root_tree.findall(".//PREMIS:event", self.namespaces)
+        return [PremisEventParser(event_elem).get_event() for event_elem in event_elems]
+
     def get_repository_item(self) -> RepositoryItem:
         struct_map_elem = self.root_tree.find(".//METS:structMap", self.namespaces)
         struct_map_id = struct_map_elem.get("ID")
@@ -135,6 +158,7 @@ class MetsMetadataParser():
         return RepositoryItem(
             id=self.get_identifier(),
             record_status=RecordStatus[self.get_record_status().upper()],
+            events=self.get_events(),
             struct_map=StructMap(
                 id=struct_map_id,
                 type=StructMapType[struct_map_type.upper()],
