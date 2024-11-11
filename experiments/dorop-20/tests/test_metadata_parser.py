@@ -3,7 +3,8 @@ from pathlib import Path
 from unittest import TestCase
 
 from metadata.models import (
-    Asset, AssetFile, FileMetadataFile, FileMetadataFileType, RecordStatus
+    Asset, AssetFile, FileMetadataFile, FileMetadataFileType, RecordStatus,
+    StructMap, StructMapItem, StructMapType
 )
 from metadata.exceptions import MetadataFileNotFoundError
 from metadata.mets_metadata_parser import MetsAssetParser, MetsMetadataParser
@@ -85,29 +86,21 @@ class MetsMetadataParserTest(TestCase):
         record_status = MetsMetadataParser(self.content_path).get_record_status()
         self.assertEqual("store", record_status)
 
-    def test_parser_can_get_asset_order(self):
-        asset_order = MetsMetadataParser(self.content_path).get_asset_order()
-        expected_asset_order = [
-            "ced165163e51e06e01dc44c35fea3eaf",
-            "cc540920e91f05e4f6e4beb72dd441ac",
-            "82cf9fa647dd1b3fbd9de71bbfb83fb2",
-            "a527173445d117cbf177084bd34e60f2",
-            "d438e94a39b7f7986e0cefb826801769"
-        ]
-        self.assertEqual(expected_asset_order, asset_order)
-
     def test_parser_can_get_repository_item(self):
         item = MetsMetadataParser(self.content_path).get_repository_item()
         self.assertEqual("xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P", item.id)
         self.assertEqual(RecordStatus.STORE, item.record_status)
-        expected_asset_order = [
-            "ced165163e51e06e01dc44c35fea3eaf",
-            "cc540920e91f05e4f6e4beb72dd441ac",
-            "82cf9fa647dd1b3fbd9de71bbfb83fb2",
-            "a527173445d117cbf177084bd34e60f2",
-            "d438e94a39b7f7986e0cefb826801769"
-        ]
-
-        self.assertEqual(expected_asset_order, item.asset_order)
+        expected_struct_map = StructMap(
+            id="SM1",
+            type=StructMapType.PHYSICAL,
+            items=[
+                StructMapItem(order=1, label="Page 1", asset_id="ced165163e51e06e01dc44c35fea3eaf"),
+                StructMapItem(order=2, label="Page 2", asset_id="cc540920e91f05e4f6e4beb72dd441ac"),
+                StructMapItem(order=3, label="Page 3", asset_id="82cf9fa647dd1b3fbd9de71bbfb83fb2"),
+                StructMapItem(order=4, label="Page 4", asset_id="a527173445d117cbf177084bd34e60f2"),
+                StructMapItem(order=5, label="Page 5", asset_id="d438e94a39b7f7986e0cefb826801769")
+            ]
+        )
+        self.assertEqual(expected_struct_map, item.struct_map)
         self.assertEqual(5, len(item.assets))
         self.assertTrue(all(isinstance(asset, Asset) for asset in item.assets))

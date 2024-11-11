@@ -7,7 +7,10 @@ from metadata.models import (
     FileMetadataFile,
     FileMetadataFileType,
     RecordStatus,
-    RepositoryItem
+    RepositoryItem,
+    StructMap,
+    StructMapItem,
+    StructMapType
 )
 
 from lxml import etree
@@ -106,28 +109,36 @@ class MetsMetadataParser():
             asset_file_paths.append(Path("descriptor") / asset_file_name)
         return asset_file_paths
 
-    def get_asset_order(self) -> list[str]:
-        struct_map = self.root_tree.find(".//METS:structMap", self.namespaces)
-        order_elems = struct_map.findall(".//METS:div[@ORDER]", self.namespaces)
+    def get_repository_item(self) -> RepositoryItem:
+        struct_map_elem = self.root_tree.find(".//METS:structMap", self.namespaces)
+        struct_map_id = struct_map_elem.get("ID")
+        struct_map_type = struct_map_elem.get("TYPE")
         
-        asset_dict = dict()
+        order_elems = struct_map_elem.findall(".//METS:div[@ORDER]", self.namespaces)
+
+        assets = []
+        struct_map_items = []
         for order_elem in order_elems:
             order_number = int(order_elem.get("ORDER"))
-            mptr = order_elem.find("METS:mptr", self.namespaces)
-            asset_file_name: str = mptr.get("LOCREF")
-            # better way to get the ID?
-            asset_id = asset_file_name.replace(".mets2.xml", "")
-            asset_dict[order_number] = asset_id
-        sorted_keys = sorted(asset_dict.keys())
-        return [asset_dict[key] for key in sorted_keys]
-    
-    def get_repository_item(self) -> RepositoryItem:
+            label = order_elem.get("LABEL")
+            mptr_elem = order_elem.find("METS:mptr", self.namespaces)
+            asset_file_name: str = mptr_elem.get("LOCREF")
+            asset_file_path = Path("descriptor") / asset_file_name
+            asset = MetsAssetParser(self.content_path / asset_file_path).get_asset()
+            assets.append(asset)
+            struct_map_items.append(StructMapItem(
+                order=order_number,
+                label=label,
+                asset_id=asset.id
+            ))
+
         return RepositoryItem(
             id=self.get_identifier(),
             record_status=RecordStatus[self.get_record_status().upper()],
-            asset_order=self.get_asset_order(),
-            assets=[
-                MetsAssetParser(self.content_path / asset_file_path).get_asset()
-                for asset_file_path in self.get_asset_file_paths()
-            ]
+            struct_map=StructMap(
+                id=struct_map_id,
+                type=StructMapType[struct_map_type.upper()],
+                items=struct_map_items
+            ),
+            assets=assets
         )

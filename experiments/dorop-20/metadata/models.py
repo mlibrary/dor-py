@@ -26,9 +26,25 @@ class Asset:
     id: str
     files: list[AssetFile]
 
+class StructMapType(Enum):
+    PHYSICAL = "PHYSICAL"
+    LOGICAL = "LOGICAL"
+
+@dataclass
+class StructMapItem():
+    order: int
+    label: str
+    asset_id: str
+
+@dataclass
+class StructMap():
+    id: str
+    type: StructMapType
+    items: list[StructMapItem]
+
 @dataclass
 class RepositoryItem():
     id: str
     record_status: RecordStatus
-    asset_order: list[str]
+    struct_map: StructMap
     assets: list[Asset]
