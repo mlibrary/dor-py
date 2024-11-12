@@ -1,13 +1,13 @@
 from datetime import datetime
 from pathlib import Path
 
+from lxml import etree
+
 from metadata.exceptions import MetadataFileNotFoundError
 from metadata.models import (
     Actor, Asset, AssetFile, AssetFileUse, FileMetadataFile, FileMetadataFileType, PreservationEvent,
     RecordStatus, RepositoryItem, StructMap, StructMapItem, StructMapType
 )
-
-from lxml import etree
 
 class PremisEventParser():
     namespaces = {"PREMIS": "http://www.loc.gov/premis/v3"}
@@ -103,6 +103,7 @@ class MetsMetadataParser():
         for file_path in self.get_file_paths(self.content_path):
             if str(file_path).endswith(self.root_metadata_file_suffix):
                 return file_path
+        return None
 
     def __init__(self, content_path: Path):
         self.content_path: Path = content_path
