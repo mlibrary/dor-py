@@ -123,7 +123,7 @@ class MetsMetadataParserTest(TestCase):
 
     def test_parser_can_get_record_status(self):
         record_status = MetsMetadataParser(self.content_path).get_record_status()
-        self.assertEqual("store", record_status)
+        self.assertEqual(RecordStatus.STORE, record_status)
 
     def test_parser_can_get_repository_item(self):
         item = MetsMetadataParser(self.content_path).get_repository_item()
@@ -134,6 +134,8 @@ class MetsMetadataParserTest(TestCase):
         event = item.events[0]
         self.assertTrue(isinstance(item.events[0], PreservationEvent))
         self.assertEqual("4463f8a7-d532-4028-8f63-5808e33a0906", event.identifier)
+
+        self.assertTrue("https://creativecommons.org/publicdomain/zero/1.0/", item.rights)
 
         expected_struct_map = StructMap(
             id="SM1",

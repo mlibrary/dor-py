@@ -66,6 +66,7 @@ class StructMap():
 class RepositoryItem():
     id: str
     record_status: RecordStatus
+    rights: str | None
     events: list[PreservationEvent]
     struct_map: StructMap
     assets: list[Asset]

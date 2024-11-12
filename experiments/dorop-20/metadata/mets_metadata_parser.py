@@ -116,9 +116,18 @@ class MetsMetadataParser():
     def get_identifier(self) -> str:
         return self.root_tree.get("OBJID")
 
-    def get_record_status(self) -> str:
+    def get_record_status(self) -> RecordStatus:
         mets_header = self.root_tree.find("METS:metsHdr", self.namespaces)
-        return mets_header.get('RECORDSTATUS')
+        status = mets_header.get('RECORDSTATUS')
+        return RecordStatus[status.upper()]
+
+    def get_rights_info(self) -> str | None:
+        md_rights_elem = self.root_tree.find(".//METS:md[@USE='RIGHTS']", self.namespaces)
+        child = md_rights_elem[0]
+        if child.tag == "METS:mdRef":
+            return child.get("LOCREF")
+        else:
+            return None
 
     def get_asset_file_paths(self) -> list[Path]:
         struct_map = self.root_tree.find(".//METS:structMap", self.namespaces)
@@ -160,8 +169,9 @@ class MetsMetadataParser():
 
         return RepositoryItem(
             id=self.get_identifier(),
-            record_status=RecordStatus[self.get_record_status().upper()],
+            record_status=self.get_record_status(),
             events=self.get_events(),
+            rights=self.get_rights_info(),
             struct_map=StructMap(
                 id=struct_map_id,
                 type=StructMapType[struct_map_type.upper()],
