@@ -6,7 +6,7 @@ from unittest import TestCase
 from lxml import etree
 
 from metadata.models import (
-    Actor, Asset, AssetFile, FileMetadataFile, FileMetadataFileType, PreservationEvent,
+    Actor, Asset, AssetFile, AssetFileUse, FileMetadataFile, FileMetadataFileType, PreservationEvent,
     RecordStatus, StructMap, StructMapItem, StructMapType
 )
 from metadata.exceptions import MetadataFileNotFoundError
@@ -65,6 +65,7 @@ class MetsAssetParserTest(TestCase):
                 AssetFile(
                     id="_1cc90346d5f1fe485fc8a3c55d10e753",
                     path=Path("data/00000002.access.jpg"),
+                    use=AssetFileUse.ACCESS,
                     metadata_file=
                         FileMetadataFile(
                             id="_01929af3-df09-7d40-b0b4-8db2d23de0db",
@@ -75,6 +76,7 @@ class MetsAssetParserTest(TestCase):
                 AssetFile(
                     id="_f442339a2731f043f72460c64ad66fee",
                     path=Path("data/00000002.source.jpg"),
+                    use=AssetFileUse.SOURCE,
                     metadata_file=
                         FileMetadataFile(
                             id="_01929af3-df0c-7e20-b7f3-b7a8260ca651",
@@ -85,6 +87,7 @@ class MetsAssetParserTest(TestCase):
                 AssetFile(
                     id="_59472df4b090349a7440a32ca575f87e",
                     path=Path("data/00000002.plaintext.txt"),
+                    use=AssetFileUse.SOURCE,
                     metadata_file=
                         FileMetadataFile(
                             id="_01929af3-df0f-7cf6-9de2-f0cc276464cd",

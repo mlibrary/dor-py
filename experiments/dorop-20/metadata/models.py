@@ -20,6 +20,10 @@ class PreservationEvent():
     detail: str
     actor: Actor
 
+class AssetFileUse(Enum):
+    ACCESS = "ACCESS"
+    SOURCE = "SOURCE"
+
 class FileMetadataFileType(Enum):
     TECHNICAL = "TECHNICAL"
 
@@ -32,6 +36,7 @@ class FileMetadataFile:
 @dataclass
 class AssetFile:
     id: str
+    use: AssetFileUse
     path: Path
     metadata_file: FileMetadataFile
 

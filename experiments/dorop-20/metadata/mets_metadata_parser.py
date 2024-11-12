@@ -3,7 +3,7 @@ from pathlib import Path
 
 from metadata.exceptions import MetadataFileNotFoundError
 from metadata.models import (
-    Actor, Asset, AssetFile, FileMetadataFile, FileMetadataFileType, PreservationEvent,
+    Actor, Asset, AssetFile, AssetFileUse, FileMetadataFile, FileMetadataFileType, PreservationEvent,
     RecordStatus, RepositoryItem, StructMap, StructMapItem, StructMapType
 )
 
@@ -56,6 +56,7 @@ class MetsAssetParser():
         asset_files = []
         for asset_file_elem in asset_file_elems:
             asset_file_id = asset_file_elem.get("ID")
+            asset_file_use = asset_file_elem.get("USE")
             flocat_elem = asset_file_elem.find("METS:FLocat", self.namespaces)
             asset_path = Path(flocat_elem.get("LOCREF").replace("../", ""))
             
@@ -71,6 +72,7 @@ class MetsAssetParser():
             asset_files.append(AssetFile(
                 id=asset_file_id,
                 path=Path(asset_path),
+                use=AssetFileUse[asset_file_use],
                 metadata_file=FileMetadataFile(
                     id=file_metadata_file_id,
                     type=FileMetadataFileType[file_metadata_file_type],
