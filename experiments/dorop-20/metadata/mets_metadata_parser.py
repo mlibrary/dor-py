@@ -9,6 +9,9 @@ from metadata.models import (
     RecordStatus, RepositoryItem, StructMap, StructMapItem, StructMapType
 )
 
+def apply_relative_path(path: Path, path_to_apply: Path) -> Path:
+    return (path / path_to_apply).resolve(strict=True).relative_to(Path.cwd())
+
 class PremisEventParser():
     namespaces = {"PREMIS": "http://www.loc.gov/premis/v3"}
 
@@ -38,9 +41,10 @@ class MetsAssetParser():
         "PREMIS": "http://www.loc.gov/premis/v3"
     }
 
-    def __init__(self, metadata_file_path: Path):
+    def __init__(self, file_path: Path):
+        self.file_path = file_path
         try:
-            text = metadata_file_path.read_text()
+            text = self.file_path.read_text()
         except FileNotFoundError as e:
             raise MetadataFileNotFoundError from e
         self.tree = etree.fromstring(text=text)
@@ -58,8 +62,7 @@ class MetsAssetParser():
             asset_file_id = asset_file_elem.get("ID")
             asset_file_use = asset_file_elem.get("USE")
             flocat_elem = asset_file_elem.find("METS:FLocat", self.namespaces)
-            asset_path = Path(flocat_elem.get("LOCREF").replace("../", ""))
-            
+            asset_path = apply_relative_path(self.file_path.parent, flocat_elem.get("LOCREF"))
             file_metadata_file_id = asset_file_elem.get("MDID")
             file_metadata_file_elem = self.tree.find(
                 f".//METS:md[@ID='{file_metadata_file_id}']", self.namespaces
@@ -67,7 +70,9 @@ class MetsAssetParser():
             file_metadata_file_id = file_metadata_file_elem.get("ID")
             file_metadata_file_type = file_metadata_file_elem.get("USE")
             file_metadata_file_loc_elem = file_metadata_file_elem.find("METS:mdRef", self.namespaces)
-            file_metadata_file_path = file_metadata_file_loc_elem.get("LOCREF").replace("../", "")
+            file_metadata_file_path = apply_relative_path(
+                self.file_path.parent, file_metadata_file_loc_elem.get("LOCREF")
+            )
 
             asset_files.append(AssetFile(
                 id=asset_file_id,
@@ -111,7 +116,8 @@ class MetsMetadataParser():
         file_path = self.find_root_metadata_file_path()
         if not file_path:
             raise MetadataFileNotFoundError
-        self.root_tree = etree.fromstring(text=file_path.read_text())
+        self.file_path: Path = file_path
+        self.root_tree = etree.fromstring(text=self.file_path.read_text())
 
     def get_identifier(self) -> str:
         return self.root_tree.get("OBJID")
@@ -158,8 +164,8 @@ class MetsMetadataParser():
             label = order_elem.get("LABEL")
             mptr_elem = order_elem.find("METS:mptr", self.namespaces)
             asset_file_name: str = mptr_elem.get("LOCREF")
-            asset_file_path = Path("descriptor") / asset_file_name
-            asset = MetsAssetParser(self.content_path / asset_file_path).get_asset()
+            asset_file_path = apply_relative_path(self.file_path.parent, Path(asset_file_name))
+            asset = MetsAssetParser(asset_file_path).get_asset()
             assets.append(asset)
             struct_map_items.append(StructMapItem(
                 order=order_number,

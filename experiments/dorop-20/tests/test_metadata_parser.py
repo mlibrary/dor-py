@@ -42,9 +42,9 @@ class MetsAssetParserTest(TestCase):
         fixtures_path = Path("tests/fixtures")
         test_submission_package_path = fixtures_path / "test_submission_package"
         bag_path = test_submission_package_path / "xyzzy-01929af3-dd86-7579-8c1b-6a5b6e1cd6b9-v1"
-        content_path = bag_path / "data" / "xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P"
+        self.content_path = bag_path / "data" / "xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P"
         asset_id = "cc540920e91f05e4f6e4beb72dd441ac"
-        self.asset_metadata_path = content_path / "descriptor" / f"{asset_id}.mets2.xml"
+        self.asset_metadata_path = self.content_path / "descriptor" / f"{asset_id}.mets2.xml"
 
         return super().setUp()
 
@@ -64,35 +64,35 @@ class MetsAssetParserTest(TestCase):
             files=[
                 AssetFile(
                     id="_1cc90346d5f1fe485fc8a3c55d10e753",
-                    path=Path("data/00000002.access.jpg"),
+                    path=self.content_path / Path("data/00000002.access.jpg"),
                     use=AssetFileUse.ACCESS,
                     metadata_file=
                         FileMetadataFile(
                             id="_01929af3-df09-7d40-b0b4-8db2d23de0db",
                             type=FileMetadataFileType.TECHNICAL,
-                            path=Path("metadata/00000002.access.jpg.mix.xml")
+                            path=self.content_path / Path("metadata/00000002.access.jpg.mix.xml")
                         )
                 ),
                 AssetFile(
                     id="_f442339a2731f043f72460c64ad66fee",
-                    path=Path("data/00000002.source.jpg"),
+                    path=self.content_path / Path("data/00000002.source.jpg"),
                     use=AssetFileUse.SOURCE,
                     metadata_file=
                         FileMetadataFile(
                             id="_01929af3-df0c-7e20-b7f3-b7a8260ca651",
                             type=FileMetadataFileType.TECHNICAL,
-                            path=Path("metadata/00000002.source.jpg.mix.xml")
+                            path=self.content_path / Path("metadata/00000002.source.jpg.mix.xml")
                         )
                 ),
                 AssetFile(
                     id="_59472df4b090349a7440a32ca575f87e",
-                    path=Path("data/00000002.plaintext.txt"),
+                    path=self.content_path / Path("data/00000002.plaintext.txt"),
                     use=AssetFileUse.SOURCE,
                     metadata_file=
                         FileMetadataFile(
                             id="_01929af3-df0f-7cf6-9de2-f0cc276464cd",
                             type=FileMetadataFileType.TECHNICAL,
-                            path=Path("metadata/00000002.plaintext.txt.textmd.xml")
+                            path=self.content_path / Path("metadata/00000002.plaintext.txt.textmd.xml")
                         )
                 )
             ]
