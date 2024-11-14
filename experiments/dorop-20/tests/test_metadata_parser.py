@@ -10,7 +10,7 @@ from metadata.models import (
     RecordStatus, StructMap, StructMapItem, StructMapType
 )
 from metadata.exceptions import MetadataFileNotFoundError
-from metadata.mets_metadata_parser import MetsAssetParser, MetsMetadataParser, PremisEventParser
+from metadata.mets_metadata_parser import ElementAdapter, MetsAssetParser, MetsMetadataParser, PremisEventParser
 
 class PremisEventParserTest(TestCase):
 
@@ -23,7 +23,10 @@ class PremisEventParserTest(TestCase):
         root_tree = etree.fromstring(mets_root_metadata_file.read_text())
 
         namespaces = {"PREMIS": "http://www.loc.gov/premis/v3"}
-        self.event_elem = root_tree.findall(".//PREMIS:event", namespaces)[0]
+        self.event_elem = ElementAdapter(
+            root_tree.findall(".//PREMIS:event", namespaces)[0],
+            namespaces
+        )
 
     def test_parser_can_get_event(self):
         event = PremisEventParser(self.event_elem).get_event()
