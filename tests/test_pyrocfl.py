@@ -1,5 +1,5 @@
 from pyrocfl import say_hello
-from pyrocfl import propogate_rocfl_error
+from pyrocfl import propagate_rocfl_error
 from pyrocfl import Number
 
 # pytest
@@ -30,14 +30,11 @@ class PyrocflTest(TestCase):
             say_hello()
             self.assertNotEqual(out.getvalue(), "Hello from pyrocfl, implemented in Rust!\n")
 
-    # @unittest.skip("TODO")
-    # def test_pyrocfl_number(self):
-    #     n = Number::new(1)
-    #     self.assertEqual(n, 1)
-
-    def test_error_propogation(self):
+    def test_error_propagation(self):
         with self.assertRaisesRegex(ValueError, "rocfl error"):
-            propogate_rocfl_error()
+            propagate_rocfl_error()
 
-
-
+    # @unittest.skip("TODO")
+    def test_pyrocfl_number(self):
+        n = Number(1)
+        self.assertEqual(str(n), "1")

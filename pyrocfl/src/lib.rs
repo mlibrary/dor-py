@@ -44,6 +44,8 @@ impl Number {
     }
 }
 
+
+// Error propagation traits
 use pyo3::exceptions::PyValueError;
 use rocfl::ocfl::RocflError;
 use pyo3::PyErr;
@@ -67,7 +69,7 @@ fn raise_rocfl_error() -> Result<(), RocflError> {
 }
 
 #[pyfunction]
-pub fn propogate_rocfl_error() -> Result<(), PyRocflError> {
+pub fn propagate_rocfl_error() -> Result<(), PyRocflError> {
     raise_rocfl_error()?;
     Ok(())
 }
