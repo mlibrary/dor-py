@@ -3,7 +3,8 @@ from enum import Enum
 from pathlib import Path
 from subprocess import CalledProcessError
 
-import pyrocfl
+from pyrocfl import Number
+from pyrocfl import init_fs_repo
 
 from gateway.coordinator import Coordinator
 from gateway.exceptions import (
@@ -32,7 +33,7 @@ class OcflRepositoryGateway(RepositoryGateway):
         self.storage_layout: StorageLayout = storage_layout
 
     def create_repository(self) -> None:
-        pyrocfl.init_repo(root=str(self.storage_path), layout=str(self.storage_layout.value))
+        init_fs_repo(root=str(self.storage_path), layout=str(self.storage_layout.value))
         # args = [
         #     "rocfl", "-r", self.storage_path, "init",
         #     "-l", self.storage_layout.value
