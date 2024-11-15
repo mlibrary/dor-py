@@ -17,6 +17,11 @@ fn say_hello() {
 //    Ok(())
 //}
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// Simple tuple struct
+//
+///////////////////////////////////////////////////////////////////////////////
 #[pyclass]
 struct Number(i32);
 
@@ -44,35 +49,58 @@ impl Number {
     }
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
+//
 // Error propagation traits
+//
+///////////////////////////////////////////////////////////////////////////////
+
 use pyo3::exceptions::PyValueError;
 use rocfl::ocfl::RocflError;
 use pyo3::PyErr;
 
+// Using Tuple Structs Without Named Fields to Create Different Types
+//
+// Rust also supports structs that look similar to tuples, called tuple structs.
+// Tuple structs have the added meaning the struct name provides but don’t have
+// names associated with their fields; rather, they just have the types of the fields.
+// Tuple structs are useful when you want to give the whole tuple a name and
+// make the tuple a different type from other tuples, and when
+// naming each field as in a regular struct would be verbose or redundant.
+//
+// To define a tuple struct, start with the struct keyword and the struct name
+// followed by the types in the tuple.
 pub struct PyRocflError(RocflError);
 
+// Converting from `PyRocflError` to `PyErr`
 impl From<PyRocflError> for PyErr {
     fn from(error: PyRocflError) -> Self {
         PyValueError::new_err(error.0.to_string())
     }
 }
 
+// Converting from `RocflError` to `PyRocflError`
 impl From<RocflError> for PyRocflError {
     fn from(error: RocflError) -> Self {
         Self(error)
     }
 }
-
+// Used in python unittest for `RocflError` propagation
 fn raise_rocfl_error() -> Result<(), RocflError> {
     Err(RocflError::General("rocfl error".to_string()))
 }
-
+// Used in python unittest for `RocflError` propagation
 #[pyfunction]
 pub fn propagate_rocfl_error() -> Result<(), PyRocflError> {
     raise_rocfl_error()?;
     Ok(())
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// API - Python bindings for rocfl
+//
+///////////////////////////////////////////////////////////////////////////////
 
 use rocfl::ocfl::LayoutExtensionName;
 use rocfl::ocfl::OcflRepo;
@@ -85,56 +113,35 @@ pub enum PyStorageLayout {
     HashedNTuple,
 }
 
-#[pyfunction]
-pub fn init_fs_repo(root: &str, layout: &str) -> PyResult<()>  {
-    //         config.root.as_ref().unwrap(),
-    //         config.staging_root.as_ref().map(Path::new),
-    //         spec_version,
-    //         create_layout(cmd.layout, cmd.config_file.as_deref())?,
-
-    let my_root = root;
-//    let my_staging_root: Option<&Path> = Some(Path::new(staging_root));
-    let my_staging_root: Option<&Path> = None;
-//     let my_spec_version_a: Result<SpecVersion, RocflError> = SpecVersion::try_from_num(spec_version);
-//     let my_spec_version: SpecVersion = match my_spec_version_a {
-//         Ok(v) => v,
-//         Err(e) => return Err(PyValueError::new_err(e.to_string())),
-//     };
-
-    let my_spec_version: SpecVersion = SpecVersion::Ocfl1_1;
-
-    let my_layout_name = match layout {
-        "0002-flat-direct-storage-layout" => LayoutExtensionName::FlatDirectLayout,
-        "0004-hashed-n-tuple-storage-layout" => LayoutExtensionName::HashedNTupleLayout,
-        _ => return Err(PyValueError::new_err("layout must be one of 0002-flat-direct-storage-layout or 0004-hashed-n-tuple-storage-layout")),
-    };
-    let my_layout_a: Result<StorageLayout, RocflError> = StorageLayout::new(my_layout_name, None);
-    let my_layout_b: StorageLayout = match my_layout_a {
-        Ok(v) => v,
-        Err(e) => return Err(PyValueError::new_err(e.to_string())),
-    };
-    let my_layout: Option<StorageLayout> = Some(my_layout_b);
-
-// Initializes a new `OcflRepo` instance backed by the local filesystem. The OCFL repository
-// most not already exist.
+// Initializes a new `OcflRepo` instance backed by the local filesystem.
+// The OCFL repository most not already exist.
+//
 //     pub fn init_fs_repo(
 //         storage_root: impl AsRef<Path>,
 //         staging: Option<&Path>,
 //         version: SpecVersion,
 //         layout: Option<StorageLayout>,
 //     ) -> Result<Self>
+#[pyfunction]
+pub fn init_fs_repo(root: &str, layout: &str) -> Result<(), PyRocflError>  {
+    let my_root = root;
+    let my_staging_root: Option<&Path> = None;
 
-    let repo: Result<OcflRepo, RocflError> = OcflRepo::init_fs_repo(
+    let my_layout_name = match layout {
+        "0002-flat-direct-storage-layout" => LayoutExtensionName::FlatDirectLayout,
+        "0004-hashed-n-tuple-storage-layout" => LayoutExtensionName::HashedNTupleLayout,
+        _ => return Err(PyRocflError::from(RocflError::General("invalid layout".to_string()))),
+    };
+    let my_layout: Option<StorageLayout> = Some(StorageLayout::new(my_layout_name, None)?);
+
+    let my_spec_version: SpecVersion = SpecVersion::Ocfl1_1;
+
+    let _repo: OcflRepo = OcflRepo::init_fs_repo(
            my_root,
            my_staging_root,
            my_spec_version,
            my_layout,
-    );
-
-    let _ = match repo {
-        Ok(v) => v,
-        Err(e) => return Err(PyValueError::new_err(e.to_string())),
-    };
+    )?;
 
     Ok(())
 }
