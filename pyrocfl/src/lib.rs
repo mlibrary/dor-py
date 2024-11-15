@@ -44,14 +44,38 @@ impl Number {
     }
 }
 
+use pyo3::exceptions::PyValueError;
+use rocfl::ocfl::RocflError;
+use pyo3::PyErr;
 
+pub struct PyRocflError(RocflError);
+
+impl From<PyRocflError> for PyErr {
+    fn from(error: PyRocflError) -> Self {
+        PyValueError::new_err(error.0.to_string())
+    }
+}
+
+impl From<RocflError> for PyRocflError {
+    fn from(error: RocflError) -> Self {
+        Self(error)
+    }
+}
+
+fn raise_rocfl_error() -> Result<(), RocflError> {
+    Err(RocflError::General("rocfl error".to_string()))
+}
+
+#[pyfunction]
+pub fn propogate_rocfl_error() -> Result<(), PyRocflError> {
+    raise_rocfl_error()?;
+    Ok(())
+}
+
+use rocfl::ocfl::LayoutExtensionName;
 use rocfl::ocfl::OcflRepo;
 use std::path::Path;
 use rocfl::ocfl::{SpecVersion, StorageLayout};
-use rocfl::ocfl::RocflError;
-use pyo3::exceptions::PyValueError;
-use rocfl::ocfl::LayoutExtensionName;
-// use pyo3::types::PyString;
 
 #[pyclass]
 pub enum PyStorageLayout {

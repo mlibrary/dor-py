@@ -1,4 +1,5 @@
 from pyrocfl import say_hello
+from pyrocfl import propogate_rocfl_error
 from pyrocfl import Number
 
 # pytest
@@ -33,5 +34,10 @@ class PyrocflTest(TestCase):
     # def test_pyrocfl_number(self):
     #     n = Number::new(1)
     #     self.assertEqual(n, 1)
+
+    def test_error_propogation(self):
+        with self.assertRaisesRegex(ValueError, "rocfl error"):
+            propogate_rocfl_error()
+
 
 
