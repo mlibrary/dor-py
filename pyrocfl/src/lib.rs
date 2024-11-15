@@ -17,6 +17,33 @@ fn say_hello() {
 //    Ok(())
 //}
 
+#[pyclass]
+struct Number(i32);
+
+#[pymethods]
+impl Number {
+    #[new]
+    fn new(value: i32) -> Self {
+        Self(value)
+    }
+
+    // For `__repr__` we want to return a string that Python code could use to recreate
+    // the `Number`, like `Number(5)` for example.
+    fn __repr__(&self) -> String {
+        // We use the `format!` macro to create a string. Its first argument is a
+        // format string, followed by any number of parameters which replace the
+        // `{}`'s in the format string.
+        //
+        //                       👇 Tuple field access in Rust uses a dot
+        format!("Number({})", self.0)
+    }
+    // `__str__` is generally used to create an "informal" representation, so we
+    // just forward to `i32`'s `ToString` trait implementation to print a bare number.
+    fn __str__(&self) -> String {
+        self.0.to_string()
+    }
+}
+
 
 use rocfl::ocfl::OcflRepo;
 use std::path::Path;
@@ -24,9 +51,16 @@ use rocfl::ocfl::{SpecVersion, StorageLayout};
 use rocfl::ocfl::RocflError;
 use pyo3::exceptions::PyValueError;
 use rocfl::ocfl::LayoutExtensionName;
+// use pyo3::types::PyString;
+
+#[pyclass]
+pub enum PyStorageLayout {
+    FlatDirect,
+    HashedNTuple,
+}
 
 #[pyfunction]
-pub fn init_repo(root: &str, layout: &str) -> PyResult<()>  {
+pub fn init_fs_repo(root: &str, layout: &str) -> PyResult<()>  {
     //         config.root.as_ref().unwrap(),
     //         config.staging_root.as_ref().map(Path::new),
     //         spec_version,
@@ -54,6 +88,15 @@ pub fn init_repo(root: &str, layout: &str) -> PyResult<()>  {
         Err(e) => return Err(PyValueError::new_err(e.to_string())),
     };
     let my_layout: Option<StorageLayout> = Some(my_layout_b);
+
+// Initializes a new `OcflRepo` instance backed by the local filesystem. The OCFL repository
+// most not already exist.
+//     pub fn init_fs_repo(
+//         storage_root: impl AsRef<Path>,
+//         staging: Option<&Path>,
+//         version: SpecVersion,
+//         layout: Option<StorageLayout>,
+//     ) -> Result<Self>
 
     let repo: Result<OcflRepo, RocflError> = OcflRepo::init_fs_repo(
            my_root,
