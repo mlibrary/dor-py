@@ -1,9 +1,8 @@
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
-from xml.etree.ElementTree import Element
 
-from metadata.exceptions import DataNotFoundError, MetadataFileNotFoundError
+from metadata.element_adapter import ElementAdapter
+from metadata.exceptions import MetadataFileNotFoundError
 from metadata.models import (
     Actor, Asset, AssetFile, AssetFileUse, FileMetadataFile, FileMetadataFileType, PreservationEvent,
     RecordStatus, RepositoryItem, StructMap, StructMapItem, StructMapType
@@ -12,54 +11,17 @@ from metadata.models import (
 def apply_relative_path(path: Path, path_to_apply: Path) -> Path:
     return (path / path_to_apply).resolve(strict=True).relative_to(Path.cwd())
 
-class ElementAdapter():
-
-    def __init__(self, elem: Element, namespaces: dict[str, str]):
-        self.elem = elem
-        self.namespaces = namespaces
-
-    def find(self, path: str) -> "ElementAdapter":
-        result = self.elem.find(path, self.namespaces)
-        if result is None:
-            raise DataNotFoundError()
-        return ElementAdapter(result, self.namespaces)
-    
-    def text(self) -> str:
-        result = self.elem.text
-        if result is None:
-            raise DataNotFoundError()
-        return result
-
-    def get(self, key: str) -> str:
-        result = self.elem.get(key)
-        if result is None:
-            raise DataNotFoundError()
-        return result
-
-    def findall(self, path) -> "list[ElementAdapter]":
-        return [
-            ElementAdapter(elem, self.namespaces)
-            for elem in self.elem.findall(path, self.namespaces)
-        ]
-    
-    def get_children(self) -> "list[ElementAdapter]":
-        return [ElementAdapter(elem, self.namespaces) for elem in self.elem[:]]
-
-    @property
-    def tag(self) -> str:
-        return self.elem.tag
-
 class PremisEventParser():
     def __init__(self, elem: ElementAdapter):
         self.elem: ElementAdapter = elem
 
     def get_event(self) -> PreservationEvent:
-        event_identifier = self.elem.find(".//PREMIS:eventIdentifierValue").text()
-        event_type = self.elem.find(".//PREMIS:eventType").text()
-        event_datetime = self.elem.find(".//PREMIS:eventDateTime").text()
-        event_detail = self.elem.find(".//PREMIS:eventDetail").text()
-        actor_role = self.elem.find(".//PREMIS:linkingAgentIdentifierType").text()
-        actor_address = self.elem.find(".//PREMIS:linkingAgentIdentifierValue").text()
+        event_identifier = self.elem.find(".//PREMIS:eventIdentifierValue").text
+        event_type = self.elem.find(".//PREMIS:eventType").text
+        event_datetime = self.elem.find(".//PREMIS:eventDateTime").text
+        event_detail = self.elem.find(".//PREMIS:eventDetail").text
+        actor_role = self.elem.find(".//PREMIS:linkingAgentIdentifierType").text
+        actor_address = self.elem.find(".//PREMIS:linkingAgentIdentifierValue").text
         return PreservationEvent(
             identifier=event_identifier,
             type=event_type,
@@ -82,7 +44,7 @@ class MetsAssetParser():
             text = self.file_path.read_text()
         except FileNotFoundError as e:
             raise MetadataFileNotFoundError from e
-        self.tree: ElementAdapter = ElementAdapter(ET.fromstring(text=text), self.namespaces)
+        self.tree: ElementAdapter = ElementAdapter.from_string(text, self.namespaces)
 
     def get_events(self) -> list[PreservationEvent]:
         event_elems = self.tree.findall(".//PREMIS:event")
@@ -152,7 +114,7 @@ class MetsMetadataParser():
         if not file_path:
             raise MetadataFileNotFoundError
         self.file_path: Path = file_path
-        self.root_tree = ElementAdapter(ET.fromstring(text=self.file_path.read_text()), self.namespaces)
+        self.root_tree = ElementAdapter.from_string(self.file_path.read_text(), self.namespaces)
 
     def get_identifier(self) -> str:
         return self.root_tree.get("OBJID")
