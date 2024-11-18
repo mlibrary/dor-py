@@ -152,14 +152,6 @@ class MetsItemParserTest(TestCase):
         with self.assertRaises(MetadataFileNotFoundError):
             MetsItemParser(self.empty_content_path)
 
-    def test_parser_can_get_identifier(self):
-        identifier = MetsItemParser(self.content_path).get_identifier()
-        self.assertEqual("xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P", identifier)
-
-    def test_parser_can_get_record_status(self):
-        record_status = MetsItemParser(self.content_path).get_record_status()
-        self.assertEqual(RecordStatus.STORE, record_status)
-
     def test_parser_can_get_repository_item(self):
         item = MetsItemParser(self.content_path).get_repository_item()
         self.assertEqual("xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P", item.id)
