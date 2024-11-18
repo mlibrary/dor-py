@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
+from pydantic import BaseModel
+
 class RecordStatus(Enum):
     STAGE = "stage"
     STORE = "store"
@@ -19,6 +21,12 @@ class PreservationEvent():
     datetime: datetime
     detail: str
     actor: Actor
+
+class CommonMetadata(BaseModel):
+    title: str
+    author: str
+    publication_date: datetime
+    subjects: list[str]
 
 class AssetFileUse(Enum):
     ACCESS = "ACCESS"
@@ -68,5 +76,6 @@ class RepositoryItem():
     record_status: RecordStatus
     rights: str | None
     events: list[PreservationEvent]
+    common_metadata: CommonMetadata
     struct_map: StructMap
     assets: list[Asset]

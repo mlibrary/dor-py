@@ -2,11 +2,13 @@ from datetime import datetime
 from pathlib import Path
 
 from metadata.element_adapter import ElementAdapter
-from metadata.exceptions import MetadataFileNotFoundError
+from metadata.exceptions import DataNotFoundError, MetadataFileNotFoundError
 from metadata.models import (
-    Actor, Asset, AssetFile, AssetFileUse, FileMetadataFile, FileMetadataFileType, PreservationEvent,
-    RecordStatus, RepositoryItem, StructMap, StructMapItem, StructMapType
+    Actor, Asset, AssetFile, AssetFileUse, CommonMetadata, FileMetadataFile, FileMetadataFileType,
+    PreservationEvent, RecordStatus, RepositoryItem, StructMap, StructMapItem, StructMapType
 )
+
+from pydantic import ValidationError
 
 def apply_relative_path(path: Path, path_to_apply: Path) -> Path:
     return (path / path_to_apply).resolve(strict=True).relative_to(Path.cwd())
@@ -29,6 +31,21 @@ class PremisEventParser():
             detail=event_detail,
             actor=Actor(address=actor_address, role=actor_role)
         )
+
+class CommonMetadataParser():
+
+    def __init__(self, metadata_path: Path):
+        self.metadata_path: Path = metadata_path
+        try:
+            self.text = self.metadata_path.read_text()
+        except FileNotFoundError as e:
+            raise MetadataFileNotFoundError from e
+
+    def get_metadata(self) -> CommonMetadata:
+        try:
+            return CommonMetadata.model_validate_json(self.text)
+        except ValidationError as e:
+            raise DataNotFoundError("Common metadata parsing failed") from e
 
 class MetsAssetParser():
     asset_prefix = "urn:umich.edu:dor:asset:"
@@ -147,6 +164,13 @@ class MetsMetadataParser():
         event_elems = self.root_tree.findall(".//PREMIS:event")
         return [PremisEventParser(event_elem).get_event() for event_elem in event_elems]
 
+    def get_common_metadata(self) -> CommonMetadata:
+        md_elem = self.root_tree.find(".//METS:md[@USE='DESCRIPTIVE/COMMON']")
+        mdref_elem = md_elem.find("METS:mdRef")
+        metadata_rel_path = mdref_elem.get("LOCREF")
+        metadata_file_path = apply_relative_path(self.file_path.parent, Path(metadata_rel_path))
+        return CommonMetadataParser(metadata_file_path).get_metadata()
+
     def get_repository_item(self) -> RepositoryItem:
         struct_map_elem = self.root_tree.find(".//METS:structMap")
         struct_map_id = struct_map_elem.get("ID")
@@ -175,6 +199,7 @@ class MetsMetadataParser():
             record_status=self.get_record_status(),
             events=self.get_events(),
             rights=self.get_rights_info(),
+            common_metadata=self.get_common_metadata(),
             struct_map=StructMap(
                 id=struct_map_id,
                 type=StructMapType[struct_map_type.upper()],

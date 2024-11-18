@@ -6,11 +6,44 @@ from unittest import TestCase
 from lxml import etree
 
 from metadata.models import (
-    Actor, Asset, AssetFile, AssetFileUse, FileMetadataFile, FileMetadataFileType, PreservationEvent,
-    RecordStatus, StructMap, StructMapItem, StructMapType
+    Actor, Asset, AssetFile, AssetFileUse, CommonMetadata, FileMetadataFile, FileMetadataFileType,
+    PreservationEvent, RecordStatus, StructMap, StructMapItem, StructMapType
 )
 from metadata.exceptions import MetadataFileNotFoundError
-from metadata.mets_metadata_parser import ElementAdapter, MetsAssetParser, MetsMetadataParser, PremisEventParser
+from metadata.mets_metadata_parser import (
+    CommonMetadataParser, ElementAdapter, MetsAssetParser, MetsMetadataParser,
+    PremisEventParser
+)
+
+class CommonMetadataParserTest(TestCase):
+
+    def setUp(self):
+        fixtures_path = Path("tests/fixtures")
+        test_submission_package_path = fixtures_path / "test_submission_package"
+        bag_path = test_submission_package_path / "xyzzy-01929af3-dd86-7579-8c1b-6a5b6e1cd6b9-v1"
+        self.content_path = bag_path / "data" / "xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P"
+        self.metadata_path = self.content_path / "metadata" / "xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P.common.json"
+
+    def test_parser_can_get_metadata(self):
+        metadata = CommonMetadataParser(self.metadata_path).get_metadata()
+        expected_metadata = CommonMetadata(
+            title="Price use what apply cup condition it.",
+            author="Brandon Jones",
+            publication_date=datetime(1991,9, 1),
+            subjects=[
+                "Falkland Islands (Malvinas)",
+                "Kuwait",
+                "Comoros",
+                "United States Minor Outlying Islands",
+                "\u30cb\u30b8\u30a7\u30fc\u30eb",
+                "Caenorhabditis elegans",
+                "Schizosaccharomyces pombe",
+                "Danio Rerio",
+                "Drosophila melanogaster",
+                "Danio Rerio"
+            ]
+        )
+        self.assertEqual(expected_metadata, metadata)
 
 class PremisEventParserTest(TestCase):
 
@@ -137,6 +170,8 @@ class MetsMetadataParserTest(TestCase):
         event = item.events[0]
         self.assertTrue(isinstance(item.events[0], PreservationEvent))
         self.assertEqual("4463f8a7-d532-4028-8f63-5808e33a0906", event.identifier)
+
+        self.assertTrue(isinstance(item.common_metadata, CommonMetadata))
 
         self.assertTrue("https://creativecommons.org/publicdomain/zero/1.0/", item.rights)
 
