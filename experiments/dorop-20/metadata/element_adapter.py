@@ -16,20 +16,20 @@ class ElementAdapter():
     def find(self, path: str) -> "ElementAdapter":
         result = self.elem.find(path, self.namespaces)
         if result is None:
-            raise DataNotFoundError()
+            raise DataNotFoundError(f"No element found for path {path}")
         return ElementAdapter(result, self.namespaces)
     
     @property
     def text(self) -> str:
         result = self.elem.text
         if result is None:
-            raise DataNotFoundError()
+            raise DataNotFoundError(f"No text found for {self.elem.tag}")
         return result
 
     def get(self, key: str) -> str:
         result = self.elem.get(key)
         if result is None:
-            raise DataNotFoundError()
+            raise DataNotFoundError(f"No value for attribute {key} found for {self.elem.tag}")
         return result
 
     def findall(self, path: str) -> "list[ElementAdapter]":

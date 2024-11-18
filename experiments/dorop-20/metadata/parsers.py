@@ -14,6 +14,7 @@ def apply_relative_path(path: Path, path_to_apply: Path) -> Path:
     return (path / path_to_apply).resolve(strict=True).relative_to(Path.cwd())
 
 class PremisEventParser():
+
     def __init__(self, elem: ElementAdapter):
         self.elem: ElementAdapter = elem
 
