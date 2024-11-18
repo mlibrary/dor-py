@@ -19,3 +19,5 @@ output/
 tests/test_storage
 pyrocfl.*
 rocket/target/
+rocket/upload/
+**/**/tmp
