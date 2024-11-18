@@ -4,14 +4,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest import TestCase
 
+from metadata.exceptions import MetadataFileNotFoundError
+from metadata.element_adapter import ElementAdapter
 from metadata.models import (
     Actor, Asset, AssetFile, AssetFileUse, CommonMetadata, FileMetadataFile, FileMetadataFileType,
     PreservationEvent, RecordStatus, StructMap, StructMapItem, StructMapType
 )
-from metadata.exceptions import MetadataFileNotFoundError
-from metadata.mets_metadata_parser import (
-    CommonMetadataParser, ElementAdapter, MetsAssetParser, MetsMetadataParser,
-    PremisEventParser
+from metadata.parsers import (
+    CommonMetadataParser, MetsAssetParser, MetsItemParser, PremisEventParser
 )
 
 class CommonMetadataParserTest(TestCase):
@@ -134,7 +134,7 @@ class MetsAssetParserTest(TestCase):
         )
         self.assertEqual(expected_asset, asset)
 
-class MetsMetadataParserTest(TestCase):
+class MetsItemParserTest(TestCase):
 
     def setUp(self):
         fixtures_path = Path("tests/fixtures")
@@ -150,18 +150,18 @@ class MetsMetadataParserTest(TestCase):
 
     def test_parser_raises_when_metadata_file_not_found(self):
         with self.assertRaises(MetadataFileNotFoundError):
-            MetsMetadataParser(self.empty_content_path)
+            MetsItemParser(self.empty_content_path)
 
     def test_parser_can_get_identifier(self):
-        identifier = MetsMetadataParser(self.content_path).get_identifier()
+        identifier = MetsItemParser(self.content_path).get_identifier()
         self.assertEqual("xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P", identifier)
 
     def test_parser_can_get_record_status(self):
-        record_status = MetsMetadataParser(self.content_path).get_record_status()
+        record_status = MetsItemParser(self.content_path).get_record_status()
         self.assertEqual(RecordStatus.STORE, record_status)
 
     def test_parser_can_get_repository_item(self):
-        item = MetsMetadataParser(self.content_path).get_repository_item()
+        item = MetsItemParser(self.content_path).get_repository_item()
         self.assertEqual("xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P", item.id)
         self.assertEqual(RecordStatus.STORE, item.record_status)
 

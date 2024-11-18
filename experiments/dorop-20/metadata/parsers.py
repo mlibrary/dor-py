@@ -101,7 +101,7 @@ class MetsAssetParser():
 
         return Asset(id=asset_id, events=self.get_events(), files=asset_files)
 
-class MetsMetadataParser():
+class MetsItemParser():
     root_metadata_file_suffix = "root.mets2.xml"
    
     namespaces: dict[str, str] = {
