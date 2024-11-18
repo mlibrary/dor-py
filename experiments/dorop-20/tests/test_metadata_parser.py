@@ -1,9 +1,8 @@
 import os
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest import TestCase
-
-from lxml import etree
 
 from metadata.models import (
     Actor, Asset, AssetFile, AssetFileUse, CommonMetadata, FileMetadataFile, FileMetadataFileType,
@@ -53,7 +52,7 @@ class PremisEventParserTest(TestCase):
         bag_path = test_submission_package_path / "xyzzy-01929af3-dd86-7579-8c1b-6a5b6e1cd6b9-v1"
         content_path = bag_path / "data" / "xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P"
         mets_root_metadata_file = content_path / "descriptor" / "xyzzy:01JADF7QC6TS22WA9AJ1SPSD0P.root.mets2.xml"
-        root_tree = etree.fromstring(mets_root_metadata_file.read_text())
+        root_tree = ET.fromstring(mets_root_metadata_file.read_text())
 
         namespaces = {"PREMIS": "http://www.loc.gov/premis/v3"}
         self.event_elem = ElementAdapter(
