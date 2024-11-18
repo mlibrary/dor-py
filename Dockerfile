@@ -109,6 +109,11 @@ RUN poetry install --no-root
 # Install pyrocfl
 RUN poetry run python3 -m rustimport build
 
+ENV ROCKET_ADDRESS=0.0.0.0
+ENV ROCKET_PORT=8000
+ENV ROCKET_SECRET_KEY="rocket_secret_key"
+EXPOSE 8000
+
 
 # We don't want poetry on in production, so we copy the needed files form the build stage
 FROM base AS production

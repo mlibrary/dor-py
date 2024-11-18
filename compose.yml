@@ -4,6 +4,8 @@ services:
     networks:
       default:
         aliases: [ "app" ]
+    ports:
+      - "127.0.0.1:8000:8000"
     build: 
       context: .
       target: development
@@ -15,6 +17,8 @@ services:
         POETRY_VERSION: ${POETRY_VERSION:-1.8.4}
     env_file:
       - .env
+    environment:
+      - ROCKET_SECRET_KEY="rocket_secret_key"
     volumes:
       - .:/app
     tty: true
