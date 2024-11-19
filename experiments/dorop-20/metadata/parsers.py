@@ -14,9 +14,11 @@ def apply_relative_path(path: Path, path_to_apply: Path) -> Path:
     return (path / path_to_apply).resolve(strict=True).relative_to(Path.cwd())
 
 class PremisEventParser():
+    namespaces = {"PREMIS": "http://www.loc.gov/premis/v3"}
 
     def __init__(self, elem: ElementAdapter):
         self.elem: ElementAdapter = elem
+        self.elem.namespaces = self.elem.namespaces | self.namespaces
 
     def get_event(self) -> PreservationEvent:
         event_identifier = self.elem.find(".//PREMIS:eventIdentifierValue").text
@@ -139,7 +141,7 @@ class MetsItemParser():
 
     def get_record_status(self) -> RecordStatus:
         mets_header = self.root_tree.find("METS:metsHdr")
-        status = mets_header.get('RECORDSTATUS')
+        status = mets_header.get("RECORDSTATUS")
         return RecordStatus[status.upper()]
 
     def get_rights_info(self) -> str | None:
@@ -149,17 +151,6 @@ class MetsItemParser():
             return child.get("LOCREF")
         else:
             return None
-
-    def get_asset_file_paths(self) -> list[Path]:
-        struct_map = self.root_tree.find(".//METS:structMap")
-        order_elems = struct_map.findall(".//METS:div[@ORDER]")
-        
-        asset_file_paths: list[Path] = []
-        for order_elem in order_elems:
-            mptr = order_elem.find("METS:mptr")
-            asset_file_name: str = mptr.get("LOCREF")
-            asset_file_paths.append(Path("descriptor") / asset_file_name)
-        return asset_file_paths
 
     def get_events(self) -> list[PreservationEvent]:
         event_elems = self.root_tree.findall(".//PREMIS:event")

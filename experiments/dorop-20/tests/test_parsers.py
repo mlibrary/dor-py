@@ -55,13 +55,14 @@ class PremisEventParserTest(TestCase):
         root_tree = ET.fromstring(mets_root_metadata_file.read_text())
 
         namespaces = {"PREMIS": "http://www.loc.gov/premis/v3"}
-        self.event_elem = ElementAdapter(
-            root_tree.findall(".//PREMIS:event", namespaces)[0],
-            namespaces
-        )
+        self.elem = root_tree.findall(".//PREMIS:event", namespaces)[0]
+        self.elem_adapter = ElementAdapter(self.elem, namespaces)
+
+    def test_parser_adds_premis_namespace_if_necessary(self):
+        PremisEventParser(ElementAdapter(self.elem, {})).get_event()
 
     def test_parser_can_get_event(self):
-        event = PremisEventParser(self.event_elem).get_event()
+        event = PremisEventParser(self.elem_adapter).get_event()
         expected_event = PreservationEvent(
             identifier="4463f8a7-d532-4028-8f63-5808e33a0906",
             type="ingest",
