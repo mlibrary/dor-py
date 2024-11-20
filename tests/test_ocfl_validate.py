@@ -1,6 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 from gateway.validate import RocflOCFLFixityValidator
@@ -206,4 +207,62 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
         self.assertIn("Warning W004 suppressed:", result)
         self.assertIn("For content-addressing, OCFL Objects SHOULD use sha512.", result)
-        self.assertNotIn("Error", result)    
+        self.assertNotIn("Error", result)
+
+    def test_build_command_no_flags(self):
+        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        result = self.validator._build_command(base_command, no_fixity=False, log_level=None, suppress_warning=None)
+        
+        # Assert that no flags are added
+        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path])
+
+    def test_build_command_with_no_fixity(self):
+        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        result = self.validator._build_command(base_command, no_fixity=True, log_level=None, suppress_warning=None)
+        
+        # Assert that '-n' flag is added
+        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path, '-n'])
+
+    def test_build_command_with_log_level(self):
+        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        result = self.validator._build_command(base_command, no_fixity=False, log_level='Error', suppress_warning=None)
+        
+        # Assert that '-l Error' is added
+        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path, '-l', 'Error'])
+
+    def test_build_command_with_suppress_warning(self):
+        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        result = self.validator._build_command(base_command, no_fixity=False, log_level=None, suppress_warning='Warning123')
+        
+        # Assert that '-w Warning123' is added
+        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path, '-w', 'Warning123'])
+
+    def test_build_command_with_all_flags(self):
+        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        result = self.validator._build_command(base_command, no_fixity=True, log_level='Error', suppress_warning='Warning123')
+        
+        # Assert that all flags are correctly added
+        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path, '-n', '-l', 'Error', '-w', 'Warning123'])
+
+    def test_run_rocfl_command_failure(self):
+        self.mock_run.side_effect = subprocess.CalledProcessError(
+            returncode=1,
+            cmd=['rocfl', 'validate', '--repo', self.repository_path],
+            stderr="Command failed"
+        )
+        
+        command = ['rocfl', 'validate', '--repo', self.repository_path]
+        result = self.validator._run_rocfl_command(command)
+        
+        # Assert
+        self.mock_run.assert_called_once_with(command, capture_output=True, text=True, check=True)
+        self.assertEqual(result, "Error: Command failed")    
+       
+    def test_run_rocfl_command_success(self):
+        self.mock_run.return_value = MagicMock(stdout="Command executed successfully", returncode=0)
+        command = ['rocfl', 'validate', '--repo', self.repository_path]
+        result = self.validator._run_rocfl_command(command)
+        
+        # Assert
+        self.mock_run.assert_called_once_with(command, capture_output=True, text=True, check=True)
+        self.assertEqual(result, "Command executed successfully")   
