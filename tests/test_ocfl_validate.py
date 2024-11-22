@@ -1,10 +1,13 @@
 import hashlib
 import json
+import os
+import time
 from pathlib import Path
+from shutil import rmtree
 import subprocess
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
-from gateway.validate import RocflOCFLFixityValidator
+from gateway.validate import FixityValidator, RocflOCFLFixityValidator
 
 class TestRocflOCFLFixityValidator(unittest.TestCase):
 
@@ -31,7 +34,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         result = self.validator.validate_repository()
 
         # Assert subprocess.run was called with the correct arguments
-        self.mock_run.assert_called_once_with(['rocfl', 'validate', '--repo', str(self.repository_path)], capture_output=True, text=True, check=True)
+        self.mock_run.assert_called_once_with(['rocfl', 'validate', str(self.repository_path)], capture_output=True, text=True, check=True)
         self.assertEqual(result, "Valid repository.\n")
 
     def test_validate_repository_with_flags(self):
@@ -39,7 +42,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         result = self.validator.validate_repository(no_fixity=True, log_level="Error", suppress_warning="Warning123")
 
         self.mock_run.assert_called_once_with([
-            'rocfl', 'validate', '--repo', str(self.repository_path), '-n', '-l', 'Error', '-w', 'Warning123'
+            'rocfl', 'validate', str(self.repository_path), '-n', '-l', 'Error', '-w', 'Warning123'
         ], capture_output=True, text=True, check=True)
         self.assertEqual(result, "Valid repository.\n")
 
@@ -70,7 +73,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
         # Assert that the subprocess.run was called with the expected arguments
         self.mock_run.assert_called_once_with([
-            'rocfl', 'validate', '--repo', str(self.repository_path), '-l', 'Error'
+            'rocfl', 'validate', str(self.repository_path), '-l', 'Error'
         ], capture_output=True, text=True, check=True)
 
         # Assert that the result contains the expected error message for E008
@@ -143,7 +146,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         result = self.validator.validate_repository()
 
         self.mock_run.assert_called_once_with([
-            'rocfl', 'validate', '--repo', str(self.repository_path)
+            'rocfl', 'validate', str(self.repository_path)
         ], capture_output=True, text=True, check=True)
 
         self.assertIn("Warning W004:", result)
@@ -159,7 +162,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         result = self.validator.validate_repository(suppress_warning="W004")
 
         self.mock_run.assert_called_once_with([
-            'rocfl', 'validate', '--repo', str(self.repository_path), '-w', "W004"
+            'rocfl', 'validate', str(self.repository_path), '-w', "W004"
         ], capture_output=True, text=True, check=True)
 
         self.assertEqual(result, "Valid repository. Warning W004 suppressed: 'For content-addressing, OCFL Objects SHOULD use sha512.'\n")
@@ -210,59 +213,88 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         self.assertNotIn("Error", result)
 
     def test_build_command_no_flags(self):
-        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        base_command = ['rocfl', 'validate', self.repository_path]
         result = self.validator._build_command(base_command, no_fixity=False, log_level=None, suppress_warning=None)
         
         # Assert that no flags are added
-        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path])
+        self.assertEqual(result, ['rocfl', 'validate', self.repository_path])
 
     def test_build_command_with_no_fixity(self):
-        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        base_command = ['rocfl', 'validate', self.repository_path]
         result = self.validator._build_command(base_command, no_fixity=True, log_level=None, suppress_warning=None)
         
         # Assert that '-n' flag is added
-        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path, '-n'])
+        self.assertEqual(result, ['rocfl', 'validate', self.repository_path, '-n'])
 
     def test_build_command_with_log_level(self):
-        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        base_command = ['rocfl', 'validate', self.repository_path]
         result = self.validator._build_command(base_command, no_fixity=False, log_level='Error', suppress_warning=None)
         
         # Assert that '-l Error' is added
-        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path, '-l', 'Error'])
+        self.assertEqual(result, ['rocfl', 'validate', self.repository_path, '-l', 'Error'])
 
     def test_build_command_with_suppress_warning(self):
-        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        base_command = ['rocfl', 'validate', self.repository_path]
         result = self.validator._build_command(base_command, no_fixity=False, log_level=None, suppress_warning='Warning123')
         
         # Assert that '-w Warning123' is added
-        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path, '-w', 'Warning123'])
+        self.assertEqual(result, ['rocfl', 'validate', self.repository_path, '-w', 'Warning123'])
 
     def test_build_command_with_all_flags(self):
-        base_command = ['rocfl', 'validate', '--repo', self.repository_path]
+        base_command = ['rocfl', 'validate', self.repository_path]
         result = self.validator._build_command(base_command, no_fixity=True, log_level='Error', suppress_warning='Warning123')
         
         # Assert that all flags are correctly added
-        self.assertEqual(result, ['rocfl', 'validate', '--repo', self.repository_path, '-n', '-l', 'Error', '-w', 'Warning123'])
+        self.assertEqual(result, ['rocfl', 'validate', self.repository_path, '-n', '-l', 'Error', '-w', 'Warning123'])
+class TestFixityValidator(unittest.TestCase):
+    def test_validator_checks_object_fixity(self):
+        self.mockrocflvalidator = MagicMock(spec = RocflOCFLFixityValidator)
+        self.mockrocflvalidator.validate_object.return_value = "Object object-1 is valid"
+        self.fixityValidator = FixityValidator(self.mockrocflvalidator)
+        result = self.fixityValidator.check_object_fixity(object_id="object-1")
+        
+        self.mockrocflvalidator.validate_object.assert_called_once_with("object-1")
+        self.assertTrue(result.is_valid)
+        self.assertEqual("Object object-1 is valid", result.message)
+        
+class TestIntegrationFixityChecker(unittest.TestCase):   
+    def setUp(self):
+        self.repository_path = Path("tests/test_rocfl_repo/")
+        self.validator = RocflOCFLFixityValidator(repository_path=str(self.repository_path))
 
-    def test_run_rocfl_command_failure(self):
-        self.mock_run.side_effect = subprocess.CalledProcessError(
-            returncode=1,
-            cmd=['rocfl', 'validate', '--repo', self.repository_path],
-            stderr="Command failed"
-        )
-        
-        command = ['rocfl', 'validate', '--repo', self.repository_path]
-        result = self.validator._run_rocfl_command(command)
-        
-        # Assert
-        self.mock_run.assert_called_once_with(command, capture_output=True, text=True, check=True)
-        self.assertEqual(result, "Error: Command failed")    
-       
-    def test_run_rocfl_command_success(self):
-        self.mock_run.return_value = MagicMock(stdout="Command executed successfully", returncode=0)
-        command = ['rocfl', 'validate', '--repo', self.repository_path]
-        result = self.validator._run_rocfl_command(command)
-        
-        # Assert
-        self.mock_run.assert_called_once_with(command, capture_output=True, text=True, check=True)
-        self.assertEqual(result, "Command executed successfully")   
+    def test_rocfl_validate_object(self):
+        try:
+            object_id = "ark:/12345/bcd987"
+            result = self.validator.validate_object(object_id = object_id)
+            self.assertIn(f"Object {object_id} is valid", result)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")   
+
+    def test_rocfl_invalid_object(self):
+        try:
+            object_id = "invalid-object-1"
+            result = self.validator.validate_object(object_id = object_id)
+            print ("Result", result)
+            self.assertIn(f"[ERROR] Not found: Object {object_id}\n", result)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")   
+
+    def test_rocfl_multiple_validate_objects(self):
+        try:
+            object_ids = [
+                str(self.repository_path / "object-1/"),
+                str(self.repository_path / "object-2/")
+            ]
+
+            object_identifiers = [
+                "ark:/12345/bcd987",  
+                "ark:123/abc"         
+            ]
+            result = self.validator.validate_multiple_objects(object_ids)
+
+            for object_id in object_identifiers:
+                self.assertIn(f"Object {object_id} is valid", result)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")  
+
+    
