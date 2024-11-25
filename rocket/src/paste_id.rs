@@ -25,6 +25,9 @@ impl PasteId<'_> {
         PasteId(Cow::Owned(id))
     }
 
+    pub fn value(&self) -> &str {
+        self.0.as_ref()
+    }
     /// Returns the path to the paste in `upload/` corresponding to this ID.
     pub fn file_path(&self) -> PathBuf {
         let root = concat!(env!("CARGO_MANIFEST_DIR"), "/", "upload");

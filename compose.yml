@@ -1,5 +1,6 @@
 services:
   app:
+    user: "${UID}:${GID}"
     hostname: app.local
     networks:
       default:
@@ -21,6 +22,7 @@ services:
       - ROCKET_SECRET_KEY="rocket_secret_key"
     volumes:
       - .:/app
+      - '/Users/gkostin/rocket/db:/app/rocket/db/'
     tty: true
     stdin_open: true
 networks:

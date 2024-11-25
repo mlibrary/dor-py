@@ -7,3 +7,6 @@ publish = false
 [dependencies]
 rocket = "0.5.1"
 rand = "0.8.5"
+sqlx = { version = "0.6.2", features = ["runtime-tokio-native-tls", "sqlite"] }
+tokio = { version = "1.20.0", features = ["macros"] }
+http = "1.1.0"

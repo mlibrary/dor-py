@@ -73,7 +73,8 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
       git \
       wget \
       curl \
-      unzip
+      unzip \
+      libssl-dev
 
 ENV GITHUB_BRANCH=${GITHUB_BRANCH}
 
@@ -96,6 +97,9 @@ ENV PATH="/home/app/.cargo/bin:$PATH"
 
 # Install rocfl
 RUN cargo install --path ./rocfl
+
+# Install SQLx CLI
+RUN cargo install sqlx-cli
 
 # Set the working directory to /app
 WORKDIR /app
