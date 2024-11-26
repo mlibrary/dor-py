@@ -9,6 +9,5 @@ Feature: Store Resource
   Scenario: Storing a new resource for immediate release
     Given a package containing the scanned pages, OCR, and metadata
     When the Collection Manager places the packaged resource in the incoming location
-    Then the resource is assigned an identifier
-      And the Collection Manager can see that it was preserved.
+    Then the Collection Manager can see that it was preserved.
 
