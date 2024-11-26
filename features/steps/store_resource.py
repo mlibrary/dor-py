@@ -1,11 +1,16 @@
 from dataclasses import dataclass, field
-from typing import Callable, Type
+import uuid
+from typing import Any, Callable, Type
 
-from behave import given
+from behave import given, when, then
 
 @dataclass
 class Package:
     alternate_identifier: str
+
+@dataclass
+class Item:
+    identifier: str
 
 @dataclass
 class Resource:
@@ -13,9 +18,9 @@ class Resource:
     alternate_identifier: str
 
     # blah blah mockyrie leakage
-    @property
-    def internal_resource(self):
-        return self.__class__.name
+    # @property
+    # def internal_resource(self):
+    #     return self.__class__.__name__
 
 @dataclass
 class Monograph(Resource):
@@ -32,7 +37,7 @@ class FileMetadata:
     id: str
     file_identifier: str
     mimetype: str
-    technical_metdata: TechnicalMetadata
+    technical_metadata: TechnicalMetadata
     use: str
 
 @dataclass
@@ -54,14 +59,21 @@ class PackageReceived(Event):
 
 @dataclass
 class PackageVerified(Event):
-    identifier: str
-    alternate_identifier: str
-    resources: list[Resource]
+    package_identifier: str
+    tracking_identifier: str
 
 @dataclass
-class ResourceStored(Event):
+class ItemUnpacked(Event):
     identifier: str
     alternate_identifier: str
+    resources: list[Any]
+    tracking_identifier: str
+
+@dataclass
+class ItemStored(Event):
+    identifier: str
+    alternate_identifier: str
+    tracking_identifier: str
 
 # subclass Repository Gateway some day?
 class FakeRepositoryGateway():
@@ -72,6 +84,18 @@ class FakeRepositoryGateway():
     def has_object(self, object_id: str):
         return object_id in self.store
 
+class FakeUnitOfWork:
+
+    def __init__(self) -> None:
+        self.gateway = FakeRepositoryGateway()
+        self.events: list[Event] = []
+
+    def add_event(self, event: Event):
+        self.events.append(event)
+
+    def pop_event(self) -> Event:
+        return self.events.pop(0)
+
 class FakeMessageBus():
 
     def __init__(self, handlers: dict[Type[Event], list[Callable]]):
@@ -81,55 +105,48 @@ class FakeMessageBus():
         for handler in self.handlers[type(event)]:
             handler(event)
 
-@given(u'a package containing the scanned pages, OCR, and metadata')
-def step_impl(context) -> None:
-    context.package = Package(alternate_identifier="abc123youandme")
+class BagAdapter():
 
-    def package_submitted(event: PackageSubmitted):
-        pass
+    def __init__(self, identifier: str) -> None:
+        self.identifier = identifier
 
-    def package_received(event: PackageReceived):
-        context.identifier = 'blameitontheboogie'
-        
-    def package_verified(event: PackageVerified):
-        for path in event.paths:
-            context.repository_gateway.add(context.identifier, path)
+    def is_valid(self) -> bool:
+        return True
 
-    def resource_stored(event: ResourceStored):
-        context.stored_event = event
-
-    handlers: dict[Type[Event], list[Callable]] = {
-        ResourceStored: [resource_stored]
-    }
-    context.message_bus = FakeMessageBus(handlers=handlers)
-    context.repository_gateway = FakeRepositoryGateway()
-
-@when(u'the Collection Manager places the packaged resource in the incoming location')
-def step_impl(context):
-    # Roger will try to fill this out starting with comments
-
-    event = PackageSubmitted(package_identifier='2468')
-    context.message_bus.handle(event)
-    # assert?
-
-    event = PackageReceived(package_identifier=event.package_identifier, tracking_identifier='ainthtatpeculiar')
-    context.message_bus.handle(event)
-    # assert?
-
-    ## --- if you've read the deep dive, should
-    ## --- verify and process be combined?
-    event = PackageVerified(
-        identifier=context.identifier,
+def receive_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
+    event = PackageReceived(
         package_identifier=event.package_identifier,
+        tracking_identifier='ainthtatpeculiar'
+    )
+    uow.add_event(event)
+    # context.identifier = 'blameitontheboogie'
+
+def verify_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
+    bag = BagAdapter(event.package_identifier)
+    is_valid =  bag.is_valid()
+
+    if is_valid:
+        uow.add_event(PackageVerified(
+            package_identifier=event.package_identifier,
+            tracking_identifier=event.tracking_identifier
+        ))
+    else:
+        raise Exception()
+
+def unpack_item(event: PackageVerified, uow: FakeUnitOfWork) -> None:
+    identifier = str(uuid.uuid4())
+    unpacked_event = ItemUnpacked(
+        identifier=identifier,
         alternate_identifier="abc123youandme",
+        tracking_identifier=event.tracking_identifier,
         resources=[
             Monograph(
-                id=context.identifier,
+                identifier=identifier,
                 alternate_identifier="abc123youandme",
                 member_identifiers=["asset001", "asset002"]
             ),
             Asset(
-                id="asset001",
+                identifier="asset001",
                 alternate_identifier="001",
                 file_metadata=[
                     FileMetadata(
@@ -147,22 +164,38 @@ def step_impl(context):
             )
         ]
     )
+    uow.add_event(unpacked_event)
+
+def store_item(event: PackageVerified, uow: FakeUnitOfWork) -> None:
+    pass
+    # for path in event.paths:
+    #     context.repository_gateway.add(context.identifier, path)
+
+@given(u'a package containing the scanned pages, OCR, and metadata')
+def step_impl(context) -> None:
+    context.package = Package(alternate_identifier="abc123youandme")
+    context.uow = FakeUnitOfWork()
+    context.stored_event = None
+
+    def stored_callback(event: ItemStored, uow: FakeUnitOfWork) -> None:
+        context.stored_event = event
+
+    handlers: dict[Type[Event], list[Callable]] = {
+        PackageSubmitted: [lambda event: receive_package(event, context.uow)],
+        PackageReceived: [lambda event: verify_package(event, context.uow)],
+        PackageVerified: [lambda event: unpack_item(event, context.uow)],
+        ItemUnpacked: [lambda event: store_item(event, context.uow)],
+        ItemStored: [lambda event: stored_callback(event, context.uow)]
+    }
+    context.message_bus = FakeMessageBus(handlers=handlers)
+
+@when(u'the Collection Manager places the packaged resource in the incoming location')
+def step_impl(context):
+    event = PackageSubmitted(package_identifier='2468')
     context.message_bus.handle(event)
-    #### event = PackageProcessed(...)
-    #### context.message_bus.handle(event)
-    # assert?
 
-    # event = ResourceStored(...)
-    # context.message_bus.handle(event)
-    # assert?
-
-    # event = ResourceRegistered(...)
-    # context.message_bus.handle(event)
-
-    raise NotImplementedError()
-
-@then(u'the Collection Manager can see that it was preserved')
+@then(u'the Collection Manager can see that it was preserved.')
 def step_impl(context):
     event = context.stored_event
     assert event.alternate_identifier == "abc123youandme"
-    assert context.repository_gateway.has_object(event.identifier)
+    assert context.uow.gateway.has_object(event.identifier)
