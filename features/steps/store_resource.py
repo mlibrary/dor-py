@@ -93,17 +93,25 @@ class FakeUnitOfWork:
     def add_event(self, event: Event):
         self.events.append(event)
 
-    def pop_event(self) -> Event:
-        return self.events.pop(0)
+    def pop_event(self) -> Event | None:
+        if len(self.events) > 0:
+            return self.events.pop(0)
+        return None
 
 class FakeMessageBus():
 
     def __init__(self, handlers: dict[Type[Event], list[Callable]]):
         self.handlers = handlers
 
-    def handle(self, event: Event):
-        for handler in self.handlers[type(event)]:
-            handler(event)
+    def handle(self, event: Event, uow: FakeUnitOfWork):
+        queue = [event]
+        while queue:
+            next_event = queue.pop(0)
+            for handler in self.handlers[type(next_event)]:
+                handler(next_event)
+            another_event = uow.pop_event()
+            if another_event:
+                queue.append(another_event)
 
 class BagAdapter():
 
@@ -175,7 +183,6 @@ def store_item(event: PackageVerified, uow: FakeUnitOfWork) -> None:
 def step_impl(context) -> None:
     context.package = Package(alternate_identifier="abc123youandme")
     context.uow = FakeUnitOfWork()
-    context.stored_event = None
 
     def stored_callback(event: ItemStored, uow: FakeUnitOfWork) -> None:
         context.stored_event = event
@@ -192,7 +199,7 @@ def step_impl(context) -> None:
 @when(u'the Collection Manager places the packaged resource in the incoming location')
 def step_impl(context):
     event = PackageSubmitted(package_identifier='2468')
-    context.message_bus.handle(event)
+    context.message_bus.handle(event, context.uow)
 
 @then(u'the Collection Manager can see that it was preserved.')
 def step_impl(context):
