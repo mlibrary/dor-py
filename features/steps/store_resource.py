@@ -24,7 +24,6 @@ class VersionInfo():
 @dataclass
 class Resource:
     identifier: str | None
-    alternate_identifier: str
 
     # blah blah mockyrie leakage
     # @property
@@ -33,6 +32,7 @@ class Resource:
 
 @dataclass
 class Monograph(Resource):
+    alternate_identifier: str
     member_identifiers: list[str] = field(default_factory=list)
 
     def get_entries(self) -> list[Path]:
@@ -86,25 +86,25 @@ class PackageVerified(Event):
 @dataclass
 class ItemUnpacked(Event):
     identifier: str
-    alternate_identifier: str
     resources: list[Any]
     tracking_identifier: str
     version_info: VersionInfo
+    package_identifier: str
 
 @dataclass
 class ItemStored(Event):
     identifier: str
-    alternate_identifier: str
     tracking_identifier: str
 
 # Gateway
 
 @dataclass
 class FakePackage:
-    alternate_identifier: str
+    package_identifier: str
+    entries: list[Path]
 
-    def get_paths(self) -> list[str]:
-        return ["some/path", "some/other/path"]
+    def get_paths(self) -> list[Path]:
+        return self.entries
 
 @dataclass
 class RepositoryObject:
@@ -190,13 +190,12 @@ class FakeMETSProvider:
     def get_resources(self):
         return [
             Monograph(
-                identifier=None,
-                alternate_identifier="abc123youandme",
+                identifier="abc123youandme",
+                alternate_identifier="jackson.abc123youandme",
                 member_identifiers=["asset001", "asset002"]
             ),
             Asset(
-                identifier=None,
-                alternate_identifier="001",
+                identifier="001",
                 file_metadata=[
                     FileMetadata(
                         id="_0001.source",
@@ -238,13 +237,12 @@ def verify_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
         raise Exception()
 
 def unpack_item(event: PackageVerified, uow: FakeUnitOfWork) -> None:
-    identifier = str(uuid.uuid4())
-    resources = FakeMETSProvider(Path("some/path")).get_resources()
+    resources = FakeMETSProvider(Path(event.package_identifier)).get_resources()
 
     unpacked_event = ItemUnpacked(
-        identifier=identifier,
-        alternate_identifier="abc123youandme",
+        identifier="abc123youandme",
         tracking_identifier=event.tracking_identifier,
+        package_identifier=event.package_identifier,
         resources=resources,
         version_info=VersionInfo(
             coordinator=Coordinator("jermaine", "jermaine@jackson5.com"),
@@ -258,9 +256,13 @@ def store_item(event: ItemUnpacked, uow: FakeUnitOfWork) -> None:
     for resource in event.resources:
         entries.extend(resource.get_entries())
 
-    package = FakePackage(alternate_identifier=event.alternate_identifier)
+    package = FakePackage(package_identifier=event.package_identifier, entries=entries)
+
     uow.gateway.create_staged_object(id=event.identifier)
-    uow.gateway.stage_object_files(id=event.identifier, source_package=package)
+    uow.gateway.stage_object_files(
+        id=event.identifier, 
+        source_package=package,
+    )
     uow.gateway.commit_object_changes(
         id=event.identifier,
         coordinator=event.version_info.coordinator,
@@ -269,7 +271,6 @@ def store_item(event: ItemUnpacked, uow: FakeUnitOfWork) -> None:
 
     stored_event = ItemStored(
         identifier=event.identifier,
-        alternate_identifier=event.alternate_identifier,
         tracking_identifier=event.tracking_identifier
     )
     uow.add_event(stored_event)
@@ -300,5 +301,5 @@ def step_impl(context):
 @then(u'the Collection Manager can see that it was preserved.')
 def step_impl(context):
     event = context.stored_event
-    assert event.alternate_identifier == "abc123youandme"
+    assert event.identifier == "abc123youandme"
     assert context.uow.gateway.has_object(event.identifier)
