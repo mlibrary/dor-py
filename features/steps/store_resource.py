@@ -1,5 +1,6 @@
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Set, Type
 
 from behave import given, when, then
@@ -22,7 +23,7 @@ class VersionInfo():
 
 @dataclass
 class Resource:
-    identifier: str
+    identifier: str | None
     alternate_identifier: str
 
     # blah blah mockyrie leakage
@@ -33,6 +34,9 @@ class Resource:
 @dataclass
 class Monograph(Resource):
     member_identifiers: list[str] = field(default_factory=list)
+
+    def get_entries(self) -> list[Path]:
+        return []
 
 @dataclass
 class TechnicalMetadata:
@@ -51,6 +55,13 @@ class FileMetadata:
 @dataclass
 class Asset(Resource):
     file_metadata: list[FileMetadata] = field(default_factory=list)
+
+    def get_entries(self) -> list[Path]:
+        entries = []
+        for file_metadata in self.file_metadata:
+            entries.append(Path(file_metadata.file_identifier))
+            entries.append(Path(file_metadata.technical_metadata.file_identifier))
+        return entries
 
 # Events
 
@@ -171,9 +182,42 @@ class BagAdapter():
     def is_valid(self) -> bool:
         return True
 
+class FakeMETSProvider:
+
+    def __init__(self, path: Path):
+        self.path = path
+
+    def get_resources(self):
+        return [
+            Monograph(
+                identifier=None,
+                alternate_identifier="abc123youandme",
+                member_identifiers=["asset001", "asset002"]
+            ),
+            Asset(
+                identifier=None,
+                alternate_identifier="001",
+                file_metadata=[
+                    FileMetadata(
+                        id="_0001.source",
+                        file_identifier="data/0001.source.jpg",
+                        mimetype="image/jpeg",
+                        technical_metadata=TechnicalMetadata(
+                            id="_0001.source.mix",
+                            file_identifier="metadata/0001.source.xml",
+                            mimetype="text/xml",
+                        ),
+                        use="preservation",
+                    )
+                ]
+            )
+        ]
+
+
 # Handlers
 
 def receive_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
+    # some component needed that fakes moving the package to the processing directory
     event = PackageReceived(
         package_identifier=event.package_identifier,
         tracking_identifier='aintthatpeculiar'
@@ -195,34 +239,13 @@ def verify_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
 
 def unpack_item(event: PackageVerified, uow: FakeUnitOfWork) -> None:
     identifier = str(uuid.uuid4())
+    resources = FakeMETSProvider(Path("some/path")).get_resources()
+
     unpacked_event = ItemUnpacked(
         identifier=identifier,
         alternate_identifier="abc123youandme",
         tracking_identifier=event.tracking_identifier,
-        resources=[
-            Monograph(
-                identifier=identifier,
-                alternate_identifier="abc123youandme",
-                member_identifiers=["asset001", "asset002"]
-            ),
-            Asset(
-                identifier="asset001",
-                alternate_identifier="001",
-                file_metadata=[
-                    FileMetadata(
-                        id="_0001.source",
-                        file_identifier="0001.source.jpg",
-                        mimetype="image/jpeg",
-                        technical_metadata=TechnicalMetadata(
-                            id="_0001.source.mix",
-                            file_identifier="0001.source.xml",
-                            mimetype="text/xml",
-                        ),
-                        use="preservation",
-                    )
-                ]
-            )
-        ],
+        resources=resources,
         version_info=VersionInfo(
             coordinator=Coordinator("jermaine", "jermaine@jackson5.com"),
             message="Just call my name, I'll be there"
@@ -231,6 +254,10 @@ def unpack_item(event: PackageVerified, uow: FakeUnitOfWork) -> None:
     uow.add_event(unpacked_event)
 
 def store_item(event: ItemUnpacked, uow: FakeUnitOfWork) -> None:
+    entries = []
+    for resource in event.resources:
+        entries.extend(resource.get_entries())
+
     package = FakePackage(alternate_identifier=event.alternate_identifier)
     uow.gateway.create_staged_object(id=event.identifier)
     uow.gateway.stage_object_files(id=event.identifier, source_package=package)
