@@ -9,6 +9,11 @@ from dor.builders.item import build_item
 
 import sys
 
+import re
+import codecs
+from functools import partial
+open_text_file = partial(codecs.open, encoding="utf-8", errors="strict")
+
 app = typer.Typer()
 
 # future? options commented out
@@ -22,11 +27,11 @@ def generate(
     # include_structure: bool = True,
     # images: bool = True,
     # texts: bool = True,
-    total: int = 1,
+    base: int = 0,
     versions: int = 1,
     output_pathname: str = pathlib.Path(__file__).resolve().parent.parent.parent.joinpath("output"),
 ):
-    
+
     S.update(
         collid=collid,
         action=action,
@@ -36,18 +41,33 @@ def generate(
         # include_structure=include_structure,
         # images=images,
         # texts=texts,
-        total=total,
         output_pathname=output_pathname,
     )
 
-    package_uuid = generate_uuid()
+    identifier_uuid = generate_uuid(base)
     for version in range(1, versions + 1):
         package_pathname = S.output_pathname.joinpath(
-            f"{S.collid}-{package_uuid}-v{version}"
+            f"{S.collid}-{identifier_uuid}-v{version}"
         )
         package_pathname.mkdir()
-        for _ in range(S.total):
-            build_item(package_pathname, version=version)
-            bagit.make_bag(package_pathname)
+        identifiers = build_item(package_pathname, identifier_uuid, base, version=version)
+        bag = bagit.make_bag(package_pathname)
+
+        dor_info = dict([
+            ('Action', S.action.value),
+            ('Root-Identifier', identifier_uuid),
+            ('Identifier', identifiers),
+        ])
+        with open_text_file(package_pathname / "dor-info.txt", "w") as f:
+            for h in dor_info.keys():
+                values = dor_info[h]
+                if not isinstance(values, list):
+                    values = [values]
+                for txt in values:
+                    # strip CR, LF and CRLF so they don't mess up the tag file
+                    txt = re.sub(r"\n|\r|(\r\n)", "", str(txt))
+                    f.write("%s: %s\n" % (h, txt))
+        bag.save()
+        print("...added dor-info.txt")
 
     print("-30-")

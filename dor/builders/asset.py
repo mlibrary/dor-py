@@ -6,7 +6,7 @@ import hashlib
 
 from dor.settings import S, text_font, template_env
 
-from .parts import FileUses, Md, MdGrp, File, FileGrp, calculate_checksum, generate_md5
+from .parts import FileUses, Md, MdGrp, File, FileGrp, calculate_checksum, generate_md5, generate_uuid
 from .premis import build_event
 
 IMAGE_WIDTH = 680
@@ -47,11 +47,13 @@ def build_plaintext(use, seq, version):
     return "\n\n".join(buffer)
 
 
-def build_asset(seq, object_pathname, version):
+def build_asset(item_alternate_identifier, seq, object_pathname, version):
     padded_seq = f"{seq:08d}"
     # local_identifier = generate_uuid()
-    local_identifier = hashlib.md5(padded_seq.encode('utf-8')).hexdigest()
-    identifier = f"urn:umich.edu:dor:asset:{local_identifier}"
+    # local_identifier = hashlib.md5(padded_seq.encode('utf-8')).hexdigest()
+    local_identifier = generate_uuid(base=16*16*16+seq)
+    identifier = local_identifier
+    # identifier = f"urn:umich.edu:dor:asset:{local_identifier}"
 
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
@@ -99,8 +101,8 @@ def build_asset(seq, object_pathname, version):
     )
     file_group.files.append(file)
 
-    premis_event = build_event(event_type='generate access derivative', linking_agent_type='image processing')
-    premis_event['object_identifier'] = file.id
+    premis_events = []
+    premis_events.append(build_event(event_type='generate access derivative', linking_agent_type='image processing'))
 
     # source
     image = build_image(use=FileUses.source, seq=seq, version=version)
@@ -164,15 +166,17 @@ def build_asset(seq, object_pathname, version):
         checksum=calculate_checksum(text_pathname),
     )
     file_group.files.append(file)
+    premis_events.append(build_event(event_type='extract text', linking_agent_type='ocr processing'))
 
-    object_pathname.joinpath("descriptor", local_identifier + ".mets2.xml").open("w").write(
+    object_pathname.joinpath("descriptor", local_identifier + ".asset.mets2.xml").open("w").write(
         asset_template.render(
             object_identifier=identifier,
+            alternate_identifier=f"{item_alternate_identifier}:{padded_seq}",
             file_group=file_group, 
             md_group=md_group,
             seq=seq,
             action=S.action.value,
-            event=premis_event,
+            events=premis_events,
             create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         )
     )

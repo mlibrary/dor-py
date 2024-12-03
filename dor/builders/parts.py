@@ -48,7 +48,9 @@ def calculate_checksum(pathname):
         digest = hashlib.file_digest(f, "sha512")
     return digest.hexdigest()
 
-def generate_uuid():
+def generate_uuid(base=None):
+    if base:
+        return str(uuid6.UUID(int=base))
     return str(uuid6.uuid7())
 
 def generate_ulid():

@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" OBJID="{{ object_identifier }}" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
 
-  <METS:metsHdr RECORDSTATUS="{{ action }}" CREATEDATE="{{ create_date }}" ID="HDR1">
+  <METS:metsHdr RECORDSTATUS="{{ action }}" CREATEDATE="{{ create_date }}" ID="HDR1" TYPE="Asset">
     <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
       <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
     </METS:agent>
+    <METS:altRecordID TYPE="DLXS">{{ alternate_identifier }}</METS:altRecordID>
   </METS:metsHdr>
 
   <METS:mdSec>
@@ -14,10 +15,11 @@
           <PREMIS:premis version="3.0">
             <PREMIS:object xsi:type="PREMIS:representation">
               <PREMIS:objectIdentifier>
-                <PREMIS:objectIdentifierType>LOCAL</PREMIS:objectIdentifierType>
-                <PREMIS:objectIdentifierValue>_{{ event.object_identifier }}</PREMIS:objectIdentifierValue>
+                <PREMIS:objectIdentifierType>DLXS</PREMIS:objectIdentifierType>
+                <PREMIS:objectIdentifierValue>{{ alternate_identifier }}</PREMIS:objectIdentifierValue>
               </PREMIS:objectIdentifier>
             </PREMIS:object>
+            {% for event in events %}
             <PREMIS:event>
               <PREMIS:eventIdentifier>
                 <PREMIS:eventIdentifierType>UUID</PREMIS:eventIdentifierType>
@@ -33,6 +35,7 @@
                 <PREMIS:linkingAgentIdentifierValue>{{ event.linking_agent.value }}</PREMIS:linkingAgentIdentifierValue>
               </PREMIS:linkingAgentIdentifier>
             </PREMIS:event>
+            {% endfor %}
           </PREMIS:premis>
         </METS:xmlData>
       </METS:mdWrap>
