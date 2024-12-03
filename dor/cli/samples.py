@@ -53,6 +53,7 @@ def generate(
         identifiers = build_item(package_pathname, identifier_uuid, base, version=version)
         bag = bagit.make_bag(package_pathname)
 
+        # one time ugly
         dor_info = dict([
             ('Action', S.action.value),
             ('Root-Identifier', identifier_uuid),
@@ -68,6 +69,5 @@ def generate(
                     txt = re.sub(r"\n|\r|(\r\n)", "", str(txt))
                     f.write("%s: %s\n" % (h, txt))
         bag.save()
-        print("...added dor-info.txt")
 
     print("-30-")
