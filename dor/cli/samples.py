@@ -4,33 +4,67 @@ import pathlib
 import bagit
 from dor.settings import S, ActionChoices
 
-from dor.builders.parts import generate_uuid
+from dor.builders.parts import generate_uuid, Identifier
 from dor.builders.item import build_item
 
 import sys
-
-import re
-import codecs
-from functools import partial
-open_text_file = partial(codecs.open, encoding="utf-8", errors="strict")
+import datetime
 
 app = typer.Typer()
 
-# future? options commented out
+"""
+## About the Sample Generator
+
+Submission packages are a bag representing a single root digital object, 
+containing its required assets, e.g. a monograph and its scanned pages.
+This group of objects represents a preservation goal: everything about the 
+monograph that should be preserved and described.
+
+By default, UUIDs are created from a starting integer to make them 
+easier to scan/read when generated (e.g. 00000000-0000-0000-0000-000000000001).
+
+## What's in the package?
+
+The submission package is your standard BagIt bag, with the addition of
+a "dor-info.txt" tag file containing proposed fields that are still 
+under discussion. The "Identifier" key is multi-valued and is the list of
+all objects in this package; there's a future scenario where the monograph-type
+object will _refer_ to assets not preserved under its repository item. 
+The "Root-Identifier" key points to that monograph-type object.
+
+## What's in the METS?
+
+Some XPaths:
+
+* `//METS:mets/@OBJID` returns the object identifier
+* `//METS:mets/METS:metsHdr/@TYPE` returns the "internal resource type" of the object
+* `//METS:mets/METS:metsHdr/METS:altRecordID[@TYPE="DLXS"]` returns the alternate identifier
+* `//METS:mets//PREMIS:event[PREMIS:eventType="ingest"]` returns the commit details
+
+In the structMap of the monograph:
+
+```
+<METS:div ORDERLABEL="5" TYPE="page" ORDER="5" LABEL="Page 5" ID="urn:dor:00000000-0000-0000-0000-000000001005">
+```
+
+The `ID` is the asset identifier: the `urn:dor:` prefix satisfies XML IDs constraints.
+
+"""
+
 @app.command()
 def generate(
-    collid: str = typer.Option(default=...),
-    action: ActionChoices = ActionChoices.store,
-    num_scans: int = -1,
-    # include_desc: bool = True,
-    # include_admin: bool = True,
-    # include_structure: bool = True,
-    # images: bool = True,
-    # texts: bool = True,
-    base: int = 0,
-    versions: int = 1,
+    collid: str = typer.Option(default="xyzzy", help="collection id"),
+    deposit_group: str = typer.Option(default=None, help="deposit group identifier"),
+    action: ActionChoices = typer.Option(default=ActionChoices.store, help="what should ingest do with this package?"),
+    num_scans: int = typer.Option(default=-1, help="number of page scans; -1 == random number"),
+    start: int = typer.Option(default=1, help="seed number for the root identifier"),
+    versions: int = typer.Option(default=1, help="number of versions to generate"),
     output_pathname: str = pathlib.Path(__file__).resolve().parent.parent.parent.joinpath("output"),
 ):
+
+    """
+    Generate a sample submission package.
+    """
 
     S.update(
         collid=collid,
@@ -44,30 +78,28 @@ def generate(
         output_pathname=output_pathname,
     )
 
-    identifier_uuid = generate_uuid(base)
+    if deposit_group is None:
+        deposit_group = generate_uuid()
+    deposit_group_date = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    item_identifier = Identifier(start=start, collid=collid)
     for version in range(1, versions + 1):
         package_pathname = S.output_pathname.joinpath(
-            f"{S.collid}-{identifier_uuid}-v{version}"
+            f"{S.collid}-{item_identifier}-v{version}"
         )
         package_pathname.mkdir()
-        identifiers = build_item(package_pathname, identifier_uuid, base, version=version)
+        identifiers = build_item(package_pathname, item_identifier, version=version)
         bag = bagit.make_bag(package_pathname)
 
         # one time ugly
         dor_info = dict([
             ('Action', S.action.value),
-            ('Root-Identifier', identifier_uuid),
+            ('Deposit-Group-Identifier', deposit_group),
+            ('Deposit-Group-Date', deposit_group_date),
+            ('Root-Identifier', str(item_identifier)),
             ('Identifier', identifiers),
         ])
-        with open_text_file(package_pathname / "dor-info.txt", "w") as f:
-            for h in dor_info.keys():
-                values = dor_info[h]
-                if not isinstance(values, list):
-                    values = [values]
-                for txt in values:
-                    # strip CR, LF and CRLF so they don't mess up the tag file
-                    txt = re.sub(r"\n|\r|(\r\n)", "", str(txt))
-                    f.write("%s: %s\n" % (h, txt))
+        bagit._make_tag_file(package_pathname / "dor-info.txt", dor_info)
         bag.save()
 
     print("-30-")

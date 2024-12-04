@@ -47,13 +47,10 @@ def build_plaintext(use, seq, version):
     return "\n\n".join(buffer)
 
 
-def build_asset(item_alternate_identifier, seq, object_pathname, version):
+def build_asset(item_identifier, seq, object_pathname, version):
     padded_seq = f"{seq:08d}"
-    # local_identifier = generate_uuid()
-    # local_identifier = hashlib.md5(padded_seq.encode('utf-8')).hexdigest()
-    local_identifier = generate_uuid(base=16*16*16+seq)
+    local_identifier = generate_uuid(base=16*16*16*item_identifier.start+seq)
     identifier = local_identifier
-    # identifier = f"urn:umich.edu:dor:asset:{local_identifier}"
 
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
@@ -171,7 +168,7 @@ def build_asset(item_alternate_identifier, seq, object_pathname, version):
     object_pathname.joinpath("descriptor", local_identifier + ".asset.mets2.xml").open("w").write(
         asset_template.render(
             object_identifier=identifier,
-            alternate_identifier=f"{item_alternate_identifier}:{padded_seq}",
+            alternate_identifier=f"{item_identifier.alternate_identifier}:{padded_seq}",
             file_group=file_group, 
             md_group=md_group,
             seq=seq,
