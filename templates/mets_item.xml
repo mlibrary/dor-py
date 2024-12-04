@@ -67,7 +67,7 @@
     <METS:structMap ID="SM1" TYPE="physical">
       <METS:div>
         {% for asset_identifier in asset_identifiers %}
-        <METS:div ORDERLABEL="{{ loop.index }}" TYPE="page" ORDER="{{ loop.index }}" LABEL="Page {{ loop.index }}">
+        <METS:div ORDERLABEL="{{ loop.index }}" TYPE="page" ORDER="{{ loop.index }}" LABEL="Page {{ loop.index }}" ID="urn:dor:{{ asset_identifier }}">
           <METS:mptr LOCTYPE="URL" LOCREF="{{ asset_identifier }}.mets2.xml" />
         </METS:div>
         {% endfor %}  
