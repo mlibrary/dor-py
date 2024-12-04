@@ -2,22 +2,21 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Set, Type
+from dor.domain.events import (
+    Event,
+    PackageReceived,
+    PackageSubmitted,
+    PackageVerified,
+    ItemStored,
+    ItemUnpacked
+)
+from dor.domain.models import Coordinator, VersionInfo
 
 from behave import given, when, then
 
 @dataclass
 class Item:
     identifier: str
-
-@dataclass(frozen=True)
-class Coordinator:
-    username: str
-    email: str
-
-@dataclass(frozen=True)
-class VersionInfo():
-    coordinator: Coordinator
-    message: str
 
 # Resource
 
@@ -62,39 +61,6 @@ class Asset(Resource):
             entries.append(Path(file_metadata.file_identifier))
             entries.append(Path(file_metadata.technical_metadata.file_identifier))
         return entries
-
-# Events
-
-@dataclass
-class Event:
-    pass
-
-@dataclass
-class PackageSubmitted(Event):
-    package_identifier: str
-
-@dataclass
-class PackageReceived(Event):
-    package_identifier: str
-    tracking_identifier: str
-
-@dataclass
-class PackageVerified(Event):
-    package_identifier: str
-    tracking_identifier: str
-
-@dataclass
-class ItemUnpacked(Event):
-    identifier: str
-    resources: list[Any]
-    tracking_identifier: str
-    version_info: VersionInfo
-    package_identifier: str
-
-@dataclass
-class ItemStored(Event):
-    identifier: str
-    tracking_identifier: str
 
 # Gateway
 
