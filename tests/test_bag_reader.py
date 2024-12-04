@@ -18,7 +18,7 @@ def test_is_valid(valid_bag_path: Path):
 
 def test_read_dor_info(valid_bag_path: Path):
     reader = BagReader(valid_bag_path)
-    assert reader.dor_info == {"deposit_group_identifier": "d752b492-eb0b-4150-bcf5-b4cb74bd4a7f"}
+    assert reader.dor_info == {"Deposit-Group-Identifier": "d752b492-eb0b-4150-bcf5-b4cb74bd4a7f"}
 
 def test_dor_info_missing(dor_info_missing_bag_path: Path):
     reader = BagReader(dor_info_missing_bag_path)
