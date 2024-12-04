@@ -13,6 +13,9 @@ from dor.domain.events import (
 from dor.domain.models import Coordinator, VersionInfo
 
 from behave import given, when, then
+from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
+from dor.service_layer.unit_of_work import UnitOfWork
+from gateway.fake_repository_gateway import FakePackage, FakeRepositoryGateway
 
 @dataclass
 class Item:
@@ -62,84 +65,6 @@ class Asset(Resource):
             entries.append(Path(file_metadata.technical_metadata.file_identifier))
         return entries
 
-# Gateway
-
-@dataclass
-class FakePackage:
-    package_identifier: str
-    entries: list[Path]
-
-    def get_paths(self) -> list[Path]:
-        return self.entries
-
-@dataclass
-class RepositoryObject:
-    staged_files: Set[str]
-    files: Set[str]
-
-# subclass Repository Gateway some day?
-class FakeRepositoryGateway():
-
-    def __init__(self) -> None:
-        self.store: dict[str, RepositoryObject] = dict()
-
-    def create_repository(self):
-        pass
-
-    def has_object(self, object_id: str):
-        return object_id in self.store and len(self.store[object_id].files) > 0
-
-    def create_staged_object(self, id: str) -> None:
-        self.store[id] = RepositoryObject(staged_files=set(), files=set())
-
-    def stage_object_files(self, id: str, source_package: FakePackage) -> None:
-        file_paths = set(source_package.get_paths())
-        if id not in self.store:
-            raise Exception()
-        self.store[id].staged_files = self.store[id].staged_files.union(file_paths)
-
-    def commit_object_changes(
-        self,
-        id: str,
-        coordinator: Coordinator,
-        message: str
-    ) -> None:
-        if id not in self.store:
-            raise Exception()
-        self.store[id].files = self.store[id].files.union(self.store[id].staged_files)
-        self.store[id].staged_files = set()
-
-class FakeUnitOfWork:
-
-    def __init__(self) -> None:
-        self.gateway = FakeRepositoryGateway()
-        self.gateway.create_repository()
-
-        self.events: list[Event] = []
-
-    def add_event(self, event: Event):
-        self.events.append(event)
-
-    def pop_event(self) -> Event | None:
-        if len(self.events) > 0:
-            return self.events.pop(0)
-        return None
-
-class FakeMessageBus():
-
-    def __init__(self, handlers: dict[Type[Event], list[Callable]]):
-        self.handlers = handlers
-
-    def handle(self, event: Event, uow: FakeUnitOfWork):
-        queue = [event]
-        while queue:
-            next_event = queue.pop(0)
-            for handler in self.handlers[type(next_event)]:
-                handler(next_event)
-            another_event = uow.pop_event()
-            if another_event:
-                queue.append(another_event)
-
 class BagAdapter():
 
     def __init__(self, identifier: str) -> None:
@@ -181,7 +106,7 @@ class FakeMETSProvider:
 
 # Handlers
 
-def receive_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
+def receive_package(event: PackageReceived, uow: UnitOfWork) -> None:
     # some component needed that fakes moving the package to the processing directory
     event = PackageReceived(
         package_identifier=event.package_identifier,
@@ -190,7 +115,7 @@ def receive_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
     uow.add_event(event)
     # context.identifier = 'blameitontheboogie'
 
-def verify_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
+def verify_package(event: PackageReceived, uow: UnitOfWork) -> None:
     bag = BagAdapter(event.package_identifier)
     is_valid = bag.is_valid()
 
@@ -202,7 +127,7 @@ def verify_package(event: PackageReceived, uow: FakeUnitOfWork) -> None:
     else:
         raise Exception()
 
-def unpack_item(event: PackageVerified, uow: FakeUnitOfWork) -> None:
+def unpack_item(event: PackageVerified, uow: UnitOfWork) -> None:
     resources = FakeMETSProvider(Path(event.package_identifier)).get_resources()
 
     unpacked_event = ItemUnpacked(
@@ -217,7 +142,7 @@ def unpack_item(event: PackageVerified, uow: FakeUnitOfWork) -> None:
     )
     uow.add_event(unpacked_event)
 
-def store_item(event: ItemUnpacked, uow: FakeUnitOfWork) -> None:
+def store_item(event: ItemUnpacked, uow: UnitOfWork) -> None:
     entries = []
     for resource in event.resources:
         entries.extend(resource.get_entries())
@@ -245,9 +170,9 @@ def store_item(event: ItemUnpacked, uow: FakeUnitOfWork) -> None:
 
 @given(u'a package containing the scanned pages, OCR, and metadata')
 def step_impl(context) -> None:
-    context.uow = FakeUnitOfWork()
+    context.uow = UnitOfWork(gateway=FakeRepositoryGateway())
 
-    def stored_callback(event: ItemStored, uow: FakeUnitOfWork) -> None:
+    def stored_callback(event: ItemStored, uow: UnitOfWork) -> None:
         context.stored_event = event
 
     handlers: dict[Type[Event], list[Callable]] = {
@@ -257,7 +182,7 @@ def step_impl(context) -> None:
         ItemUnpacked: [lambda event: store_item(event, context.uow)],
         ItemStored: [lambda event: stored_callback(event, context.uow)]
     }
-    context.message_bus = FakeMessageBus(handlers=handlers)
+    context.message_bus = MemoryMessageBus(handlers)
 
 @when(u'the Collection Manager places the packaged resource in the incoming location')
 def step_impl(context):
