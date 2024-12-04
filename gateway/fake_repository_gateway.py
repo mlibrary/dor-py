@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Set
 from dor.domain.models import Coordinator
 
-
+@dataclass
 class FakePackage:
     package_identifier: str
     entries: list[Path]

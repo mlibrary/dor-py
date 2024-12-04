@@ -176,11 +176,11 @@ def step_impl(context) -> None:
         context.stored_event = event
 
     handlers: dict[Type[Event], list[Callable]] = {
-        PackageSubmitted: [lambda event: receive_package(event, context.uow)],
-        PackageReceived: [lambda event: verify_package(event, context.uow)],
-        PackageVerified: [lambda event: unpack_item(event, context.uow)],
-        ItemUnpacked: [lambda event: store_item(event, context.uow)],
-        ItemStored: [lambda event: stored_callback(event, context.uow)]
+        PackageSubmitted: [lambda event, uow: receive_package(event, context.uow)],
+        PackageReceived: [lambda event , uow: verify_package(event, context.uow)],
+        PackageVerified: [lambda event, uow: unpack_item(event, context.uow)],
+        ItemUnpacked: [lambda event, uow: store_item(event, context.uow)],
+        ItemStored: [lambda event, uow: stored_callback(event, context.uow)]
     }
     context.message_bus = MemoryMessageBus(handlers)
 
