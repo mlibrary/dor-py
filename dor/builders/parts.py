@@ -42,6 +42,31 @@ class FileGrp:
     use: str
     files: list[File] = field(default_factory=list)
 
+# utility class so asset identifiers can 
+# build on the start value
+@dataclass
+class Identifier:
+    collid: str = 'dlxs'
+    start: int = -1
+    uuid: uuid6.UUID = None
+
+    def __post_init__(self):
+        if self.start >= 0:
+            self.uuid = uuid6.UUID(int=self.start)
+        else:
+            self.uuid = uuid6.uuid7()
+            self.start = self.uuid.int
+
+    def __str__(self):
+        return str(self.uuid)
+    
+    def __add__(self, other):
+        return str(self) + other
+    
+    @property
+    def alternate_identifier(self):
+        return f"{self.collid}:{self.uuid.int:08d}"
+
 
 def calculate_checksum(pathname):
     with pathname.open("rb") as f:
