@@ -8,7 +8,7 @@ from PIL import ImageFont
 class ActionChoices(str, Enum):
     store = "store"
     stage = "stage"
-    purge = "purge"
+    # purge = "purge"
 
 
 @dataclass

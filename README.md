@@ -56,20 +56,15 @@ docker compose run app poetry run pytest
 To generate sample packages, on the command line run:
 
 ```sh
-docker compose run --rm app poetry run dor samples generate --collid xyzzy --num-scans 5 --total 1 --versions 1
+docker compose run --rm app poetry run dor samples generate --collid xyzzy --num-scans 5 --versions 1
 ```
 
 This will generate a submission package in BagIt format for the collection `xyzzy` for one item made up of 5 page scans.
 
-The complete list of options:
+To see all options:
 
 ```sh
---collid: str -- required
---action: store|stage|purge
---num_scans: int = None -- if unspecified, a random number of scans will be generated
---total: int = 1 -- number of items to generate
---versions: int = 1 --- number of versions to generate
---output_pathname: str -- default is the "output" directory at the root of this repository
+docker compose run --rm app poetry run dor samples generate --help
 ```
 
 **How does the `versions` option work?** The first version of the item will contain all the scans. 

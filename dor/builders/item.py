@@ -11,34 +11,36 @@ from .parts import Md, MdGrp, File, FileGrp, calculate_checksum, generate_ulid
 from .asset import build_asset
 from .premis import build_event
 
-def build_item(package_pathname, version=1):
-    object_identifier = f"{S.collid}:{generate_ulid()}"
-    object_pathname = package_pathname.joinpath(object_identifier)
-    object_pathname.mkdir()
+def build_item(package_pathname, item_identifier, version=1):
+    item_pathname = package_pathname.joinpath(str(item_identifier))
+    item_pathname.mkdir()
+
+    alternate_identifier = item_identifier.alternate_identifier
 
     for d in ["data", "descriptor", "metadata"]:
-        d_pathname = object_pathname.joinpath(d)
+        d_pathname = item_pathname.joinpath(d)
         d_pathname.mkdir()
 
     item_template = template_env.get_template("mets_item.xml")
 
     asset_identifiers = []
-    sequences = range(1, S.num_scans + 1)
+    num_scans = random.randint(1, 10) if S.num_scans < 0 else S.num_scans
+    sequences = range(1, num_scans + 1)
     if version > 1:
         sequences = random.sample(
             sequences, random.randint(1, min(len(sequences) - 1, 2)))
 
     for seq in sequences:
-        identifier = build_asset(seq, object_pathname, version)
+        identifier = build_asset(item_identifier, seq, item_pathname, version)
         asset_identifiers.append(identifier)
 
     if version > 1:
-        object_pathname.joinpath("descriptor", object_identifier + ".mets2.xml").open(
+        item_pathname.joinpath("descriptor", item_identifier + ".mets2.xml").open(
             "w"
         ).write(
             item_template.render(
                 asset_identifiers=asset_identifiers,
-                object_identifier=object_identifier,
+                object_identifier=item_identifier,
                 action=S.action.value,
                 create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 version=version,
@@ -60,8 +62,8 @@ def build_item(package_pathname, version=1):
     metadata["places"] = [fake.country() for _ in range(5)]
     metadata["identification"] = [fake["en_US"].organism_latin() for _ in range(5)]
 
-    metadata_pathname = object_pathname.joinpath(
-        "metadata", object_identifier + ".metadata.json"
+    metadata_pathname = item_pathname.joinpath(
+        "metadata", item_identifier + ".metadata.json"
     )
     metadata_pathname.open("w").write(json.dumps(metadata, indent=4))
 
@@ -72,8 +74,8 @@ def build_item(package_pathname, version=1):
         "publication_date": metadata["publication_date"],
         "subjects": metadata["places"] + metadata["identification"],
     }
-    common_pathname = object_pathname.joinpath(
-        "metadata", object_identifier + ".common.json"
+    common_pathname = item_pathname.joinpath(
+        "metadata", item_identifier + ".common.json"
     )
     common_pathname.open("w").write(json.dumps(metadata, indent=4))
 
@@ -82,7 +84,7 @@ def build_item(package_pathname, version=1):
         Md(
             use="DESCRIPTIVE/COMMON",
             mdtype="DOR:SCHEMA",
-            locref=f"../metadata/{object_identifier}.common.json",
+            locref=f"../metadata/{item_identifier}.common.json",
             checksum=calculate_checksum(common_pathname),
         )
     )
@@ -91,23 +93,27 @@ def build_item(package_pathname, version=1):
         Md(
             use="DESCRIPTIVE",
             mdtype="DOR:SCHEMA",
-            locref=f"../metadata/{object_identifier}.metadata.json",
+            locref=f"../metadata/{item_identifier}.metadata.json",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
 
-    object_pathname.joinpath("descriptor", object_identifier + ".root.mets2.xml").open(
+    item_pathname.joinpath("descriptor", item_identifier + ".monograph.mets2.xml").open(
         "w"
     ).write(
         item_template.render(
             asset_identifiers=asset_identifiers,
-            object_identifier=object_identifier,
+            object_identifier=item_identifier,
+            alternate_identifier=alternate_identifier,
             desc_group=desc_group,
             action=S.action.value,
             create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             version=version,
+            collid=S.collid,
             event=build_event(
                 event_type="ingest", linking_agent_type="collection manager"
             ),
         )
     )
+
+    return [item_identifier, *asset_identifiers]
