@@ -13,8 +13,8 @@ class FakePackage:
 
 @dataclass
 class RepositoryObject:
-    staged_files: Set[str]
-    files: Set[str]
+    staged_files: Set[Path]
+    files: Set[Path]
 
 # subclass Repository Gateway some day?
 class FakeRepositoryGateway():
