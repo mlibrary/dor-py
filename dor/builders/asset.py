@@ -48,7 +48,6 @@ def build_plaintext(use, seq, version):
 
 
 def build_asset(item_identifier, seq, object_pathname, version):
-    padded_seq = f"{seq:08d}"
     local_identifier = generate_uuid(base=16*16*16*item_identifier.start+seq)
     identifier = local_identifier
 
@@ -66,6 +65,41 @@ def build_asset(item_identifier, seq, object_pathname, version):
     metadata["collid"] = S.collid
 
     padded_seq = f"{seq:08d}"
+
+    # source
+    image = build_image(use=FileUses.source, seq=seq, version=version)
+    image_filename = f"{padded_seq}.source.jpg"
+    metadata["object_identifier"] = f"{identifier}:{image_filename}"
+    image_pathname = object_pathname.joinpath("data", image_filename)
+    metadata_pathname = object_pathname.joinpath(
+        "metadata", f"{image_filename}.mix.xml"
+    )
+    image.save(image_pathname)
+    metadata_pathname.open("w").write(mix_template.render(**metadata))
+
+    md_group.items.append(
+        Md(
+            use="TECHNICAL",
+            mdtype="NISOIMG",
+            locref=f"../metadata/{image_filename}.mix.xml",
+            checksum=calculate_checksum(metadata_pathname),
+        )
+    )
+
+    metadata["object_identifier"] = f"{identifier}:{image_filename}"
+    object_pathname.joinpath("metadata", f"{image_filename}.mix.xml").open("w").write(
+        mix_template.render(**metadata)
+    )
+    file = File(
+        id=generate_md5(image_filename),
+        use=str(FileUses.source.value),
+        mdid=md_group.items[-1].id,
+        locref=f"../data/{image_filename}",
+        mimetype="image/jpeg",
+        checksum=calculate_checksum(image_pathname),
+    )
+    file_group.files.append(file)
+    source_file_identifier = file.id
 
     # access
     image = build_image(use=FileUses.access, seq=seq, version=version)
@@ -90,6 +124,7 @@ def build_asset(item_identifier, seq, object_pathname, version):
 
     file = File(
         id=generate_md5(image_filename),
+        group_id=source_file_identifier,
         use=str(FileUses.access.value),
         mdid=md_group.items[-1].id,
         locref=f"../data/{image_filename}",
@@ -100,40 +135,6 @@ def build_asset(item_identifier, seq, object_pathname, version):
 
     premis_events = []
     premis_events.append(build_event(event_type='generate access derivative', linking_agent_type='image processing'))
-
-    # source
-    image = build_image(use=FileUses.source, seq=seq, version=version)
-    image_filename = f"{padded_seq}.source.jpg"
-    metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    image_pathname = object_pathname.joinpath("data", image_filename)
-    metadata_pathname = object_pathname.joinpath(
-        "metadata", f"{image_filename}.mix.xml"
-    )
-    image.save(image_pathname)
-    metadata_pathname.open("w").write(mix_template.render(**metadata))
-
-    md_group.items.append(
-        Md(
-            use="TECHNICAL",
-            mdtype="NISOIMG",
-            locref=f"../metadata/{image_filename}.mix.xml",
-            checksum=calculate_checksum(metadata_pathname)
-        )
-    )
-
-    metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    object_pathname.joinpath("metadata", f"{image_filename}.mix.xml").open("w").write(
-        mix_template.render(**metadata)
-    )
-    file = File(
-        id=generate_md5(image_filename),
-        use=str(FileUses.source.value),
-        mdid=md_group.items[-1].id,
-        locref=f"../data/{image_filename}",
-        mimetype="image/jpeg",
-        checksum=calculate_checksum(image_pathname),
-    )
-    file_group.files.append(file)
 
     plaintext = build_plaintext(use=FileUses.source, seq=seq, version=version)
     text_filename = f"{padded_seq}.plaintext.txt"
@@ -156,6 +157,7 @@ def build_asset(item_identifier, seq, object_pathname, version):
 
     file = File(
         id=generate_md5(text_filename),
+        group_id=source_file_identifier,
         use=str(FileUses.source.value),
         mdid=md_group.items[-1].id,
         locref=f"../data/{text_filename}",

@@ -30,6 +30,7 @@ class MdGrp:
 class File:
     use: str = None
     id: uuid6.UUID = field(default_factory=lambda: uuid6.uuid7())
+    group_id: uuid6.UUID = None
     mdid: str = None
     group_id: str = None
     locref: str = None
@@ -42,7 +43,7 @@ class FileGrp:
     use: str
     files: list[File] = field(default_factory=list)
 
-# utility class so asset identifiers can 
+# utility class so asset identifiers can
 # build on the start value
 @dataclass
 class Identifier:

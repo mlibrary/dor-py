@@ -12,7 +12,6 @@ from .asset import build_asset
 from .premis import build_event
 
 def build_item(package_pathname, item_identifier, version=1):
-    # object_identifier = f"{S.collid}:{identifier_uuid}"
     item_pathname = package_pathname.joinpath(str(item_identifier))
     item_pathname.mkdir()
 
@@ -117,4 +116,4 @@ def build_item(package_pathname, item_identifier, version=1):
         )
     )
 
-    return [ item_identifier, *asset_identifiers]
+    return [item_identifier, *asset_identifiers]
