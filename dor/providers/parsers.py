@@ -51,16 +51,10 @@ class DescriptorFileParser:
         )
 
     def get_file_metadata(self) -> list[FileMetadata]:
-        # return [
-        #     self.get_file_metadatum(elem)
-        #     for elem in self.tree.findall(".//METS:md[@USE != 'PROVENANCE' and @USE != 'COLLECTIONS']")
-        # ]
-        results = []
-        for elem in self.tree.findall(".//METS:md"):
-            if elem.get("USE") in ["COLLECTIONS", "PROVENANCE"]:
-                continue
-            results.append(self.get_file_metadatum(elem))
-        return results
+        return [
+            self.get_file_metadatum(elem)
+            for elem in self.tree.findall(".//METS:md[METS:mdRef]")
+        ]
 
     def get_file_metadatum(self, elem):
         id_ = elem.get("ID")
