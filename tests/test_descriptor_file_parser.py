@@ -153,3 +153,95 @@ class DescriptorFileTest(TestCase):
 
         parser = DescriptorFileParser(self.descriptor_path)
         self.assertEqual(parser.get_resource(), expected_resource)
+
+    def test_provider_can_parse_assets(self):
+        descriptor_path = (
+            self.test_submission_path
+            / "xyzzy-0001-v1"
+            / "data"
+            / "00000000-0000-0000-0000-000000000001"
+            / "descriptor"
+            / "00000000-0000-0000-0000-000000001001.asset.mets2.xml"
+        )
+
+        expected_resource = PackageResource(
+            id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
+            type="Asset",
+            alternate_identifier=AlternateIdentifier(
+                id="xyzzy:00000001:00000001", type="DLXS"
+            ),
+            events=[
+                PreservationEvent(
+                    identifier="81388465-aefd-4a3d-ba99-a868d062b92e",
+                    type="generate access derivative",
+                    datetime=datetime(2005, 8, 22, 22, 54, 45, tzinfo=UTC),
+                    detail="Method south agree until.",
+                    agent=Agent(address="rguzman@example.net", role="image processing"),
+                ),
+                PreservationEvent(
+                    identifier="d53540b9-cd23-4e92-9dff-4b28bf050b26",
+                    type="extract text",
+                    datetime=datetime(2006, 8, 23, 16, 21, 57, tzinfo=UTC),
+                    detail="Hear thus part probably that.",
+                    agent=Agent(address="kurt16@example.org", role="ocr processing"),
+                ),
+            ],
+            file_metadata=[
+                FileMetadata(
+                    id="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
+                    use="TECHNICAL",
+                    ref=FileReference(
+                        locref="../metadata/00000001.source.jpg.mix.xml",
+                        mdtype="NISOIMG",
+                    ),
+                ),
+                FileMetadata(
+                    id="_0193972b-e4ae-73eb-848d-5f8893b68253",
+                    use="TECHNICAL",
+                    ref=FileReference(
+                        locref="../metadata/00000001.access.jpg.mix.xml",
+                        mdtype="NISOIMG",
+                    ),
+                ),
+                FileMetadata(
+                    id="_0193972b-e572-7107-b69c-e2f4c660a9aa",
+                    use="TECHNICAL",
+                    ref=FileReference(
+                        locref="../metadata/00000001.plaintext.txt.textmd.xml",
+                        mdtype="TEXTMD",
+                    ),
+                ),
+                FileMetadata(
+                    id="_be653ff450ae7f3520312a53e56c00bc",
+                    mdid="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
+                    use="SOURCE",
+                    ref=FileReference(
+                        locref="../data/00000001.source.jpg",
+                        mimetype="image/jpeg",
+                    ),
+                ),
+                FileMetadata(
+                    id="_7e923d9c33b3859e1327fa53a8e609a1",
+                    groupid="_be653ff450ae7f3520312a53e56c00bc",
+                    mdid="_0193972b-e4ae-73eb-848d-5f8893b68253",
+                    use="ACCESS",
+                    ref=FileReference(
+                        locref="../data/00000001.access.jpg",
+                        mimetype="image/jpeg",
+                    ),
+                ),
+                FileMetadata(
+                    id="_764ba9761fbc6cbf0462d28d19356148",
+                    groupid="_be653ff450ae7f3520312a53e56c00bc",
+                    mdid="_0193972b-e572-7107-b69c-e2f4c660a9aa",
+                    use="SOURCE",
+                    ref=FileReference(
+                        locref="../data/00000001.plaintext.txt",
+                        mimetype="text/plain",
+                    ),
+                ),
+            ],
+        )
+
+        parser = DescriptorFileParser(descriptor_path)
+        self.assertEqual(parser.get_resource(), expected_resource)

@@ -52,11 +52,14 @@ class DescriptorFileParser:
 
     def get_file_metadata(self) -> list[FileMetadata]:
         return [
-            self.get_file_metadatum(elem)
+            self.get_md_file_metadatum(elem)
             for elem in self.tree.findall(".//METS:md[METS:mdRef]")
+        ] + [
+            self.get_filesec_file_metadatum(elem)
+            for elem in self.tree.findall(".//METS:file")
         ]
 
-    def get_file_metadatum(self, elem):
+    def get_md_file_metadatum(self, elem):
         id_ = elem.get("ID")
         use = elem.get("USE")
         locref = elem.find("METS:mdRef").get_optional("LOCREF")
@@ -66,6 +69,23 @@ class DescriptorFileParser:
         return FileMetadata(
             id=id_,
             use=use,
+            ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
+        )
+
+    def get_filesec_file_metadatum(self, elem):
+        id_ = elem.get("ID")
+        use = elem.get("USE")
+        mdid = elem.get_optional("MDID", None)
+        groupid = elem.get_optional("GROUPID", None)
+        mimetype = elem.get('MIMETYPE')
+        mdtype = None
+        locref = elem.find("METS:FLocat").get_optional("LOCREF")
+
+        return FileMetadata(
+            id=id_,
+            use=use,
+            mdid=mdid,
+            groupid=groupid,
             ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
         )
 

@@ -27,7 +27,7 @@ class PreservationEvent:
 @dataclass
 class FileReference:
     locref: str
-    mdtype: str
+    mdtype: str = None
     mimetype: str = None
 
 
@@ -36,6 +36,7 @@ class FileMetadata:
     id: str
     use: str
     mdid: str = None
+    groupid: str = None
     ref: FileReference = None
 
 
@@ -46,5 +47,5 @@ class PackageResource:
     alternate_identifier: AlternateIdentifier
     events: list[PreservationEvent]
     file_metadata: list[FileMetadata]
-    member_ids: list[str]
+    member_ids: list[str] = field(default_factory=list)
     # structure: list[Structure] || []
