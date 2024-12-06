@@ -12,10 +12,7 @@ class DescriptorFileParser:
     }
 
     def __init__(self, descriptor_path):
-        try:
-            text = descriptor_path.read_text()
-        except FileNotFoundError as e:
-            raise FileNotFoundError from e
+        text = descriptor_path.read_text()
         self.tree: ElementAdapter = ElementAdapter.from_string(text, self.namespaces)
 
     def get_id(self):

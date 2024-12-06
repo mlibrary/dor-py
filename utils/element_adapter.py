@@ -39,11 +39,6 @@ class ElementAdapter:
 
     def get_optional(self, key: str, default=None):
         return self.elem.get(key, default)
-        # if result is None:
-        #     raise DataNotFoundError(
-        #         f"No value for attribute {key} found for {self.elem.tag}"
-        #     )
-        # return result
 
     def findall(self, path: str) -> "list[ElementAdapter]":
         return [
