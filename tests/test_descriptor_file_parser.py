@@ -7,7 +7,7 @@ from dor.providers.parsers import *
 from dor.providers.models import *
 
 
-class DescriptorFileTest(TestCase):
+class DescriptorFileParserTest(TestCase):
 
     def setUp(self):
         self.test_submission_path = Path("tests/fixtures/test_submission_package")
