@@ -47,7 +47,7 @@
 
   <METS:fileSec>
     {% for file in file_group.files %}
-    <METS:file ID="_{{ file.id }}" {% if file.group_id %}GROUPID="{{ file.group_id }}"{% endif %} USE="{{ file.use }}" SEQ="{{ seq }}" MIMETYPE="{{ file.mimetype }}" MDID="_{{ file.mdid }}" CHECKSUM="{{ file.checksum }}" CHECKSUMTYPE="SHA-512">
+    <METS:file ID="_{{ file.id }}" {% if file.group_id %}GROUPID="_{{ file.group_id }}"{% endif %} USE="{{ file.use }}" SEQ="{{ seq }}" MIMETYPE="{{ file.mimetype }}" MDID="_{{ file.mdid }}" CHECKSUM="{{ file.checksum }}" CHECKSUMTYPE="SHA-512">
       <METS:FLocat LOCTYPE="SYSTEM" LOCREF="{{ file.locref }}" />
     </METS:file>
     {% endfor %}

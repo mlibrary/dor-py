@@ -116,7 +116,7 @@ def build_asset(item_identifier, seq, object_pathname, version):
     md_group.items.append(
         Md(
             use="TECHNICAL",
-            mdtype="MIX",
+            mdtype="NISOIMG",
             locref=f"../metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
         )

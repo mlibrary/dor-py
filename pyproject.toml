@@ -11,7 +11,7 @@ dor = "dor.cli.main:app"
 
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 bagit = "^1.8.1"
 faker = "^30.3.0"
 faker-biology = "^0.6.4"
