@@ -1,0 +1,12 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "rocket",
+            "group": "rocket",
+            "database": "/Users/gkostin/rocket/db/rocket.sqlite"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
