@@ -37,14 +37,14 @@ class DescriptorFileParser:
         event_type = elem.find(".//PREMIS:eventType").text
         event_datetime = elem.find(".//PREMIS:eventDateTime").text
         event_detail = elem.find(".//PREMIS:eventDetail").text
-        actor_role = elem.find(".//PREMIS:linkingAgentIdentifierType").text
-        actor_address = elem.find(".//PREMIS:linkingAgentIdentifierValue").text
+        agent_role = elem.find(".//PREMIS:linkingAgentIdentifierType").text
+        agent_address = elem.find(".//PREMIS:linkingAgentIdentifierValue").text
         return PreservationEvent(
             identifier=event_identifier,
             type=event_type,
             datetime=datetime.fromisoformat(event_datetime),
             detail=event_detail,
-            agent=Agent(address=actor_address, role=actor_role),
+            agent=Agent(address=agent_address, role=agent_role),
         )
 
     def get_metadata_files(self) -> list[FileMetadata]:
