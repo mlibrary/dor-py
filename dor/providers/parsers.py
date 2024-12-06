@@ -53,7 +53,7 @@ class DescriptorFileParser:
             for elem in self.tree.findall(".//METS:md[METS:mdRef]")
         ]
 
-    def get_filesec_files(self) -> list[FileMetadata]:
+    def get_data_files(self) -> list[FileMetadata]:
         return [
             self.get_filesec_file_metadatum(elem)
             for elem in self.tree.findall(".//METS:file")
@@ -124,7 +124,7 @@ class DescriptorFileParser:
             alternate_identifier=self.get_alternate_identifier(),
             type=self.get_type(),
             events=self.get_preservation_events(),
-            metadata=self.get_metadata_files(),
-            file_metadata=self.get_filesec_files(),
+            metadata_files=self.get_metadata_files(),
+            data_files=self.get_data_files(),
             struct_maps=self.get_struct_maps(),
         )

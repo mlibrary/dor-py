@@ -66,6 +66,6 @@ class PackageResource:
     type: str
     alternate_identifier: AlternateIdentifier
     events: list[PreservationEvent]
-    metadata: list[FileMetadata] = field(default_factory=list)
-    file_metadata: list[FileMetadata] = field(default_factory=list)
+    metadata_files: list[FileMetadata] = field(default_factory=list)
+    data_files: list[FileMetadata] = field(default_factory=list)
     struct_maps: list[StructMap] = field(default_factory=list)

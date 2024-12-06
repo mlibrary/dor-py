@@ -133,7 +133,7 @@ class DescriptorFileTest(TestCase):
                     ),
                 )
             ],
-            metadata=[
+            metadata_files=[
                 FileMetadata(
                     id="_0193972b-e591-7e28-b8cb-1babed52f606",
                     use="DESCRIPTIVE/COMMON",
@@ -218,7 +218,7 @@ class DescriptorFileTest(TestCase):
                     agent=Agent(address="kurt16@example.org", role="ocr processing"),
                 ),
             ],
-            metadata=[
+            metadata_files=[
                 FileMetadata(
                     id="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
                     use="TECHNICAL",
@@ -244,7 +244,7 @@ class DescriptorFileTest(TestCase):
                     ),
                 ),
             ],
-            file_metadata=[
+            data_files=[
                 FileMetadata(
                     id="_be653ff450ae7f3520312a53e56c00bc",
                     mdid="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
