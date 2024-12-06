@@ -32,3 +32,9 @@ class MemoryMessageBus:
                 another_event = uow.pop_event()
                 if another_event:
                     queue.append(another_event)
+        else:
+            # Raise an error if no handler found for the event type
+            raise EventTypeMismatchError(f"No handler found for event type {type(event)}") 
+              
+class EventTypeMismatchError(Exception):
+    pass             
