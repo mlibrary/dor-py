@@ -88,17 +88,17 @@ class DescriptorFileTest(TestCase):
             ),
         ]
 
-        self.assertEqual(parser.get_file_metadata(), expected_file_metadata)
+        self.assertEqual(parser.get_metadata_files(), expected_file_metadata)
 
-    def test_parser_can_get_member_ids(self):
+    # def test_parser_can_get_member_ids(self):
 
-        parser = DescriptorFileParser(self.descriptor_path)
-        expected_member_ids = [
-            "00000000-0000-0000-0000-000000001001",
-            "00000000-0000-0000-0000-000000001002"
-        ]
+    #     parser = DescriptorFileParser(self.descriptor_path)
+    #     expected_member_ids = [
+    #         "00000000-0000-0000-0000-000000001001",
+    #         "00000000-0000-0000-0000-000000001002"
+    #     ]
 
-        self.assertEqual(parser.get_member_ids(), expected_member_ids)
+    #     self.assertEqual(parser.get_member_ids(), expected_member_ids)
 
     def test_provider_can_parse_resource(self):
 
@@ -117,7 +117,7 @@ class DescriptorFileTest(TestCase):
                     ),
                 )
             ],
-            file_metadata=[
+            metadata=[
                 FileMetadata(
                     id="_0193972b-e591-7e28-b8cb-1babed52f606",
                     use="DESCRIPTIVE/COMMON",
@@ -144,10 +144,6 @@ class DescriptorFileTest(TestCase):
                         mdtype="OTHER",
                     ),
                 ),
-            ],
-            member_ids=[
-                "00000000-0000-0000-0000-000000001001",
-                "00000000-0000-0000-0000-000000001002",
             ],
         )
 
@@ -186,7 +182,7 @@ class DescriptorFileTest(TestCase):
                     agent=Agent(address="kurt16@example.org", role="ocr processing"),
                 ),
             ],
-            file_metadata=[
+            metadata=[
                 FileMetadata(
                     id="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
                     use="TECHNICAL",
@@ -211,6 +207,8 @@ class DescriptorFileTest(TestCase):
                         mdtype="TEXTMD",
                     ),
                 ),
+            ],
+            file_metadata=[
                 FileMetadata(
                     id="_be653ff450ae7f3520312a53e56c00bc",
                     mdid="_0193972b-e4a4-7985-abe2-f3f1259b78ec",

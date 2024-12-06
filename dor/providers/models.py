@@ -46,6 +46,6 @@ class PackageResource:
     type: str
     alternate_identifier: AlternateIdentifier
     events: list[PreservationEvent]
-    file_metadata: list[FileMetadata]
-    member_ids: list[str] = field(default_factory=list)
+    metadata: list[FileMetadata] = field(default_factory=list)
+    file_metadata: list[FileMetadata] = field(default_factory=list)
     # structure: list[Structure] || []

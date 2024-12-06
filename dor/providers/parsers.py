@@ -50,11 +50,14 @@ class DescriptorFileParser:
             agent=Agent(address=actor_address, role=actor_role),
         )
 
-    def get_file_metadata(self) -> list[FileMetadata]:
+    def get_metadata_files(self) -> list[FileMetadata]:
         return [
             self.get_md_file_metadatum(elem)
             for elem in self.tree.findall(".//METS:md[METS:mdRef]")
-        ] + [
+        ]
+
+    def get_filesec_files(self) -> list[FileMetadata]:
+        return [
             self.get_filesec_file_metadatum(elem)
             for elem in self.tree.findall(".//METS:file")
         ]
@@ -89,18 +92,12 @@ class DescriptorFileParser:
             ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
         )
 
-    def get_member_ids(self):
-        divs = self.tree.findall(
-            ".//METS:structMap[@TYPE='physical']/METS:div/METS:div"
-        )
-        return [elem.get("ID").replace("urn:dor:", "") for elem in divs]
-
     def get_resource(self):
         return PackageResource(
             id=self.get_id(),
             alternate_identifier=self.get_alternate_identifier(),
             type=self.get_type(),
             events=self.get_preservation_events(),
-            file_metadata=self.get_file_metadata(),
-            member_ids=self.get_member_ids(),
+            metadata=self.get_metadata_files(),
+            file_metadata=self.get_filesec_files(),
         )
