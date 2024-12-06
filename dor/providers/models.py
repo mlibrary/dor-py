@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import uuid
 from datetime import datetime
-
+from enum import Enum
 
 @dataclass
 class AlternateIdentifier:
@@ -40,6 +40,26 @@ class FileMetadata:
     ref: FileReference = None
 
 
+class StructMapType(Enum):
+    PHYSICAL = "PHYSICAL"
+    LOGICAL = "LOGICAL"
+
+
+@dataclass
+class StructMapItem:
+    order: int
+    label: str
+    asset_id: str
+    type: str = None
+
+
+@dataclass
+class StructMap:
+    id: str
+    type: StructMapType
+    items: list[StructMapItem]
+
+
 @dataclass
 class PackageResource:
     id: uuid.UUID
@@ -48,4 +68,4 @@ class PackageResource:
     events: list[PreservationEvent]
     metadata: list[FileMetadata] = field(default_factory=list)
     file_metadata: list[FileMetadata] = field(default_factory=list)
-    # structure: list[Structure] || []
+    struct_maps: list[StructMap] = field(default_factory=list)

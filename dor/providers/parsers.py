@@ -92,6 +92,35 @@ class DescriptorFileParser:
             ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
         )
 
+    def get_struct_maps(self):
+        structures = []
+        for struct_map_elem in self.tree.findall(".//METS:structMap"):
+            struct_map_id = struct_map_elem.get("ID")
+            struct_map_type = struct_map_elem.get("TYPE")
+
+            order_elems = struct_map_elem.findall(".//METS:div[@ORDER]")
+
+            struct_map_items = []
+            for order_elem in order_elems:
+                order_number = int(order_elem.get("ORDER"))
+                label = order_elem.get("LABEL")
+                asset_id = order_elem.get("ID")
+                order_elem_type = order_elem.get_optional("TYPE", None)
+                struct_map_items.append(StructMapItem(
+                    order=order_number,
+                    label=label,
+                    asset_id=asset_id,
+                    type=order_elem_type,
+                ))
+
+            structures.append(StructMap(
+                id=struct_map_id,
+                type=StructMapType[struct_map_type.upper()],
+                items=struct_map_items,
+            ))
+
+        return structures
+
     def get_resource(self):
         return PackageResource(
             id=self.get_id(),
@@ -100,4 +129,5 @@ class DescriptorFileParser:
             events=self.get_preservation_events(),
             metadata=self.get_metadata_files(),
             file_metadata=self.get_filesec_files(),
+            struct_maps=self.get_struct_maps(),
         )

@@ -56,7 +56,7 @@ class DescriptorFileTest(TestCase):
         parser = DescriptorFileParser(self.descriptor_path)
         self.assertEqual(parser.get_preservation_events(), expected_events)
 
-    def test_parser_can_get_file_metadata(self):
+    def test_parser_can_get_metadata_files(self):
 
         parser = DescriptorFileParser(self.descriptor_path)
         expected_file_metadata = [
@@ -90,17 +90,33 @@ class DescriptorFileTest(TestCase):
 
         self.assertEqual(parser.get_metadata_files(), expected_file_metadata)
 
-    # def test_parser_can_get_member_ids(self):
+    def test_parser_can_get_struct_maps(self):
 
-    #     parser = DescriptorFileParser(self.descriptor_path)
-    #     expected_member_ids = [
-    #         "00000000-0000-0000-0000-000000001001",
-    #         "00000000-0000-0000-0000-000000001002"
-    #     ]
+        parser = DescriptorFileParser(self.descriptor_path)
+        expected_struct_maps = [
+            StructMap(
+                id="SM1",
+                type=StructMapType.PHYSICAL,
+                items=[
+                    StructMapItem(
+                        order=1,
+                        type="page",
+                        label="Page 1",
+                        asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                    ),
+                    StructMapItem(
+                        order=2,
+                        type="page",
+                        label="Page 2",
+                        asset_id="urn:dor:00000000-0000-0000-0000-000000001002",
+                    ),
+                ],
+            )
+        ]
 
-    #     self.assertEqual(parser.get_member_ids(), expected_member_ids)
+        self.assertEqual(parser.get_struct_maps(), expected_struct_maps)
 
-    def test_provider_can_parse_resource(self):
+    def test_parser_can_parse_resource(self):
 
         expected_resource = PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
@@ -145,12 +161,32 @@ class DescriptorFileTest(TestCase):
                     ),
                 ),
             ],
+            struct_maps=[
+                StructMap(
+                    id="SM1",
+                    type=StructMapType.PHYSICAL,
+                    items=[
+                        StructMapItem(
+                            order=1,
+                            type="page",
+                            label="Page 1",
+                            asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                        ),
+                        StructMapItem(
+                            order=2,
+                            type="page",
+                            label="Page 2",
+                            asset_id="urn:dor:00000000-0000-0000-0000-000000001002",
+                        ),
+                    ],
+                )
+            ],
         )
 
         parser = DescriptorFileParser(self.descriptor_path)
         self.assertEqual(parser.get_resource(), expected_resource)
 
-    def test_provider_can_parse_assets(self):
+    def test_parser_can_parse_asset(self):
         descriptor_path = (
             self.test_submission_path
             / "xyzzy-0001-v1"
