@@ -105,13 +105,13 @@ class FakeMETSProvider:
 
 # Handlers
 
-def receive_package(event: PackageReceived, uow: UnitOfWork) -> None:
+def receive_package(event: PackageSubmitted, uow: UnitOfWork) -> None:
     # some component needed that fakes moving the package to the processing directory
-    event = PackageReceived(
+    received_event = PackageReceived(
         package_identifier=event.package_identifier,
         tracking_identifier='aintthatpeculiar'
     )
-    uow.add_event(event)
+    uow.add_event(received_event)
     # context.identifier = 'blameitontheboogie'
 
 def verify_package(event: PackageReceived, uow: UnitOfWork) -> None:
