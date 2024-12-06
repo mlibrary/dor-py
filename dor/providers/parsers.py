@@ -90,7 +90,7 @@ class DescriptorFileParser:
         )
 
     def get_struct_maps(self):
-        structures = []
+        struct_maps = []
         for struct_map_elem in self.tree.findall(".//METS:structMap"):
             struct_map_id = struct_map_elem.get("ID")
             struct_map_type = struct_map_elem.get("TYPE")
@@ -110,13 +110,15 @@ class DescriptorFileParser:
                     type=order_elem_type,
                 ))
 
-            structures.append(StructMap(
-                id=struct_map_id,
-                type=StructMapType[struct_map_type.upper()],
-                items=struct_map_items,
-            ))
+            struct_maps.append(
+                StructMap(
+                    id=struct_map_id,
+                    type=StructMapType[struct_map_type.upper()],
+                    items=struct_map_items,
+                )
+            )
 
-        return structures
+        return struct_maps
 
     def get_resource(self):
         return PackageResource(

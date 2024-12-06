@@ -23,9 +23,6 @@ class DescriptorFileTest(TestCase):
         return super().setUp()
 
     def test_parser_can_get_id(self):
-        # resource = DescriptorFileParser(self.descriptor_path).parse()
-        # self.assertEqual(resource.id, uuid.UUID("00000000-0000-0000-0000-000000000001"))
-
         parser = DescriptorFileParser(self.descriptor_path)
         self.assertEqual(parser.get_id(), uuid.UUID("00000000-0000-0000-0000-000000000001"))
 
@@ -116,7 +113,7 @@ class DescriptorFileTest(TestCase):
 
         self.assertEqual(parser.get_struct_maps(), expected_struct_maps)
 
-    def test_parser_can_parse_resource(self):
+    def test_parser_can_parse_monograph(self):
 
         expected_resource = PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
