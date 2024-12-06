@@ -184,14 +184,11 @@ class DescriptorFileParserTest(TestCase):
         self.assertEqual(parser.get_resource(), expected_resource)
 
     def test_parser_can_parse_asset(self):
-        descriptor_path = (
-            self.test_submission_path
-            / "xyzzy-0001-v1"
-            / "data"
-            / "00000000-0000-0000-0000-000000000001"
-            / "descriptor"
-            / "00000000-0000-0000-0000-000000001001.asset.mets2.xml"
-        )
+        descriptor_path = ( 
+            self.descriptor_path 
+            / ".." 
+            / "00000000-0000-0000-0000-000000001001.asset.mets2.xml" 
+        ).resolve()
 
         expected_resource = PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
