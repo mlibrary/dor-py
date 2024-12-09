@@ -61,7 +61,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def stage_object_files(self, id: str, source_package: Package) -> None:
-        if not self.has_object(id) and not self.has_staged_object(id):
+        if not self.has_object(id) and not self._has_staged_object(id):
             raise ObjectDoesNotExistError(f"No object or staged object found for id {id}")
 
         package_root = source_package.get_root_path()
@@ -106,7 +106,7 @@ class OcflRepositoryGateway(RepositoryGateway):
                 return False
             raise RepositoryGatewayError() from e
 
-    def has_staged_object(self, id: str):
+    def _has_staged_object(self, id: str):
         args = ["rocfl", "-r", str(self.storage_path), "status", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
@@ -118,7 +118,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def get_object_files(self, id: str, include_staged: bool = False) -> list[ObjectFile]:
-        has_staged_object = self.has_staged_object(id)
+        has_staged_object = self._has_staged_object(id)
         if not self.has_object(id) and not has_staged_object:
             raise ObjectDoesNotExistError(f"No object or staged object found for id {id}")
 
