@@ -12,6 +12,3 @@ class ObjectDoesNotExistError(RepositoryGatewayError):
 
 class StagedObjectAlreadyExistsError(RepositoryGatewayError):
     pass
-
-class StagedObjectDoesNotExistError(RepositoryGatewayError):
-    pass
