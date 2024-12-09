@@ -11,8 +11,7 @@ from gateway.deposit_directory import DepositDirectory
 from gateway.exceptions import (
     NoStagedChangesError,
     ObjectDoesNotExistError,
-    StagedObjectAlreadyExistsError,
-    StagedObjectDoesNotExistError
+    StagedObjectAlreadyExistsError
 )
 from gateway.object_file import ObjectFile
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway, StorageLayout
@@ -103,7 +102,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         package = self.deposit_dir.get_package(Path("deposit_one"))
-        with self.assertRaises(StagedObjectDoesNotExistError):
+        with self.assertRaises(ObjectDoesNotExistError):
             gateway.stage_object_files("deposit_one", package)
 
     def test_gateway_commits_changes(self):

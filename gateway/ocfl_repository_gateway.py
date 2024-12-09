@@ -7,7 +7,6 @@ from gateway.coordinator import Coordinator
 from gateway.exceptions import (
     NoStagedChangesError,
     StagedObjectAlreadyExistsError,
-    StagedObjectDoesNotExistError,
     ObjectDoesNotExistError,
     RepositoryGatewayError
 )
@@ -31,7 +30,7 @@ class OcflRepositoryGateway(RepositoryGateway):
 
     def create_repository(self) -> None:
         args = [
-            "rocfl", "-r", self.storage_path, "init",
+            "rocfl", "-r", str(self.storage_path), "init",
             "-l", self.storage_layout.value
         ]
         try:
@@ -40,7 +39,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def create_staged_object(self, id: str) -> None:
-        args = ["rocfl", "-r", self.storage_path, "new", id]
+        args = ["rocfl", "-r", str(self.storage_path), "new", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
         except CalledProcessError as e:
@@ -51,20 +50,24 @@ class OcflRepositoryGateway(RepositoryGateway):
                 raise StagedObjectAlreadyExistsError() from e
             raise RepositoryGatewayError() from e
 
-    def stage_object_files(self, id: str, source_package: Package) -> None:
-        root_path = source_package.get_root_path()
-        full_child_paths = ((root_path / child) for child in source_package.get_children())
+    def _stage_object_file(self, id, source_path: Path, dest_path: Path) -> None:
         command = [
             "rocfl", "-r", str(self.storage_path),
-            "cp", "-r", id, *full_child_paths, "--", "/"
+            "cp", "-r", id, str(source_path.absolute()), "--", str(dest_path)
         ]
         try:
             subprocess.run(command, check=True, capture_output=True)
         except CalledProcessError as e:
-            not_found_message = f"Not found: Object {id}"
-            if not_found_message in e.stderr.decode():
-                raise StagedObjectDoesNotExistError() from e
             raise RepositoryGatewayError() from e
+
+    def stage_object_files(self, id: str, source_package: Package) -> None:
+        if not self.has_object(id) and not self.has_staged_object(id):
+            raise ObjectDoesNotExistError(f"No object or staged object found for id {id}")
+
+        package_root = source_package.get_root_path()
+        for file_path in source_package.get_file_paths():
+            source_path = package_root / file_path
+            self._stage_object_file(id=id, source_path=source_path, dest_path=file_path)
 
     def commit_object_changes(
         self,
@@ -73,7 +76,7 @@ class OcflRepositoryGateway(RepositoryGateway):
         message: str
     ) -> None:
         args = [
-            "rocfl", "-r", self.storage_path, "commit", id,
+            "rocfl", "-r", str(self.storage_path), "commit", id,
             "-n", coordinator.username, "-a", f"mailto:{coordinator.email}",
             "-m", message
         ]
@@ -86,14 +89,14 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def purge_object(self, id: str) -> None:
-        args = ["rocfl", "-r", self.storage_path, "purge", "-f", id]
+        args = ["rocfl", "-r", str(self.storage_path), "purge", "-f", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
         except CalledProcessError as e:
             raise RepositoryGatewayError() from e
 
     def has_object(self, id: str) -> bool:
-        args = ["rocfl", "-r", self.storage_path, "info", id]
+        args = ["rocfl", "-r", str(self.storage_path), "info", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
             return True
@@ -103,8 +106,8 @@ class OcflRepositoryGateway(RepositoryGateway):
                 return False
             raise RepositoryGatewayError() from e
 
-    def has_staged_object_changes(self, id: str):
-        args = ["rocfl", "-r", self.storage_path, "status", id]
+    def has_staged_object(self, id: str):
+        args = ["rocfl", "-r", str(self.storage_path), "status", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
             return True
@@ -115,14 +118,12 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def get_object_files(self, id: str, include_staged: bool = False) -> list[ObjectFile]:
-        object_has_staged_changes = self.has_staged_object_changes(id)
-        if not self.has_object(id) and not object_has_staged_changes:
-            raise ObjectDoesNotExistError(
-                f"No object or staged changes found for id {id}"
-            )
+        has_staged_object = self.has_staged_object(id)
+        if not self.has_object(id) and not has_staged_object:
+            raise ObjectDoesNotExistError(f"No object or staged object found for id {id}")
 
-        flags = "-ptS" if include_staged and object_has_staged_changes else "-pt"
-        args = ["rocfl", "-r", self.storage_path, "ls", flags, id]
+        flags = "-ptS" if include_staged and has_staged_object else "-pt"
+        args = ["rocfl", "-r", str(self.storage_path), "ls", flags, id]
         try:
             result = subprocess.run(args, check=True, capture_output=True)
         except CalledProcessError as e:
