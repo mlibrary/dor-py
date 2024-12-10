@@ -9,10 +9,9 @@ class MemoryMessageBus:
         self.event_handlers = handlers
 
     def register_event_handler(self, event_type: Type[Event], handler: Callable):
-        # Registers an event handler for a specific event type.
         if event_type not in self.event_handlers:
             self.event_handlers[event_type] = []
-        self.event_handlers[event_type].append(handler)
+        self.event_handlers[event_type].append(handler)    
 
     def handle(self, message, uow: UnitOfWork):
         # Handles a message, which must be an event.
@@ -23,18 +22,17 @@ class MemoryMessageBus:
 
     def _handle_event(self, event: Event, uow: UnitOfWork):
         # Handles an event by executing its registered handlers.
-        if event.__class__ in self.event_handlers:
-            queue = [event]
-            while queue:
-                next_event = queue.pop(0)
-                for handler in self.event_handlers[type(next_event)]:
-                    handler(next_event)
-                another_event = uow.pop_event()
-                if another_event:
-                    queue.append(another_event)
-        else:
-            # Raise an error if no handler found for the event type
-            raise EventTypeMismatchError(f"No handler found for event type {type(event)}") 
+        if event.__class__ not in self.event_handlers:
+            raise NoHandlerForEventError(f"No handler found for event type {type(event)}")
+    
+        queue = [event]
+        while queue:
+            next_event = queue.pop(0)
+            for handler in self.event_handlers[type(next_event)]:
+                handler(next_event)
+            another_event = uow.pop_event()
+            if another_event:
+                queue.append(another_event)
               
-class EventTypeMismatchError(Exception):
+class NoHandlerForEventError(Exception):
     pass             
