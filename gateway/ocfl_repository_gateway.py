@@ -29,8 +29,8 @@ class OcflRepositoryGateway(RepositoryGateway):
         self.storage_layout: StorageLayout = storage_layout
 
     def create_repository(self) -> None:
-        args = [
-            "rocfl", "-r", str(self.storage_path), "init",
+        args: list[str | Path] = [
+            "rocfl", "-r", self.storage_path, "init",
             "-l", self.storage_layout.value
         ]
         try:
@@ -39,7 +39,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def create_staged_object(self, id: str) -> None:
-        args = ["rocfl", "-r", str(self.storage_path), "new", id]
+        args: list[str | Path] = ["rocfl", "-r", self.storage_path, "new", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
         except CalledProcessError as e:
@@ -51,12 +51,12 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def _stage_object_file(self, id, source_path: Path, dest_path: Path) -> None:
-        command = [
-            "rocfl", "-r", str(self.storage_path),
-            "cp", "-r", id, str(source_path.absolute()), "--", str(dest_path)
+        args: list[str | Path] = [
+            "rocfl", "-r", self.storage_path,
+            "cp", "-r", id, source_path.absolute(), "--", dest_path
         ]
         try:
-            subprocess.run(command, check=True, capture_output=True)
+            subprocess.run(args, check=True, capture_output=True)
         except CalledProcessError as e:
             raise RepositoryGatewayError() from e
 
@@ -75,8 +75,8 @@ class OcflRepositoryGateway(RepositoryGateway):
         coordinator: Coordinator,
         message: str
     ) -> None:
-        args = [
-            "rocfl", "-r", str(self.storage_path), "commit", id,
+        args: list[str | Path] = [
+            "rocfl", "-r", self.storage_path, "commit", id,
             "-n", coordinator.username, "-a", f"mailto:{coordinator.email}",
             "-m", message
         ]
@@ -89,14 +89,14 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def purge_object(self, id: str) -> None:
-        args = ["rocfl", "-r", str(self.storage_path), "purge", "-f", id]
+        args: list[str | Path] = ["rocfl", "-r", self.storage_path, "purge", "-f", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
         except CalledProcessError as e:
             raise RepositoryGatewayError() from e
 
     def has_object(self, id: str) -> bool:
-        args = ["rocfl", "-r", str(self.storage_path), "info", id]
+        args: list[str | Path] = ["rocfl", "-r", self.storage_path, "info", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
             return True
@@ -107,7 +107,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise RepositoryGatewayError() from e
 
     def _has_staged_object(self, id: str):
-        args = ["rocfl", "-r", str(self.storage_path), "status", id]
+        args: list[str | Path] = ["rocfl", "-r", self.storage_path, "status", id]
         try:
             subprocess.run(args, check=True, capture_output=True)
             return True
@@ -123,7 +123,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise ObjectDoesNotExistError(f"No object or staged object found for id {id}")
 
         flags = "-ptS" if include_staged and has_staged_object else "-pt"
-        args = ["rocfl", "-r", str(self.storage_path), "ls", flags, id]
+        args: list[str | Path] = ["rocfl", "-r", self.storage_path, "ls", flags, id]
         try:
             result = subprocess.run(args, check=True, capture_output=True)
         except CalledProcessError as e:
