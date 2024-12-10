@@ -3,9 +3,11 @@ from dataclasses import dataclass
 from typing import Callable
 
 from dor.domain.events import Event
-from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus, EventTypeMismatchError
+from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus, NoHandlerForEventError
 from dor.service_layer.unit_of_work import UnitOfWork
 from gateway.fake_repository_gateway import FakeRepositoryGateway
+
+
 @dataclass
 class EventA(Event):
     id: str
@@ -65,7 +67,7 @@ def test_message_bus_throws_error_for_event_with_no_handlers() -> None:
     handlers: dict[type[Event], list[Callable]] = {}  
     message_bus = MemoryMessageBus(handlers)
 
-    with pytest.raises(EventTypeMismatchError):
+    with pytest.raises(NoHandlerForEventError):
         message_bus.handle(EventA(id="1"), uow)
 
 def test_message_bus_can_handle_multiple_handlers_for_same_event() -> None:
@@ -85,27 +87,5 @@ def test_message_bus_can_handle_multiple_handlers_for_same_event() -> None:
 
     message_bus.handle(EventA(id="1"), uow)
 
-    assert events_seen == ["first: 1", "second: 1"]        
+    assert events_seen == ["first: 1", "second: 1"]          
 
-def test_message_bus_passes_correct_event_to_handler_or_fails() -> None:
-    events_seen: list[Event] = []
-
-    def event_c_handler(event: EventC, uow: UnitOfWork):
-        print(f"Handler received event of type: {type(event)}")
-        if not isinstance(event, EventC):
-            raise EventTypeMismatchError(f"Expected EventC, got {type(event)}")
-        events_seen.append(event)
-
-    uow = UnitOfWork(FakeRepositoryGateway())
-    handlers: dict[type[Event], list[Callable]] = {
-        EventC: [lambda event: event_c_handler(event, uow)]
-    }
-    message_bus = MemoryMessageBus(handlers)
-
-    event_c = EventC(id="1")
-    other_event = OtherEvent(id="2")
-    message_bus.handle(event_c, uow)
-
-    assert events_seen == [EventC(id="1")], f"Expected [MyEvent(id='1')], but got {events_seen}"
-    with pytest.raises(EventTypeMismatchError):
-        message_bus.handle(other_event, uow)
