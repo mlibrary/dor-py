@@ -28,10 +28,3 @@ class Package:
                 full_path = dirpath / filename
                 paths.append(full_path.relative_to(root_path))
         return paths
-
-    def get_children(self) -> list[Path]:
-        root_path = self.get_root_path()
-        children = []
-        for full_child in root_path.iterdir():
-            children.append(full_child.relative_to(root_path))
-        return children
