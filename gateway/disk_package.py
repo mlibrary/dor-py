@@ -3,7 +3,7 @@ from pathlib import Path
 import gateway.deposit_directory
 from gateway.exceptions import NoContentError
 
-class Package:
+class DiskPackage:
 
     def get_root_path(self) -> Path:
         return self.deposit_dir.resolve(self.path)

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from gateway.package import Package
+from gateway.disk_package import DiskPackage
 
 class DepositDirectory:
     path: Path
@@ -11,5 +11,5 @@ class DepositDirectory:
     def resolve(self, sub_path: Path) -> Path:
         return self.path / sub_path
 
-    def get_package(self, package_path: Path) -> Package:
-        return Package(self, package_path)
+    def get_package(self, package_path: Path) -> DiskPackage:
+        return DiskPackage(self, package_path)

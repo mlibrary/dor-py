@@ -4,9 +4,9 @@ from unittest import TestCase
 
 from gateway.deposit_directory import DepositDirectory
 from gateway.exceptions import NoContentError
-from gateway.package import Package
+from gateway.disk_package import DiskPackage
 
-class PackageTest(TestCase):
+class DiskPackageTest(TestCase):
 
     def setUp(self) -> None:
         self.test_deposit_path: Path = Path("tests/fixtures/test_deposit")
@@ -21,7 +21,7 @@ class PackageTest(TestCase):
         return super().setUp()
     
     def test_package_provides_root_path(self):
-        package = Package(self.deposit_dir, Path("deposit_one"))
+        package = DiskPackage(self.deposit_dir, Path("deposit_one"))
         self.assertEqual(
             self.test_deposit_path / "deposit_one",
             package.get_root_path()
@@ -29,17 +29,17 @@ class PackageTest(TestCase):
 
     def test_nonexistent_package_fails_validation(self):
         with self.assertRaises(NoContentError):
-            Package(self.deposit_dir, Path("no_such_deposit"))
+            DiskPackage(self.deposit_dir, Path("no_such_deposit"))
 
     def test_existing_package_passes_validation(self):
-        Package(self.deposit_dir, Path("deposit_one"))
+        DiskPackage(self.deposit_dir, Path("deposit_one"))
 
     def test_empty_package_contains_no_files(self):
-        package = Package(self.deposit_dir, Path("empty_deposit"))
+        package = DiskPackage(self.deposit_dir, Path("empty_deposit"))
         self.assertTrue(len(package.get_file_paths()) == 0)
 
     def test_mixed_package_contains_expected_files(self):
-        package = Package(self.deposit_dir, Path("deposit_one"))
+        package = DiskPackage(self.deposit_dir, Path("deposit_one"))
         self.assertSetEqual(
             set([Path("A.txt"), Path("B/B.txt"), Path("C/D/D.txt")]),
             set(package.get_file_paths())
