@@ -2,13 +2,12 @@
 
 [[package]]
 name = "bagit"
-version = "1.8.1"
+version = "1.9b2"
 description = "Create and validate BagIt packages"
 optional = false
 python-versions = "*"
 files = [
-    {file = "bagit-1.8.1-py2.py3-none-any.whl", hash = "sha256:d14dd7e373dd24d41f6748c42f123f7db77098dfa4a0125dbacb4c8bdf767c09"},
-    {file = "bagit-1.8.1.tar.gz", hash = "sha256:37df1330d2e8640c8dee8ab6d0073ac701f0614d25f5252f9e05263409cee60c"},
+    {file = "bagit-1.9b2.tar.gz", hash = "sha256:4450cbe591fd3669471fdf5aab30186e47f71ae596b58bf3d6a416182ea5e1bf"},
 ]
 
 [[package]]
