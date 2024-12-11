@@ -110,6 +110,18 @@ def test_gateway_can_get_object_files_when_some_are_staged(
     ]
     assert set(expected_object_files) == set(object_files)
 
+def test_gateway_can_get_object_files_when_only_staged(package_A: FakePackage):
+    gateway = FakeRepositoryGateway()
+    gateway.create_staged_object("A")
+    gateway.stage_object_files("A", package_A)
+
+    object_files = gateway.get_object_files("A", include_staged=True)
+    expected_object_files = [
+        ObjectFile(logical_path=Path("some"), literal_path=Path("some")),
+        ObjectFile(logical_path=Path("some/path"), literal_path=Path("some/path"))
+    ]
+    assert set(object_files) == set(expected_object_files)
+
 def test_gateway_only_gets_committed_files_when_excluding_staged_files(
     gateway_with_committed_package: FakeRepositoryGateway
 ) -> None:
@@ -132,7 +144,6 @@ def test_gateway_purges_object(
     gateway.purge_object("A")
     assert not gateway.has_object("A")
 
-def test_gateway_raises_when_purging_object_that_does_not_exist() -> None:
+def test_gateway_does_not_raise_when_purging_object_that_does_not_exist() -> None:
     gateway = FakeRepositoryGateway()
-    with pytest.raises(ObjectDoesNotExistError):
-        gateway.purge_object("Z")
+    gateway.purge_object("Z")
