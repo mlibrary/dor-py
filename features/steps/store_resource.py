@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, Type, Self
+from typing import Callable, Type
 from dor.domain.events import (
     Event,
     PackageReceived,
@@ -9,7 +9,7 @@ from dor.domain.events import (
     ItemStored,
     ItemUnpacked
 )
-from dor.domain.models import Coordinator, VersionInfo
+from dor.domain.models import Coordinator, VersionInfo, Workspace
 
 from behave import given, when, then
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
@@ -110,17 +110,7 @@ class FakeMETSProvider:
 
 # Handlers
 
-@dataclass
-class Workspace:
 
-    identitifier: str
-
-    @classmethod
-    def find(cls, identifier) -> Self:
-        return cls(identifier)
-
-    def package_directory(self) -> Path:
-        return "/tmp/package/directory"
 
 def verify_package(event: PackageReceived, uow: UnitOfWork, bag_reader_class: type) -> None:
     workspace = Workspace.find(event.workspace_identifier)
@@ -181,13 +171,14 @@ def store_item(event: ItemUnpacked, uow: UnitOfWork) -> None:
 @given(u'a package containing the scanned pages, OCR, and metadata')
 def step_impl(context) -> None:
     context.uow = UnitOfWork(gateway=FakeRepositoryGateway())
+    context.translocator = Translocator()
 
     def stored_callback(event: ItemStored, uow: UnitOfWork) -> None:
         context.stored_event = event
 
     handlers: dict[Type[Event], list[Callable]] = {
-        PackageSubmitted: [lambda event: receive_package(event, context.uow, Translocator())],
-        PackageReceived: [lambda event: verify_package(event, context.uow)],
+        PackageSubmitted: [lambda event: receive_package(event, context.uow, context.translocator)],
+        PackageReceived: [lambda event: verify_package(event, context.uow, FakeBagReader)],
         PackageVerified: [lambda event: unpack_item(event, context.uow)],
         ItemUnpacked: [lambda event: store_item(event, context.uow)],
         ItemStored: [lambda event: stored_callback(event, context.uow)]
