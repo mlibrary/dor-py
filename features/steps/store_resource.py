@@ -146,7 +146,7 @@ def store_item(event: ItemUnpacked, uow: UnitOfWork) -> None:
     for resource in event.resources:
         entries.extend(resource.get_entries())
 
-    package = FakePackage(package_identifier=event.package_identifier, entries=entries)
+    package = FakePackage(root_path=Path("/"), entries=entries)
 
     uow.gateway.create_staged_object(id=event.identifier)
     uow.gateway.stage_object_files(
