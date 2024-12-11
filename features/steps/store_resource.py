@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, Type
+from typing import Callable, Type, Self
 from dor.domain.events import (
     Event,
     PackageReceived,
@@ -15,6 +15,7 @@ from behave import given, when, then
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import UnitOfWork
 from gateway.fake_repository_gateway import FakePackage, FakeRepositoryGateway
+from dor.service_layer.handlers.receive_package import receive_package, Translocator
 
 @dataclass
 class Item:
@@ -64,13 +65,17 @@ class Asset(Resource):
             entries.append(Path(file_metadata.technical_metadata.file_identifier))
         return entries
 
-class BagAdapter():
+class FakeBagReader():
 
     def __init__(self, identifier: str) -> None:
         self.identifier = identifier
 
     def is_valid(self) -> bool:
         return True
+    
+    @property
+    def dor_info(self) -> dict:
+        return {}
 
 class FakeMETSProvider:
 
@@ -101,22 +106,28 @@ class FakeMETSProvider:
                 ]
             )
         ]
-
+    
 
 # Handlers
 
-def receive_package(event: PackageSubmitted, uow: UnitOfWork) -> None:
-    # some component needed that fakes moving the package to the processing directory
-    received_event = PackageReceived(
-        package_identifier=event.package_identifier,
-        tracking_identifier='aintthatpeculiar'
-    )
-    uow.add_event(received_event)
-    # context.identifier = 'blameitontheboogie'
+@dataclass
+class Workspace:
 
-def verify_package(event: PackageReceived, uow: UnitOfWork) -> None:
-    bag = BagAdapter(event.package_identifier)
-    is_valid = bag.is_valid()
+    identitifier: str
+
+    @classmethod
+    def find(cls, identifier) -> Self:
+        return cls(identifier)
+
+    def package_directory(self) -> Path:
+        return "/tmp/package/directory"
+
+def verify_package(event: PackageReceived, uow: UnitOfWork, bag_reader_class: type) -> None:
+    workspace = Workspace.find(event.workspace_identifier)
+
+    bag_reader = bag_reader_class(workspace.package_directory)
+
+    is_valid = bag_reader.is_valid()
 
     if is_valid:
         uow.add_event(PackageVerified(
@@ -175,7 +186,7 @@ def step_impl(context) -> None:
         context.stored_event = event
 
     handlers: dict[Type[Event], list[Callable]] = {
-        PackageSubmitted: [lambda event: receive_package(event, context.uow)],
+        PackageSubmitted: [lambda event: receive_package(event, context.uow, Translocator())],
         PackageReceived: [lambda event: verify_package(event, context.uow)],
         PackageVerified: [lambda event: unpack_item(event, context.uow)],
         ItemUnpacked: [lambda event: store_item(event, context.uow)],
