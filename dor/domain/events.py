@@ -16,6 +16,8 @@ class PackageSubmitted(Event):
 class PackageReceived(Event):
     package_identifier: str
     tracking_identifier: str
+    workspace_identifier: str
+
 
 @dataclass
 class PackageVerified(Event):
