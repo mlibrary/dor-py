@@ -11,7 +11,7 @@ from gateway.object_file import ObjectFile
 @pytest.fixture
 def package_A() -> FakePackage:
     return FakePackage(
-        package_identifier="package_A", entries=[Path("some"), Path("some/path")]
+        root_path=Path("/"), entries=[Path("some"), Path("some/path")]
     )
 
 @pytest.fixture
@@ -98,7 +98,7 @@ def test_gateway_can_get_object_files_when_some_are_staged(
     gateway_with_committed_package: FakeRepositoryGateway
 ) -> None:
     gateway = gateway_with_committed_package
-    update_package = FakePackage("update_package_A", entries=[Path("some/other/path")])
+    update_package = FakePackage(root_path=Path("/"), entries=[Path("some/other/path")])
     gateway.stage_object_files("A", update_package)
 
     object_files = gateway.get_object_files("A", include_staged=True)
@@ -114,7 +114,7 @@ def test_gateway_only_gets_committed_files_when_excluding_staged_files(
     gateway_with_committed_package: FakeRepositoryGateway
 ) -> None:
     gateway = gateway_with_committed_package
-    update_package = FakePackage("update_package_A", entries=[Path("some/other/path")])
+    update_package = FakePackage(root_path=Path("/"), entries=[Path("some/other/path")])
     gateway.stage_object_files("A", update_package)
 
     object_files = gateway.get_object_files("A", include_staged=False)
