@@ -1,10 +1,11 @@
 from dor.domain.events import PackageSubmitted, PackageReceived
 from dor.service_layer.unit_of_work import UnitOfWork
+from dor.domain.models import Workspace
 
 class Translocator:
 
-    def create_workspace_for_package(self, package_identifier: str) -> None:
-        pass
+    def create_workspace_for_package(self, package_identifier: str) -> Workspace:
+        return Workspace("workspace_identifier")
 
 def receive_package(event: PackageSubmitted, uow: UnitOfWork, translocator: Translocator) -> None:
     workspace = translocator.create_workspace_for_package(event.package_identifier)
