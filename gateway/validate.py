@@ -44,7 +44,9 @@ class RocflOCFLFixityValidator(OCFLFixityValidator):
             )
             return result.stdout
         except subprocess.CalledProcessError as e:
-            return f"{e.stderr}"
+            error_message = f"STDOUT:\n{e.stdout.strip()}\n" if e.stdout else ""
+            error_message += f"STDERR:\n{e.stderr.strip()}\n" if e.stderr else ""
+            return error_message
 
     def _build_command(self, base_command: List[str], no_fixity: bool, log_level: Optional[str], suppress_warning: Optional[str]) -> List[str]:
         if no_fixity:
