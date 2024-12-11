@@ -5,14 +5,22 @@ from typing import Set
 from gateway.coordinator import Coordinator
 from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.object_file import ObjectFile
+from gateway.package import Package
+from gateway.repository_gateway import RepositoryGateway
 
-@dataclass
-class FakePackage:
-    package_identifier: str
-    entries: list[Path]
+
+class FakePackage(Package):
+
+    def __init__(self, root_path: Path, entries: list[Path]) -> None:
+        self.root_path: Path = root_path
+        self.entries: list[Path] = entries
+
+    def get_root_path(self) -> Path:
+        return self.root_path
 
     def get_file_paths(self) -> list[Path]:
         return self.entries
+
 
 @dataclass
 class Version():
@@ -20,14 +28,15 @@ class Version():
     coordinator: Coordinator
     message: str
 
+
 @dataclass
 class RepositoryObject:
     versions: list[Version]
     staged_files: Set[Path]
     files: Set[Path]
 
-# subclass Repository Gateway some day?
-class FakeRepositoryGateway():
+
+class FakeRepositoryGateway(RepositoryGateway):
 
     def __init__(self) -> None:
         self.store: dict[str, RepositoryObject] = dict()
@@ -47,7 +56,7 @@ class FakeRepositoryGateway():
 
         self.store[id] = RepositoryObject(staged_files=set(), files=set(), versions=[])
 
-    def stage_object_files(self, id: str, source_package: FakePackage) -> None:
+    def stage_object_files(self, id: str, source_package: Package) -> None:
         file_paths = set(source_package.get_file_paths())
         if id not in self.store:
             raise ObjectDoesNotExistError()
