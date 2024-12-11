@@ -20,5 +20,8 @@ class Workspace:
         return cls(identifier)
 
     def package_directory(self) -> Path:
-        return "/tmp/package/directory"
+        return Path("/tmp/package/directory")
+    
+    def object_data_directory(self, identifier: str) -> Path:
+        return Path(self.package_directory()) / "data" / identifier
     
