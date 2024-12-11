@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 import uuid
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 
 @dataclass
 class AlternateIdentifier:
@@ -69,3 +70,13 @@ class PackageResource:
     metadata_files: list[FileMetadata] = field(default_factory=list)
     data_files: list[FileMetadata] = field(default_factory=list)
     struct_maps: list[StructMap] = field(default_factory=list)
+
+    def get_entries(self) -> list[Path]:
+        entries = []
+        for file_metadata in self.metadata_files:
+            entries.append(Path(file_metadata.ref.locref))
+
+        for file_metadata in self.data_files:
+            entries.append(Path(file_metadata.ref.locref))
+
+        return entries
