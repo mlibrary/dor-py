@@ -1,10 +1,10 @@
 from dor.domain.events import Event
-from gateway.fake_repository_gateway import FakeRepositoryGateway
+from gateway.repository_gateway import RepositoryGateway
 
 
 class UnitOfWork:
 
-    def __init__(self, gateway: FakeRepositoryGateway) -> None:
+    def __init__(self, gateway: RepositoryGateway) -> None:
         self.gateway = gateway
         self.events: list[Event] = []
 

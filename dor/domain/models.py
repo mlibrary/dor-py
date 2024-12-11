@@ -1,10 +1,6 @@
 from dataclasses import dataclass
 
-
-@dataclass(frozen=True)
-class Coordinator:
-    username: str
-    email: str
+from gateway.coordinator import Coordinator
 
 @dataclass(frozen=True)
 class VersionInfo():
