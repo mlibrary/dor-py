@@ -241,13 +241,22 @@ class FakePackageResourceProvider:
 
 # Handlers
 
+# - if the workspace is under namespace dor
+#   but gateway is outside of it, issues with
+#   where code is living.
+# - does gateway be moved under dor proper now?
 
-def store_item(event: PackageUnpacked, uow: UnitOfWork) -> None:
+def store_files(event: PackageUnpacked, uow: UnitOfWork) -> None:
+    workspace = Workspace.find(event.workspace_identifier)
+
     entries = []
     for resource in event.resources:
         entries.extend(resource.get_entries())
 
-    package = FakePackage(root_path=Path("/"), entries=entries)
+    package = FakePackage(
+        root_path=workspace.object_data_directory / "descriptor", 
+        entries=entries
+    )
 
     uow.gateway.create_staged_object(id=event.identifier)
     uow.gateway.stage_object_files(
@@ -280,7 +289,7 @@ def step_impl(context) -> None:
         PackageSubmitted: [lambda event: receive_package(event, context.uow, context.translocator)],
         PackageReceived: [lambda event: verify_package(event, context.uow, FakeBagReader)],
         PackageVerified: [lambda event: unpack_package(event, context.uow, FakeBagReader, FakePackageResourceProvider)],
-        PackageUnpacked: [lambda event: store_item(event, context.uow)],
+        PackageUnpacked: [lambda event: store_files(event, context.uow)],
         ItemStored: [lambda event: stored_callback(event, context.uow)]
     }
     context.message_bus = MemoryMessageBus(handlers)
@@ -293,5 +302,5 @@ def step_impl(context):
 @then(u'the Collection Manager can see that it was preserved.')
 def step_impl(context):
     event = context.stored_event
-    assert event.identifier == "abc123youandme"
+    assert event.identifier == "00000000-0000-0000-0000-000000000001"
     assert context.uow.gateway.has_object(event.identifier)
