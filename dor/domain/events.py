@@ -23,9 +23,10 @@ class PackageReceived(Event):
 class PackageVerified(Event):
     package_identifier: str
     tracking_identifier: str
+    workspace_identifier: str
 
 @dataclass
-class ItemUnpacked(Event):
+class PackageUnpacked(Event):
     identifier: str
     resources: list[Any]
     tracking_identifier: str
