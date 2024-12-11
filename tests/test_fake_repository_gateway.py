@@ -60,7 +60,7 @@ def test_gateway_can_commit_changes(package_A: FakePackage) -> None:
     )
 
     assert gateway.store["A"].staged_files == set()
-    assert gateway.store["A"].files == set([Path("some"), Path("some/path")])
+    assert gateway.store["A"].versions[0].files == set([Path("some"), Path("some/path")])
 
 def test_gateway_raises_when_committing_changes_when_no_object_exists() -> None:
     gateway = FakeRepositoryGateway()
