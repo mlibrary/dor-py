@@ -1,13 +1,10 @@
 import hashlib
 import json
-import os
-import time
 from pathlib import Path
-from shutil import rmtree
 import subprocess
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
-from gateway.validate import FixityValidator, RocflOCFLFixityValidator
+from gateway.validate import  FixityValidator, RocflOCFLFixityValidator
 
 class TestRocflOCFLFixityValidator(unittest.TestCase):
 
@@ -274,7 +271,6 @@ class TestIntegrationFixityChecker(unittest.TestCase):
         try:
             object_id = "invalid-object-1"
             result = self.validator.validate_object(object_id = object_id)
-            print ("Result", result)
             self.assertIn(f"[ERROR] Not found: Object {object_id}\n", result)
         except subprocess.CalledProcessError as e:
             self.fail(f"ROCFL validation failed: {e.stderr}")   
@@ -297,4 +293,65 @@ class TestIntegrationFixityChecker(unittest.TestCase):
         except subprocess.CalledProcessError as e:
             self.fail(f"ROCFL validation failed: {e.stderr}")  
 
-    
+    def test_rocfl_validate_object_trigger_warning_W004(self):
+        try:
+            object_id = "ark:123/abc1"
+            result = self.validator.validate_object(object_id = object_id)
+            self.assertIn(f"Object {object_id} is valid", result)
+            self.assertIn("Warning", result)
+            self.assertIn("[W004]", result)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")  
+
+    def test_rocfl_validate_object_suppress_warning(self):
+        try:
+            object_id = "ark:123/abc1"
+            result = self.validator.validate_object(object_id = object_id, suppress_warning="W004")
+            self.assertIn(f"Object {object_id} is valid", result)
+            self.assertNotIn("Warning", result)
+            self.assertNotIn("[W004]", result)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")      
+
+    def test_rocfl_validate_object_suppress_warning_w008_not_w004(self):
+        try:
+            object_id = "ark:123/abc1"
+            result = self.validator.validate_object(object_id = object_id, suppress_warning="W008")
+            self.assertIn(f"Object {object_id} is valid", result)
+            self.assertIn("Warning", result)
+            self.assertIn("[W004]", result)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")              
+
+    def test_validate_object_E023_extra_file(self):
+        try:
+            # Return only the Errors
+            object_id = "info:bad05"
+            result = self.validator.validate_object(object_id = object_id, log_level="Error")
+            self.assertIn("[E023]", result)
+            self.assertNotIn("Warning", result)
+
+            # Return both the Errors and Warning
+            result_without_log_level = self.validator.validate_object(object_id = object_id)
+            self.assertIn("[E023]", result_without_log_level)
+            self.assertIn("Warning", result_without_log_level)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")             
+                
+    def test_validate_specific_object_without_fixity_check(self):
+        
+        try:
+            # Updated the content file 
+            #Test validating an object without fixity checks, does not throw fixity check error.
+            object_id = "http://example.org/minimal_mixed_digests"
+            result = self.validator.validate_object(object_id, no_fixity=True)
+            self.assertIn(f"Object {object_id} is valid", result)
+            self.assertNotIn("fixity check", result) 
+
+            # validating an object with fixity checks, throws fixity error.
+            result_fixity = self.validator.validate_object(object_id)
+            self.assertIn(f"Object {object_id} is invalid", result_fixity)
+            self.assertIn("fixity check", result_fixity)  
+        except RuntimeError as e:
+            self.fail(f"ROCFL validation failed with error: {e}")   
+
