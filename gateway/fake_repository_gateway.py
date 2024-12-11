@@ -64,9 +64,6 @@ class FakeRepositoryGateway(RepositoryGateway):
         self.store[id].staged_files = self.store[id].staged_files.union(file_paths)
 
     def _get_latest_version(self, id: str) -> Version | None:
-        if id not in self.store:
-            raise ObjectDoesNotExistError()
-
         if self.store[id].versions:
             return self.store[id].versions[-1]
         return None
@@ -81,19 +78,16 @@ class FakeRepositoryGateway(RepositoryGateway):
             raise ObjectDoesNotExistError()
 
         latest_version = self._get_latest_version(id)
-
         next_version_num = latest_version.number + 1 if latest_version else 1
-        latest_set = latest_version.files if latest_version else set()
-
-        file_set = latest_set.union(self.store[id].staged_files)
+        latest_files = latest_version.files if latest_version else set()
+        files = latest_files.union(self.store[id].staged_files)
 
         self.store[id].versions.append(Version(
             number=next_version_num,
             coordinator=coordinator,
             message=message,
-            files=file_set
+            files=files
         ))
-
         self.store[id].staged_files = set()
 
     def get_object_files(self, id: str, include_staged: bool = False) -> list[ObjectFile]:
@@ -101,10 +95,7 @@ class FakeRepositoryGateway(RepositoryGateway):
             raise ObjectDoesNotExistError()
         
         latest_version = self._get_latest_version(id)
-        if latest_version is None:
-            raise ObjectDoesNotExistError()
-
-        file_paths = latest_version.files
+        file_paths = latest_version.files if latest_version else set()
         if include_staged:
             file_paths = file_paths.union(self.store[id].staged_files)
 
@@ -114,7 +105,5 @@ class FakeRepositoryGateway(RepositoryGateway):
         return object_files
 
     def purge_object(self, id: str) -> None:
-        if id not in self.store:
-            raise ObjectDoesNotExistError()
-
-        self.store.pop(id)
+        if id in self.store:
+            self.store.pop(id)
