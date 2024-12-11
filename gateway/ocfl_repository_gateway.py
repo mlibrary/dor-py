@@ -11,7 +11,7 @@ from gateway.exceptions import (
     RepositoryGatewayError
 )
 from gateway.object_file import ObjectFile
-from gateway.disk_package import DiskPackage
+from gateway.package import Package
 from gateway.repository_gateway import RepositoryGateway
 
 class StorageLayout(Enum):
@@ -60,7 +60,7 @@ class OcflRepositoryGateway(RepositoryGateway):
         except CalledProcessError as e:
             raise RepositoryGatewayError() from e
 
-    def stage_object_files(self, id: str, source_package: DiskPackage) -> None:
+    def stage_object_files(self, id: str, source_package: Package) -> None:
         if not self.has_object(id) and not self._has_staged_object(id):
             raise ObjectDoesNotExistError(f"No object or staged object found for id {id}")
 
