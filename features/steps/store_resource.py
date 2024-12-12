@@ -12,14 +12,14 @@ from dor.domain.events import (
     PackageVerified,
     PackageUnpacked
 )
-from dor.domain.models import FakeWorkspace
 
 from behave import given, when, then
+from dor.providers.translocator import FakeTranslocator, FakeWorkspace
 from dor.service_layer.handlers.store_files import store_files
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import UnitOfWork
 from gateway.fake_repository_gateway import FakeRepositoryGateway
-from dor.service_layer.handlers.receive_package import receive_package, Translocator
+from dor.service_layer.handlers.receive_package import receive_package
 from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.handlers.unpack_package import unpack_package
 from dor.providers.models import Agent, FileMetadata, FileReference, PackageResource, PreservationEvent, AlternateIdentifier, StructMap, StructMapItem, StructMapType
@@ -206,7 +206,7 @@ class FakePackageResourceProvider:
 @given(u'a package containing the scanned pages, OCR, and metadata')
 def step_impl(context) -> None:
     context.uow = UnitOfWork(gateway=FakeRepositoryGateway())
-    context.translocator = Translocator()
+    context.translocator = FakeTranslocator()
 
     def stored_callback(event: PackageStored, uow: UnitOfWork) -> None:
         context.stored_event = event
