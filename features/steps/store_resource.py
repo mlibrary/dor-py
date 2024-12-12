@@ -7,17 +7,18 @@ import uuid
 from dor.domain.events import (
     Event,
     PackageReceived,
+    PackageStored,
     PackageSubmitted,
     PackageVerified,
-    ItemStored,
     PackageUnpacked
 )
-from dor.domain.models import Coordinator, VersionInfo, Workspace
+from dor.domain.models import FakeWorkspace
 
 from behave import given, when, then
+from dor.service_layer.handlers.store_files import store_files
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import UnitOfWork
-from gateway.fake_repository_gateway import FakePackage, FakeRepositoryGateway
+from gateway.fake_repository_gateway import FakeRepositoryGateway
 from dor.service_layer.handlers.receive_package import receive_package, Translocator
 from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.handlers.unpack_package import unpack_package
@@ -26,50 +27,6 @@ from dor.providers.models import Agent, FileMetadata, FileReference, PackageReso
 @dataclass
 class Item:
     identifier: str
-
-# Resource
-
-# @dataclass
-# class Resource:
-#     identifier: str | None
-
-#     # blah blah mockyrie leakage
-#     # @property
-#     # def internal_resource(self):
-#     #     return self.__class__.__name__
-
-# @dataclass
-# class Monograph(Resource):
-#     alternate_identifier: str
-#     member_identifiers: list[str] = field(default_factory=list)
-
-#     def get_entries(self) -> list[Path]:
-#         return []
-
-# @dataclass
-# class TechnicalMetadata:
-#     id: str
-#     file_identifier: str
-#     mimetype: str
-
-# @dataclass
-# class FileMetadata:
-#     id: str
-#     file_identifier: str
-#     mimetype: str
-#     technical_metadata: TechnicalMetadata
-#     use: str
-
-# @dataclass
-# class Asset(Resource):
-#     file_metadata: list[FileMetadata] = field(default_factory=list)
-
-#     def get_entries(self) -> list[Path]:
-#         entries = []
-#         for file_metadata in self.file_metadata:
-#             entries.append(Path(file_metadata.file_identifier))
-#             entries.append(Path(file_metadata.technical_metadata.file_identifier))
-#         return entries
 
 class FakeBagReader():
 
@@ -237,43 +194,12 @@ class FakePackageResourceProvider:
                 ],
             )
         ]
-    
 
-# Handlers
 
 # - if the workspace is under namespace dor
 #   but gateway is outside of it, issues with
 #   where code is living.
 # - does gateway be moved under dor proper now?
-
-def store_files(event: PackageUnpacked, uow: UnitOfWork) -> None:
-    workspace = Workspace.find(event.workspace_identifier)
-
-    entries = []
-    for resource in event.resources:
-        entries.extend(resource.get_entries())
-
-    package = FakePackage(
-        root_path=workspace.object_data_directory / "descriptor", 
-        entries=entries
-    )
-
-    uow.gateway.create_staged_object(id=event.identifier)
-    uow.gateway.stage_object_files(
-        id=event.identifier, 
-        source_package=package,
-    )
-    uow.gateway.commit_object_changes(
-        id=event.identifier,
-        coordinator=event.version_info.coordinator,
-        message=event.version_info.message
-    )
-
-    stored_event = ItemStored(
-        identifier=event.identifier,
-        tracking_identifier=event.tracking_identifier
-    )
-    uow.add_event(stored_event)
 
 # Test
 
@@ -282,15 +208,17 @@ def step_impl(context) -> None:
     context.uow = UnitOfWork(gateway=FakeRepositoryGateway())
     context.translocator = Translocator()
 
-    def stored_callback(event: ItemStored, uow: UnitOfWork) -> None:
+    def stored_callback(event: PackageStored, uow: UnitOfWork) -> None:
         context.stored_event = event
 
     handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [lambda event: receive_package(event, context.uow, context.translocator)],
-        PackageReceived: [lambda event: verify_package(event, context.uow, FakeBagReader)],
-        PackageVerified: [lambda event: unpack_package(event, context.uow, FakeBagReader, FakePackageResourceProvider)],
-        PackageUnpacked: [lambda event: store_files(event, context.uow)],
-        ItemStored: [lambda event: stored_callback(event, context.uow)]
+        PackageReceived: [lambda event: verify_package(event, context.uow, FakeBagReader, FakeWorkspace)],
+        PackageVerified: [lambda event: unpack_package(
+            event, context.uow, FakeBagReader, FakePackageResourceProvider, FakeWorkspace
+        )],
+        PackageUnpacked: [lambda event: store_files(event, context.uow, FakeWorkspace)],
+        PackageStored: [lambda event: stored_callback(event, context.uow)]
     }
     context.message_bus = MemoryMessageBus(handlers)
 
