@@ -6,6 +6,12 @@ from gateway.package import Package
 
 class DiskPackage(Package):
 
+    def __init__(self, deposit_dir: 'gateway.deposit_directory.DepositDirectory', path: Path):
+        self.deposit_dir: 'gateway.deposit_directory.DepositDirectory' = deposit_dir
+        self.path: Path = path
+
+        self.validate_path()
+
     def get_root_path(self) -> Path:
         return self.deposit_dir.resolve(self.path)
 
@@ -13,12 +19,6 @@ class DiskPackage(Package):
         root_path = self.get_root_path()
         if not root_path.exists():
             raise NoContentError(f"No content exists at path {root_path}")
-
-    def __init__(self, deposit_dir: 'gateway.deposit_directory.DepositDirectory', path: Path):
-        self.deposit_dir: 'gateway.deposit_directory.DepositDirectory' = deposit_dir
-        self.path: Path = path
-
-        self.validate_path()
 
     def get_file_paths(self) -> list[Path]:
         root_path = self.get_root_path()
