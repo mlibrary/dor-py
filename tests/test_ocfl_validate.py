@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
+
 from gateway.validate import  FixityValidator, RocflOCFLFixityValidator
 
 class TestRocflOCFLFixityValidator(unittest.TestCase):
@@ -45,7 +46,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
     def test_validate_object_success(self):
         self.mock_run.return_value = MagicMock(stdout="Object urn:example:rocfl:object-1 is valid.\n", returncode=0)
-        result = self.validator.validate_object("urn:example:rocfl:object-1")
+        result = self.validator.validate_objects(["urn:example:rocfl:object-1"])
         
         self.mock_run.assert_called_once_with(['rocfl', 'validate', 'urn:example:rocfl:object-1'], capture_output=True, text=True, check=True)
         self.assertEqual(result, "Object urn:example:rocfl:object-1 is valid.\n")
@@ -79,7 +80,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
     def test_validate_object_with_flags(self):
         self.mock_run.return_value = MagicMock(stdout="Object urn:example:rocfl:object-1 is valid.\n", returncode=0)
-        result = self.validator.validate_object("urn:example:rocfl:object-1", no_fixity=True, log_level="Warning", suppress_warning="FileNotFound")
+        result = self.validator.validate_objects(["urn:example:rocfl:object-1"], no_fixity=True, log_level="Warning", suppress_warning="FileNotFound")
 
         self.mock_run.assert_called_once_with([
             'rocfl', 'validate', 'urn:example:rocfl:object-1', '-n', '-l', 'Warning', '-w', 'FileNotFound'
@@ -88,7 +89,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
     def test_validate_multiple_objects_success(self):
         self.mock_run.return_value = MagicMock(stdout="Valid object object-1/\nValid object object-2/\n", returncode=0)
-        result = self.validator.validate_multiple_objects(["object-1/", "object-2/"])
+        result = self.validator.validate_multiple_objects_by_path(["object-1/", "object-2/"])
         
         self.mock_run.assert_called_once_with([
             'rocfl', 'validate', '-p', 'object-1/', 'object-2/'
@@ -99,7 +100,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         self.mock_run.return_value = MagicMock(stdout="Valid object object-1/\nValid object object-2/\n", returncode=0)
         
         # Simulate the flags and call the function
-        result = self.validator.validate_multiple_objects(
+        result = self.validator.validate_multiple_objects_by_path(
             ["object-1/", "object-2/"], no_fixity=True, log_level="Error", suppress_warning="ObjectMissing"
         )
 
@@ -113,7 +114,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
     def test_validate_invalid_object(self):
         self.mock_run.return_value = MagicMock(stdout="Error: Object urn:example:rocfl:object-3 not found.\n", returncode=1)
-        result = self.validator.validate_object("urn:example:rocfl:object-3")
+        result = self.validator.validate_objects(["urn:example:rocfl:object-3"])
         
         self.mock_run.assert_called_once_with(['rocfl', 'validate', 'urn:example:rocfl:object-3'], capture_output=True, text=True, check=True)
         self.assertEqual(result, "Error: Object urn:example:rocfl:object-3 not found.\n")
@@ -126,7 +127,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
             stdout=f"Error: Content fixity check failed for urn:example:rocfl:object-1 v1.\nExpected SHA-512 hash: dummy_sha512_hash_value_here\nActual SHA-512 hash: {new_sha512}\n",
             returncode=1
         )
-        result = self.validator.validate_object("urn:example:rocfl:object-1")
+        result = self.validator.validate_objects(["urn:example:rocfl:object-1"])
         
         self.mock_run.assert_called_once_with(['rocfl', 'validate', 'urn:example:rocfl:object-1'], capture_output=True, text=True, check=True)
         self.assertIn("Error: Content fixity check failed", result)
@@ -171,7 +172,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
             returncode=0
         )
 
-        result = self.validator.validate_object(object_id="urn:example:rocfl:object-1")
+        result = self.validator.validate_objects(object_ids=["urn:example:rocfl:object-1"])
 
         self.mock_run.assert_called_once_with([
             'rocfl', 'validate', 'urn:example:rocfl:object-1'
@@ -198,7 +199,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
             stdout="Valid repository. Warning W004 suppressed: 'For content-addressing, OCFL Objects SHOULD use sha512.'\n",
             returncode=0
         )
-        result = self.validator.validate_object(object_id="urn:example:rocfl:object-1", suppress_warning="W004")
+        result = self.validator.validate_objects(object_ids=["urn:example:rocfl:object-1"], suppress_warning="W004")
 
         # Assert 
         self.mock_run.assert_called_once_with([
@@ -243,41 +244,43 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         
         # Assert that all flags are correctly added
         self.assertEqual(result, ['rocfl', 'validate', self.repository_path, '-n', '-l', 'Error', '-w', 'Warning123'])
+        
+        
 class TestFixityValidator(unittest.TestCase):
     def test_validator_checks_object_fixity(self):
         self.mockrocflvalidator = MagicMock(spec = RocflOCFLFixityValidator)
-        self.mockrocflvalidator.validate_object.return_value = "Object object-1 is valid"
+        self.mockrocflvalidator.validate_objects.return_value = "Object object-1 is valid"
         self.fixityValidator = FixityValidator(self.mockrocflvalidator)
-        result = self.fixityValidator.check_object_fixity(object_id="object-1")
+        result = self.fixityValidator.check_objects_fixity(object_ids=["object-1"])
         
-        self.mockrocflvalidator.validate_object.assert_called_once_with("object-1")
+        self.mockrocflvalidator.validate_objects.assert_called_once_with(["object-1"])
         self.assertTrue(result.is_valid)
         self.assertEqual("Object object-1 is valid", result.message)
         
-class TestIntegrationFixityChecker(unittest.TestCase):   
+class RocflOCFLFixityValidatorIntegrationTest(unittest.TestCase):   
     def setUp(self):
         self.repository_path = Path("tests/fixtures/test_rocfl_repo/")
         self.validator = RocflOCFLFixityValidator(repository_path=str(self.repository_path))
 
-    def test_rocfl_validate_object(self):
+    def test_rocfl_validate_objects(self):
         try:
-            object_id = "ark:/12345/bcd987"
-            result = self.validator.validate_object(object_id = object_id)
-            self.assertIn(f"Object {object_id} is valid", result)
+            object_id = ["ark:/12345/bcd987"]
+            result = self.validator.validate_objects(object_ids = object_id)
+            self.assertIn(f"Object {object_id[0]} is valid", result)
         except subprocess.CalledProcessError as e:
             self.fail(f"ROCFL validation failed: {e.stderr}")   
 
     def test_rocfl_invalid_object(self):
         try:
-            object_id = "invalid-object-1"
-            result = self.validator.validate_object(object_id = object_id)
-            self.assertIn(f"[ERROR] Not found: Object {object_id}\n", result)
+            object_id = ["invalid-object-1"]
+            result = self.validator.validate_objects(object_ids = object_id)
+            self.assertIn(f"[ERROR] Not found: Object {object_id[0]}\n", result)
         except subprocess.CalledProcessError as e:
             self.fail(f"ROCFL validation failed: {e.stderr}")   
 
-    def test_rocfl_multiple_validate_objects(self):
+    def test_rocfl_multiple_validate_objects_by_path(self):
         try:
-            object_ids = [
+            object_paths = [
                 str(self.repository_path / "object-1/"),
                 str(self.repository_path / "object-2/")
             ]
@@ -286,18 +289,31 @@ class TestIntegrationFixityChecker(unittest.TestCase):
                 "ark:/12345/bcd987",  
                 "ark:123/abc"         
             ]
-            result = self.validator.validate_multiple_objects(object_ids)
+            result = self.validator.validate_multiple_objects_by_path(object_paths)
 
             for object_id in object_identifiers:
                 self.assertIn(f"Object {object_id} is valid", result)
         except subprocess.CalledProcessError as e:
             self.fail(f"ROCFL validation failed: {e.stderr}")  
 
+    def test_rocfl_multiple_validate_objects(self):
+        try:
+            object_identifiers = [
+                "ark:/12345/bcd987",  
+                "ark:123/abc"         
+            ]
+            result = self.validator.validate_objects(object_identifiers)
+
+            for object_id in object_identifiers:
+                self.assertIn(f"Object {object_id} is valid", result)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")                 
+
     def test_rocfl_validate_object_trigger_warning_W004(self):
         try:
-            object_id = "ark:123/abc1"
-            result = self.validator.validate_object(object_id = object_id)
-            self.assertIn(f"Object {object_id} is valid", result)
+            object_id = ["ark:123/abc1"]
+            result = self.validator.validate_objects(object_ids = object_id)
+            self.assertIn(f"Object {object_id[0]} is valid", result)
             self.assertIn("Warning", result)
             self.assertIn("[W004]", result)
         except subprocess.CalledProcessError as e:
@@ -305,9 +321,9 @@ class TestIntegrationFixityChecker(unittest.TestCase):
 
     def test_rocfl_validate_object_suppress_warning(self):
         try:
-            object_id = "ark:123/abc1"
-            result = self.validator.validate_object(object_id = object_id, suppress_warning="W004")
-            self.assertIn(f"Object {object_id} is valid", result)
+            object_id = ["ark:123/abc1"]
+            result = self.validator.validate_objects(object_ids = object_id, suppress_warning="W004")
+            self.assertIn(f"Object {object_id[0]} is valid", result)
             self.assertNotIn("Warning", result)
             self.assertNotIn("[W004]", result)
         except subprocess.CalledProcessError as e:
@@ -315,9 +331,9 @@ class TestIntegrationFixityChecker(unittest.TestCase):
 
     def test_rocfl_validate_object_suppress_warning_w008_not_w004(self):
         try:
-            object_id = "ark:123/abc1"
-            result = self.validator.validate_object(object_id = object_id, suppress_warning="W008")
-            self.assertIn(f"Object {object_id} is valid", result)
+            object_id = ["ark:123/abc1"]
+            result = self.validator.validate_objects(object_ids = object_id, suppress_warning="W008")
+            self.assertIn(f"Object {object_id[0]} is valid", result)
             self.assertIn("Warning", result)
             self.assertIn("[W004]", result)
         except subprocess.CalledProcessError as e:
@@ -326,8 +342,8 @@ class TestIntegrationFixityChecker(unittest.TestCase):
     def test_validate_object_E023_extra_file_check_only_errors(self):
         try:
             # Return only the Errors
-            object_id = "info:bad05"
-            result = self.validator.validate_object(object_id = object_id, log_level="Error")
+            object_id = ["info:bad05"]
+            result = self.validator.validate_objects(object_ids = object_id, log_level="Error")
             self.assertIn("[E023]", result)
             self.assertNotIn("Warning", result)
         except subprocess.CalledProcessError as e:
@@ -336,8 +352,8 @@ class TestIntegrationFixityChecker(unittest.TestCase):
     def test_validate_object_E023_extra_file_check_warnings_and_errors(self):
         try:
             # Return both the Errors and Warning
-            object_id = "info:bad05"
-            result_without_log_level = self.validator.validate_object(object_id = object_id)
+            object_id = ["info:bad05"]
+            result_without_log_level = self.validator.validate_objects(object_ids = object_id)
             self.assertIn("[E023]", result_without_log_level)
             self.assertIn("Warning", result_without_log_level)
         except subprocess.CalledProcessError as e:
@@ -348,9 +364,9 @@ class TestIntegrationFixityChecker(unittest.TestCase):
         try:
             # Updated the content file 
             #Test validating an object without fixity checks, does not throw fixity check error.
-            object_id = "http://example.org/minimal_mixed_digests"
-            result = self.validator.validate_object(object_id, no_fixity=True)
-            self.assertIn(f"Object {object_id} is valid", result)
+            object_id = ["http://example.org/minimal_mixed_digests"]
+            result = self.validator.validate_objects(object_id, no_fixity=True)
+            self.assertIn(f"Object {object_id[0]} is valid", result)
             self.assertNotIn("fixity check", result)  
         except RuntimeError as e:
             self.fail(f"ROCFL validation failed with error: {e}")   
@@ -360,10 +376,9 @@ class TestIntegrationFixityChecker(unittest.TestCase):
         try:
             # Updated the content file 
             # validating an object with fixity checks, throws fixity error.
-            object_id = "http://example.org/minimal_mixed_digests"
-            result_fixity = self.validator.validate_object(object_id)
-            self.assertIn(f"Object {object_id} is invalid", result_fixity)
+            object_id = ["http://example.org/minimal_mixed_digests"]
+            result_fixity = self.validator.validate_objects(object_id)
+            self.assertIn(f"Object {object_id[0]} is invalid", result_fixity)
             self.assertIn("fixity check", result_fixity)  
         except RuntimeError as e:
-            self.fail(f"ROCFL validation failed with error: {e}")          
-
+            self.fail(f"ROCFL validation failed with error: {e}")   
