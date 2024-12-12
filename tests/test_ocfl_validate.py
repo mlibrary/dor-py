@@ -10,7 +10,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
     def setUp(self):
         # Setup for testing
-        self.repository_path = Path("tests/test_ocfl_repo")
+        self.repository_path = Path("tests/fixtures/test_ocfl_repo")
         self.validator = RocflOCFLFixityValidator(repository_path=str(self.repository_path))
 
         # Common patches
@@ -256,7 +256,7 @@ class TestFixityValidator(unittest.TestCase):
         
 class TestIntegrationFixityChecker(unittest.TestCase):   
     def setUp(self):
-        self.repository_path = Path("tests/test_rocfl_repo/")
+        self.repository_path = Path("tests/fixtures/test_rocfl_repo/")
         self.validator = RocflOCFLFixityValidator(repository_path=str(self.repository_path))
 
     def test_rocfl_validate_object(self):
@@ -323,22 +323,27 @@ class TestIntegrationFixityChecker(unittest.TestCase):
         except subprocess.CalledProcessError as e:
             self.fail(f"ROCFL validation failed: {e.stderr}")              
 
-    def test_validate_object_E023_extra_file(self):
+    def test_validate_object_E023_extra_file_check_only_errors(self):
         try:
             # Return only the Errors
             object_id = "info:bad05"
             result = self.validator.validate_object(object_id = object_id, log_level="Error")
             self.assertIn("[E023]", result)
             self.assertNotIn("Warning", result)
+        except subprocess.CalledProcessError as e:
+            self.fail(f"ROCFL validation failed: {e.stderr}")   
 
+    def test_validate_object_E023_extra_file_check_warnings_and_errors(self):
+        try:
             # Return both the Errors and Warning
+            object_id = "info:bad05"
             result_without_log_level = self.validator.validate_object(object_id = object_id)
             self.assertIn("[E023]", result_without_log_level)
             self.assertIn("Warning", result_without_log_level)
         except subprocess.CalledProcessError as e:
-            self.fail(f"ROCFL validation failed: {e.stderr}")             
+            self.fail(f"ROCFL validation failed: {e.stderr}")                   
                 
-    def test_validate_specific_object_without_fixity_check(self):
+    def test_validate_specific_object_no_fixity_check(self):
         
         try:
             # Updated the content file 
@@ -346,12 +351,19 @@ class TestIntegrationFixityChecker(unittest.TestCase):
             object_id = "http://example.org/minimal_mixed_digests"
             result = self.validator.validate_object(object_id, no_fixity=True)
             self.assertIn(f"Object {object_id} is valid", result)
-            self.assertNotIn("fixity check", result) 
+            self.assertNotIn("fixity check", result)  
+        except RuntimeError as e:
+            self.fail(f"ROCFL validation failed with error: {e}")   
 
+    def test_validate_specific_object_with_fixity_check(self):
+        
+        try:
+            # Updated the content file 
             # validating an object with fixity checks, throws fixity error.
+            object_id = "http://example.org/minimal_mixed_digests"
             result_fixity = self.validator.validate_object(object_id)
             self.assertIn(f"Object {object_id} is invalid", result_fixity)
             self.assertIn("fixity check", result_fixity)  
         except RuntimeError as e:
-            self.fail(f"ROCFL validation failed with error: {e}")   
+            self.fail(f"ROCFL validation failed with error: {e}")          
 
