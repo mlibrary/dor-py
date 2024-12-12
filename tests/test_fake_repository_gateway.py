@@ -2,23 +2,21 @@ from pathlib import Path
 
 import pytest
 
-from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.coordinator import Coordinator
+from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.fake_repository_gateway import FakePackage, FakeRepositoryGateway
 from gateway.object_file import ObjectFile
 
 
 @pytest.fixture
-def package_A() -> FakePackage:
-    return FakePackage(
-        root_path=Path("/"), entries=[Path("some"), Path("some/path")]
-    )
+def package_a() -> FakePackage:
+    return FakePackage(root_path=Path("/"), entries=[Path("some"), Path("some/path")])
 
 @pytest.fixture
-def gateway_with_committed_package(package_A: FakePackage) -> FakeRepositoryGateway:
+def gateway_with_committed_package(package_a: FakePackage) -> FakeRepositoryGateway:
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-    gateway.stage_object_files("A", package_A)
+    gateway.stage_object_files("A", package_a)
     gateway.commit_object_changes(
         "A", Coordinator("test", "test@example.edu"), "First version!"
     )
@@ -30,7 +28,6 @@ def test_gateway_can_create_repository() -> None:
 def test_gateway_can_created_staged_object() -> None:
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-
     assert "A" in gateway.store
 
 def test_gateway_raises_when_creating_staged_object_that_already_exists() -> None:
@@ -39,26 +36,24 @@ def test_gateway_raises_when_creating_staged_object_that_already_exists() -> Non
     with pytest.raises(StagedObjectAlreadyExistsError):
         gateway.create_staged_object("Z")
 
-def test_gateway_can_stage_changes(package_A: FakePackage) -> None:
+def test_gateway_can_stage_changes(package_a: FakePackage) -> None:
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-    gateway.stage_object_files("A", package_A)
-
+    gateway.stage_object_files("A", package_a)
     assert gateway.store["A"].staged_files == set([Path("some"), Path("some/path")])
 
-def test_gateway_raises_when_staging_changes_when_no_object_exists(package_A: FakePackage) -> None:
+def test_gateway_raises_when_staging_changes_when_no_object_exists(package_a: FakePackage) -> None:
     gateway = FakeRepositoryGateway()
     with pytest.raises(ObjectDoesNotExistError):
-        gateway.stage_object_files("A", package_A)
+        gateway.stage_object_files("A", package_a)
 
-def test_gateway_can_commit_changes(package_A: FakePackage) -> None:
+def test_gateway_can_commit_changes(package_a: FakePackage) -> None:
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-    gateway.stage_object_files("A", package_A)
+    gateway.stage_object_files("A", package_a)
     gateway.commit_object_changes(
         "A", Coordinator("test", "test@example.edu"), "First version!"
     )
-
     assert gateway.store["A"].staged_files == set()
     assert gateway.store["A"].versions[0].files == set([Path("some"), Path("some/path")])
 
@@ -110,12 +105,13 @@ def test_gateway_can_get_object_files_when_some_are_staged(
     ]
     assert set(expected_object_files) == set(object_files)
 
-def test_gateway_can_get_object_files_when_only_staged(package_A: FakePackage):
+def test_gateway_can_get_object_files_when_only_staged(package_a: FakePackage):
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-    gateway.stage_object_files("A", package_A)
+    gateway.stage_object_files("A", package_a)
 
     object_files = gateway.get_object_files("A", include_staged=True)
+
     expected_object_files = [
         ObjectFile(logical_path=Path("some"), literal_path=Path("some")),
         ObjectFile(logical_path=Path("some/path"), literal_path=Path("some/path"))
