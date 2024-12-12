@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" xmlns:dcam="http://purl.org/dc/dcam/" OBJID="{{ object_identifier }}" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
+
+  <METS:metsHdr RECORDSTATUS="{{ action }}" CREATEDATE="{{ create_date }}" ID="HDR1" TYPE="{{ resource.type }}">
+    <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
+      <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
+    </METS:agent>
+    {% if resource.alternate_identifier %}
+    <METS:altRecordID TYPE="{{ resource.alternate_identifier.type }}">{{ resource.alternate_identifier.id }}</METS:altRecordID>
+    {% endif %}
+  </METS:metsHdr>
+
+  {% include "partials/_md_sec.fragment.xml" %}
+
+  {% include "partials/_md_file_sec.fragment.xml" %}
+
+  {% include "partials/_struct_sec.fragment.xml" %}
+
+</METS:mets>
