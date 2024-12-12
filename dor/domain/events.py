@@ -31,9 +31,10 @@ class PackageUnpacked(Event):
     resources: list[Any]
     tracking_identifier: str
     version_info: VersionInfo
+    workspace_identifier: str
     package_identifier: str
 
 @dataclass
-class ItemStored(Event):
+class PackageStored(Event):
     identifier: str
     tracking_identifier: str
