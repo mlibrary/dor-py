@@ -15,5 +15,6 @@ htmlcov/
 .gnupg
 requirements.txt
 output/
-tests/test_storage
 .DS_Store
+tests/test_storage
+tests/test_workspaces
