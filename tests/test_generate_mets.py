@@ -1,14 +1,16 @@
 from unittest import TestCase
 from datetime import datetime, UTC
+from pprint import pprint
 from dor.providers.models import *
 from dor.settings import S, template_env
+
 
 class GeneratePreservationMETSTest(TestCase):
     def setUp(self):
         return super().setUp()
 
-    def test_can_generate_mets(self):
-        resources = [
+    def _get_resources(self):
+        return [
             PackageResource(
                 id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 type="Monograph",
@@ -245,6 +247,158 @@ class GeneratePreservationMETSTest(TestCase):
             ),
         ]
 
+    def test_can_patch_asset_data_files(self):
+        asset = PackageResource(
+                id=uuid.UUID("00000000-0000-0000-0000-000000001002"),
+                type="Asset",
+                alternate_identifier=AlternateIdentifier(
+                    id="xyzzy:00000001:00000002", type="DLXS"
+                ),
+                events=[
+                    PreservationEvent(
+                        identifier="d4bcce33-db4e-413e-98f9-6abd3d83f924",
+                        type="generate access derivative",
+                        datetime=datetime(1985, 8, 11, 15, 46, 43, tzinfo=UTC),
+                        detail="Entire serve message mother.",
+                        agent=Agent(
+                            address="james98@example.com", role="image processing"
+                        ),
+                    ),
+                    PreservationEvent(
+                        identifier="18301575-d6ff-445b-a8f8-deeb3b522866",
+                        type="extract text",
+                        datetime=datetime(1980, 7, 2, 15, 53, 41, tzinfo=UTC),
+                        detail="Way interest unit maybe professional worker.",
+                        agent=Agent(
+                            address="mary49@example.org", role="ocr processing"
+                        ),
+                    ),
+                ],
+                metadata_files=[
+                    FileMetadata(
+                        id="_0193972b-e57c-79e2-b4fa-6390302aff2f",
+                        use="TECHNICAL",
+                        ref=FileReference(
+                            locref="../metadata/00000002.source.jpg.mix.xml",
+                            mdtype="NISOIMG",
+                        ),
+                    ),
+                    FileMetadata(
+                        id="_0193972b-e585-7332-b314-c73d875ac900",
+                        use="TECHNICAL",
+                        ref=FileReference(
+                            locref="../metadata/00000002.access.jpg.mix.xml",
+                            mdtype="NISOIMG",
+                        ),
+                    ),
+                    FileMetadata(
+                        id="_0193972b-e58a-7fa4-8453-3b80c5b563d6",
+                        use="TECHNICAL",
+                        ref=FileReference(
+                            locref="../metadata/00000002.plaintext.txt.textmd.xml",
+                            mdtype="TEXTMD",
+                        ),
+                    ),
+                ],
+                data_files=[
+                    FileMetadata(
+                        id="_f442339a2731f043f72460c64ad66fee",
+                        mdid="_0193972b-e57c-79e2-b4fa-6390302aff2f",
+                        use="SOURCE",
+                        ref=FileReference(
+                            locref="../data/00000002.source.jpg",
+                            mimetype="image/jpeg",
+                        ),
+                    ),
+                    FileMetadata(
+                        id="_1cc90346d5f1fe485fc8a3c55d10e753",
+                        groupid="_f442339a2731f043f72460c64ad66fee",
+                        mdid="_0193972b-e585-7332-b314-c73d875ac900",
+                        use="ACCESS",
+                        ref=FileReference(
+                            locref="../data/00000002.access.jpg",
+                            mimetype="image/jpeg",
+                        ),
+                    ),
+                    FileMetadata(
+                        id="_59472df4b090349a7440a32ca575f87e",
+                        groupid="_f442339a2731f043f72460c64ad66fee",
+                        mdid="_0193972b-e58a-7fa4-8453-3b80c5b563d6",
+                        use="SOURCE",
+                        ref=FileReference(
+                            locref="../data/00000002.plaintext.txt",
+                            mimetype="text/plain",
+                        ),
+                    ),
+                ]
+        )
+
+        patch = PackageResource(
+                id=uuid.UUID("00000000-0000-0000-0000-000000001002"),
+                alternate_identifier=None,
+                events=[],
+                type="Asset",
+                metadata_files=[
+                    FileMetadata(
+                        id="_0193972b-e58a-7fa4-8453-3b80c5b563d6",
+                        use="TECHNICAL",
+                        ref=FileReference(
+                            locref="../metadata/00000002.plaintext.patched.txt.textmd.xml",
+                            mdtype="TEXTMD",
+                        ),
+                    ),
+                    FileMetadata(
+                        id="_0193972b-e58a-7fa4-8453-3b80c5b563dx",
+                        use="TECHNICAL",
+                        ref=FileReference(
+                            locref="../metadata/00000002.alto.xml.textmd.xml",
+                            mdtype="TEXTMD",
+                        ),
+                    ),
+                ],
+                data_files=[
+                    FileMetadata(
+                        id="_59472df4b090349a7440a32ca575f87e",
+                        groupid="_f442339a2731f043f72460c64ad66fee",
+                        mdid="_0193972b-e58a-7fa4-8453-3b80c5b563d6",
+                        use="SOURCE",
+                        ref=FileReference(
+                            locref="../data/00000002.plaintext.patched.txt",
+                            mimetype="text/plain",
+                        ),
+                    ),
+                    FileMetadata(
+                        id="_59472df4b090349a7440a32ca575f87x",
+                        groupid="_f442339a2731f043f72460c64ad66fee",
+                        mdid="_0193972b-e58a-7fa4-8453-3b80c5b563dx",
+                        use="SOURCE",
+                        ref=FileReference(
+                            locref="../data/00000002.alto.xml",
+                            mimetype="text/alto+xml",
+                        ),
+                    ),
+                ]
+        )
+
+        for file_metadata in patch.metadata_files:
+            try:
+                index = asset.metadata_files.index(file_metadata)
+                asset.metadata_files[index] = file_metadata
+            except ValueError:
+                asset.metadata_files.append(file_metadata)
+
+        for file_metadata in patch.data_files:
+            try:
+                index = asset.data_files.index(file_metadata)
+                asset.data_files[index] = file_metadata
+            except ValueError:
+                asset.data_files.append(file_metadata)
+
+        pprint(asset.data_files)
+
+    def test_can_generate_mets(self):
+        resources = self._get_resources()
+
         asset_map = {}
         for resource in resources:
             if resource.type == "Asset":
@@ -260,5 +414,5 @@ class GeneratePreservationMETSTest(TestCase):
                 create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
 
-            print(xmldata)
+            # print(xmldata)
             # break
