@@ -259,6 +259,8 @@ class TestFixityValidator(unittest.TestCase):
         
 class RocflOCFLFixityValidatorIntegrationTest(unittest.TestCase):   
     def setUp(self):
+        # Link to fixtures -> https://github.com/OCFL/fixtures
+        # Link to Validation Codes -> https://ocfl.io/1.1/spec/validation-codes.html
         self.repository_path = Path("tests/fixtures/test_rocfl_repo/")
         self.validator = RocflOCFLFixityValidator(repository_path=str(self.repository_path))
 
