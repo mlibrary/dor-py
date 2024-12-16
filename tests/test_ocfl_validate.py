@@ -11,8 +11,9 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
     def setUp(self):
         # Setup for testing
-        self.repository_path = Path("tests/fixtures/test_ocfl_repo")
-        self.validator = RocflOCFLFixityValidator(repository_path=self.repository_path)
+        self.path = Path("tests/fixtures/test_ocfl_repo")
+        self.repository_path = str(self.path)
+        self.validator = RocflOCFLFixityValidator(repository_path=self.path)
 
         # Common patches
         self.mock_makedirs = patch('os.makedirs').start()
@@ -53,8 +54,8 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
     def test_validate_repository_missing_versions_E008(self):
         # Simulate the removal of version directories v1 and v2
-        v1_path = self.repository_path / '0=ocfl_object_1.0' / 'v1'
-        v2_path = self.repository_path / '0=ocfl_object_1.0' / 'v2'
+        v1_path = self.path / '0=ocfl_object_1.0' / 'v1'
+        v2_path = self.path / '0=ocfl_object_1.0' / 'v2'
         
         # Simulate the deletion of version directories by not calling rmtree (directories don't exist)
         self.mock_rmtree(v1_path)
@@ -180,10 +181,10 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
         self.assertIn("Warning W004:", result)
         self.assertIn("For content-addressing, OCFL Objects SHOULD use sha512.", result)
-  
+        
     def test_validate_object_suppress_warning_W004(self):
-        v1_metadata_path = self.repository_path / '0=ocfl_object_1.0' / 'v1' / 'inventory.json'
-       
+        v1_metadata_path = self.path / '0=ocfl_object_1.0' / 'v1' / 'inventory.json'
+
         with open(v1_metadata_path, 'r') as f:
             metadata_v1 = json.load(f)
 
@@ -262,7 +263,7 @@ class RocflOCFLFixityValidatorIntegrationTest(unittest.TestCase):
         # Link to fixtures -> https://github.com/OCFL/fixtures
         # Link to Validation Codes -> https://ocfl.io/1.1/spec/validation-codes.html
         self.repository_path = Path("tests/fixtures/test_rocfl_repo/")
-        self.validator = RocflOCFLFixityValidator(repository_path=str(self.repository_path))
+        self.validator = RocflOCFLFixityValidator(repository_path=self.repository_path)
 
     def test_rocfl_validate_objects(self):
         try:
