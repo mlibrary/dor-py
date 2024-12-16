@@ -6,21 +6,7 @@ from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.object_file import ObjectFile
-from gateway.package import Package
 from gateway.repository_gateway import RepositoryGateway
-
-
-class FakePackage(Package):
-
-    def __init__(self, root_path: Path, entries: list[Path]) -> None:
-        self.root_path: Path = root_path
-        self.entries: list[Path] = entries
-
-    def get_root_path(self) -> Path:
-        return self.root_path
-
-    def get_file_paths(self) -> list[Path]:
-        return self.entries
 
 
 @dataclass(frozen=True)

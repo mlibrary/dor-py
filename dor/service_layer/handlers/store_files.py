@@ -13,8 +13,8 @@ def store_files(event: PackageUnpacked, uow: UnitOfWork, workspace_class: type) 
 
     uow.gateway.create_staged_object(id=event.identifier)
     uow.gateway.stage_object_files(
-        id=event.identifier, 
-        source_package=bundle,
+        id=event.identifier,
+        source_bundle=bundle,
     )
     uow.gateway.commit_object_changes(
         id=event.identifier,
