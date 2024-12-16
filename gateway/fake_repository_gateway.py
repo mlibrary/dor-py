@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Set
 
+from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.object_file import ObjectFile
@@ -56,8 +57,8 @@ class FakeRepositoryGateway(RepositoryGateway):
 
         self.store[id] = RepositoryObject(staged_files=set(), versions=[])
 
-    def stage_object_files(self, id: str, source_package: Package) -> None:
-        file_paths = set(source_package.get_file_paths())
+    def stage_object_files(self, id: str, source_bundle: Bundle) -> None:
+        file_paths = set(source_bundle.get_file_paths())
         if id not in self.store:
             raise ObjectDoesNotExistError()
 
