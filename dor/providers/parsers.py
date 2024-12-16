@@ -1,5 +1,4 @@
 from datetime import datetime
-from pathlib import Path
 import uuid
 
 from utils.element_adapter import ElementAdapter
