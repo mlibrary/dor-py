@@ -21,7 +21,7 @@ class FakeWorkspace:
 
     def get_bundle(self, entries: list[Path]) -> Bundle:
         return Bundle(
-            root_path=self.object_data_directory().resolve(),
+            root_path=self.object_data_directory(),
             entries=entries
         )
 
