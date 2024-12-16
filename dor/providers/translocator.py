@@ -4,7 +4,6 @@ import shutil
 from typing import Callable
 
 from gateway.bundle import Bundle
-from gateway.fake_repository_gateway import FakePackage
 
 
 @dataclass
@@ -20,9 +19,9 @@ class FakeWorkspace:
             raise Exception()
         return self.package_directory() / "data" / self.root_identifier
 
-    def get_bundle(self, entries: list[Path]) -> FakePackage:
-        return FakePackage(
-            root_path=self.object_data_directory(),
+    def get_bundle(self, entries: list[Path]) -> Bundle:
+        return Bundle(
+            root_path=self.object_data_directory().resolve(),
             entries=entries
         )
 
