@@ -1,6 +1,3 @@
-class NoContentError(Exception):
-    pass
-
 class RepositoryGatewayError(Exception):
     pass
 
