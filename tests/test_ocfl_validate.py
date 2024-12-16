@@ -8,7 +8,6 @@ from unittest.mock import patch, MagicMock, mock_open
 from gateway.validate import  FixityValidator, RocflOCFLFixityValidator
 
 class TestRocflOCFLFixityValidator(unittest.TestCase):
-
     def setUp(self):
         # Setup for testing
         self.path = Path("tests/fixtures/test_ocfl_repo")
@@ -20,6 +19,9 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         self.mock_open = patch('builtins.open', mock_open(read_data='{"content": [{"sha1": "some_sha1_hash_value", "sha512": "some_sha512_hash_value"}]}')).start()
         self.mock_rmtree = patch('shutil.rmtree').start()
         self.mock_run = patch('subprocess.run').start()
+        
+        #calling protected method
+        self.build_command = getattr(self.validator, '_build_command')
 
     def tearDown(self):
         # Stop all patches
@@ -212,36 +214,36 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         self.assertNotIn("Error", result)
 
     def test_build_command_no_flags(self):
-        base_command = ['rocfl', '-r', self.repository_path, 'validate']
-        result = self.validator._build_command(base_command, no_fixity=False, log_level=None, suppress_warning=None)
+        base_command = ['rocfl', '-r', self.repository_path, 'validate']      
+        result = self.build_command(base_command, no_fixity=False, log_level=None, suppress_warning=None)
         
         # Assert that no flags are added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate'])
 
     def test_build_command_with_no_fixity(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']
-        result = self.validator._build_command(base_command, no_fixity=True, log_level=None, suppress_warning=None)
+        result = self.build_command(base_command, no_fixity=True, log_level=None, suppress_warning=None)
         
         # Assert that '-n' flag is added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate', '-n'])
 
     def test_build_command_with_log_level(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']
-        result = self.validator._build_command(base_command, no_fixity=False, log_level='Error', suppress_warning=None)
+        result = self.build_command(base_command, no_fixity=False, log_level='Error', suppress_warning=None)
         
         # Assert that '-l Error' is added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate', '-l', 'Error'])
 
     def test_build_command_with_suppress_warning(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']
-        result = self.validator._build_command(base_command, no_fixity=False, log_level=None, suppress_warning='Warning123')
+        result = self.build_command(base_command, no_fixity=False, log_level=None, suppress_warning='Warning123')
         
         # Assert that '-w Warning123' is added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate', '-w', 'Warning123'])
 
     def test_build_command_with_all_flags(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']
-        result = self.validator._build_command(base_command, no_fixity=True, log_level='Error', suppress_warning='Warning123')
+        result = self.build_command(base_command, no_fixity=True, log_level='Error', suppress_warning='Warning123')
         
         # Assert that all flags are correctly added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate', '-n', '-l', 'Error', '-w', 'Warning123'])
