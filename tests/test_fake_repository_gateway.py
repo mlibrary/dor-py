@@ -2,21 +2,22 @@ from pathlib import Path
 
 import pytest
 
+from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
-from gateway.fake_repository_gateway import FakePackage, FakeRepositoryGateway
+from gateway.fake_repository_gateway import FakeRepositoryGateway
 from gateway.object_file import ObjectFile
 
 
 @pytest.fixture
-def package_a() -> FakePackage:
-    return FakePackage(root_path=Path("/"), entries=[Path("some"), Path("some/path")])
+def bundle_a() -> Bundle:
+    return Bundle(root_path=Path("/"), entries=[Path("../some"), Path("../some/path")])
 
 @pytest.fixture
-def gateway_with_committed_package(package_a: FakePackage) -> FakeRepositoryGateway:
+def gateway_with_committed_bundle(bundle_a: Bundle) -> FakeRepositoryGateway:
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-    gateway.stage_object_files("A", package_a)
+    gateway.stage_object_files("A", bundle_a)
     gateway.commit_object_changes(
         "A", Coordinator("test", "test@example.edu"), "First version!"
     )
@@ -36,21 +37,21 @@ def test_gateway_raises_when_creating_staged_object_that_already_exists() -> Non
     with pytest.raises(StagedObjectAlreadyExistsError):
         gateway.create_staged_object("Z")
 
-def test_gateway_can_stage_changes(package_a: FakePackage) -> None:
+def test_gateway_can_stage_changes(bundle_a: Bundle) -> None:
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-    gateway.stage_object_files("A", package_a)
+    gateway.stage_object_files("A", bundle_a)
     assert gateway.store["A"].staged_files == set([Path("some"), Path("some/path")])
 
-def test_gateway_raises_when_staging_changes_when_no_object_exists(package_a: FakePackage) -> None:
+def test_gateway_raises_when_staging_changes_when_no_object_exists(bundle_a: Bundle) -> None:
     gateway = FakeRepositoryGateway()
     with pytest.raises(ObjectDoesNotExistError):
-        gateway.stage_object_files("A", package_a)
+        gateway.stage_object_files("A", bundle_a)
 
-def test_gateway_can_commit_changes(package_a: FakePackage) -> None:
+def test_gateway_can_commit_changes(bundle_a: Bundle) -> None:
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-    gateway.stage_object_files("A", package_a)
+    gateway.stage_object_files("A", bundle_a)
     gateway.commit_object_changes(
         "A", Coordinator("test", "test@example.edu"), "First version!"
     )
@@ -65,9 +66,9 @@ def test_gateway_raises_when_committing_changes_when_no_object_exists() -> None:
         )
 
 def test_gateway_can_indicate_it_has_an_object(
-    gateway_with_committed_package: FakeRepositoryGateway
+    gateway_with_committed_bundle: FakeRepositoryGateway
 ) -> None:
-    assert gateway_with_committed_package.has_object("A")
+    assert gateway_with_committed_bundle.has_object("A")
 
 def test_gateway_can_indicate_it_does_not_have_an_object() -> None:
     gateway = FakeRepositoryGateway()
@@ -79,9 +80,9 @@ def test_gateway_can_indicate_it_does_not_have_an_object_even_if_staged() -> Non
     assert not gateway.has_object("A")
 
 def test_gateway_can_get_object_files(
-    gateway_with_committed_package: FakeRepositoryGateway
+    gateway_with_committed_bundle: FakeRepositoryGateway
 ) -> None:
-    object_files = gateway_with_committed_package.get_object_files("A")
+    object_files = gateway_with_committed_bundle.get_object_files("A")
 
     expected_object_files = [
         ObjectFile(logical_path=Path("some"), literal_path=Path("some")),
@@ -90,11 +91,11 @@ def test_gateway_can_get_object_files(
     assert set(expected_object_files) == set(object_files)
 
 def test_gateway_can_get_object_files_when_some_are_staged(
-    gateway_with_committed_package: FakeRepositoryGateway
+    gateway_with_committed_bundle: FakeRepositoryGateway
 ) -> None:
-    gateway = gateway_with_committed_package
-    update_package = FakePackage(root_path=Path("/"), entries=[Path("some/other/path")])
-    gateway.stage_object_files("A", update_package)
+    gateway = gateway_with_committed_bundle
+    update_bundle = Bundle(root_path=Path("/"), entries=[Path("../some/other/path")])
+    gateway.stage_object_files("A", update_bundle)
 
     object_files = gateway.get_object_files("A", include_staged=True)
 
@@ -105,10 +106,10 @@ def test_gateway_can_get_object_files_when_some_are_staged(
     ]
     assert set(expected_object_files) == set(object_files)
 
-def test_gateway_can_get_object_files_when_only_staged(package_a: FakePackage):
+def test_gateway_can_get_object_files_when_only_staged(bundle_a: Bundle):
     gateway = FakeRepositoryGateway()
     gateway.create_staged_object("A")
-    gateway.stage_object_files("A", package_a)
+    gateway.stage_object_files("A", bundle_a)
 
     object_files = gateway.get_object_files("A", include_staged=True)
 
@@ -119,11 +120,11 @@ def test_gateway_can_get_object_files_when_only_staged(package_a: FakePackage):
     assert set(object_files) == set(expected_object_files)
 
 def test_gateway_only_gets_committed_files_when_excluding_staged_files(
-    gateway_with_committed_package: FakeRepositoryGateway
+    gateway_with_committed_bundle: FakeRepositoryGateway
 ) -> None:
-    gateway = gateway_with_committed_package
-    update_package = FakePackage(root_path=Path("/"), entries=[Path("some/other/path")])
-    gateway.stage_object_files("A", update_package)
+    gateway = gateway_with_committed_bundle
+    update_bundle = Bundle(root_path=Path("/"), entries=[Path("some/other/path")])
+    gateway.stage_object_files("A", update_bundle)
 
     object_files = gateway.get_object_files("A", include_staged=False)
 
@@ -134,9 +135,9 @@ def test_gateway_only_gets_committed_files_when_excluding_staged_files(
     assert set(expected_object_files) == set(object_files)
 
 def test_gateway_purges_object(
-    gateway_with_committed_package: FakeRepositoryGateway
+    gateway_with_committed_bundle: FakeRepositoryGateway
 ) -> None:
-    gateway = gateway_with_committed_package
+    gateway = gateway_with_committed_bundle
     gateway.purge_object("A")
     assert not gateway.has_object("A")
 
