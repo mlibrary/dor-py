@@ -44,7 +44,7 @@ class FakeRepositoryGateway(RepositoryGateway):
         self.store[id] = RepositoryObject(staged_files=set(), versions=[])
 
     def stage_object_files(self, id: str, source_bundle: Bundle) -> None:
-        file_paths = set(source_bundle.get_file_paths())
+        file_paths = set(source_bundle.entries)
         if id not in self.store:
             raise ObjectDoesNotExistError()
 

@@ -23,16 +23,12 @@ class OcflRepositoryGatewayTest(TestCase):
         
         self.deposit_one_bundle = Bundle(
             root_path=test_deposit_path / "deposit_one",
-            entries=[
-                Path("../A.txt"), Path("../B/B.txt"), Path("../C/D/D.txt")
-            ]
+            entries=[Path("A.txt"), Path("B/B.txt"), Path("C/D/D.txt")]
         )
 
         self.deposit_one_update_bundle = Bundle(
             root_path=test_deposit_path / "deposit_one_update",
-            entries=[
-                Path("../E.txt"), Path("../B/B.txt")
-            ]
+            entries=[Path("E.txt"), Path("B/B.txt")]
         )
 
         self.storage_path = Path("tests/test_storage")
