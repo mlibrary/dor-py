@@ -12,7 +12,6 @@ from gateway.exceptions import (
     RepositoryGatewayError
 )
 from gateway.object_file import ObjectFile
-from gateway.package import Package
 from gateway.repository_gateway import RepositoryGateway
 
 class StorageLayout(Enum):
