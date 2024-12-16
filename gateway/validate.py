@@ -27,15 +27,15 @@ class RocflOCFLFixityValidator(OCFLFixityValidator):
         self.repository_path = repository_path
 
     def validate_repository(self, no_fixity: bool = False, log_level: Optional[str] = None, suppress_warning: Optional[str] = None) -> str:
-        command = self._build_command(['rocfl', '-r', self.repository_path, 'validate'], no_fixity, log_level, suppress_warning)
+        command = self._build_command(['rocfl', '-r', str(self.repository_path), 'validate'], no_fixity, log_level, suppress_warning)
         return self._run_rocfl_command(command)
 
     def validate_objects(self, object_ids: List[str], no_fixity: bool = False, log_level: Optional[str] = None, suppress_warning: Optional[str] = None) -> str:
-        command = self._build_command(['rocfl', '-r', self.repository_path, 'validate'] + object_ids, no_fixity, log_level, suppress_warning)
+        command = self._build_command(['rocfl', '-r', str(self.repository_path), 'validate'] + object_ids, no_fixity, log_level, suppress_warning)
         return self._run_rocfl_command(command)
 
     def validate_multiple_objects_by_path(self, object_paths: List[str], no_fixity: bool = False, log_level: Optional[str] = None, suppress_warning: Optional[str] = None) -> str:
-        command = self._build_command(['rocfl', '-r', self.repository_path, 'validate', '-p'] + object_paths, no_fixity, log_level, suppress_warning)
+        command = self._build_command(['rocfl', '-r', str(self.repository_path), 'validate', '-p'] + object_paths, no_fixity, log_level, suppress_warning)
         return self._run_rocfl_command(command)
 
     def _run_rocfl_command(self, command: List[str]) -> str:
