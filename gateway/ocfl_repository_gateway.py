@@ -65,7 +65,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             raise ObjectDoesNotExistError(f"No object or staged object found for id {id}")
 
         package_root = source_bundle.root_path
-        for file_path in source_bundle.get_file_paths():
+        for file_path in source_bundle.entries:
             source_path = package_root / file_path
             self._stage_object_file(id=id, source_path=source_path, dest_path=file_path)
 
