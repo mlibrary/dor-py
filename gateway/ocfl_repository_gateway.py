@@ -3,6 +3,7 @@ from enum import Enum
 from pathlib import Path
 from subprocess import CalledProcessError
 
+from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.exceptions import (
     NoStagedChangesError,
@@ -60,12 +61,12 @@ class OcflRepositoryGateway(RepositoryGateway):
         except CalledProcessError as e:
             raise RepositoryGatewayError() from e
 
-    def stage_object_files(self, id: str, source_package: Package) -> None:
+    def stage_object_files(self, id: str, source_bundle: Bundle) -> None:
         if not self.has_object(id) and not self._has_staged_object(id):
             raise ObjectDoesNotExistError(f"No object or staged object found for id {id}")
 
-        package_root = source_package.get_root_path()
-        for file_path in source_package.get_file_paths():
+        package_root = source_bundle.root_path
+        for file_path in source_bundle.get_file_paths():
             source_path = package_root / file_path
             self._stage_object_file(id=id, source_path=source_path, dest_path=file_path)
 
