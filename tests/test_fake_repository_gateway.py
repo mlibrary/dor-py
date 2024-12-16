@@ -11,7 +11,7 @@ from gateway.object_file import ObjectFile
 
 @pytest.fixture
 def bundle_a() -> Bundle:
-    return Bundle(root_path=Path("/"), entries=[Path("../some"), Path("../some/path")])
+    return Bundle(root_path=Path("/"), entries=[Path("some"), Path("some/path")])
 
 @pytest.fixture
 def gateway_with_committed_bundle(bundle_a: Bundle) -> FakeRepositoryGateway:
@@ -94,7 +94,7 @@ def test_gateway_can_get_object_files_when_some_are_staged(
     gateway_with_committed_bundle: FakeRepositoryGateway
 ) -> None:
     gateway = gateway_with_committed_bundle
-    update_bundle = Bundle(root_path=Path("/"), entries=[Path("../some/other/path")])
+    update_bundle = Bundle(root_path=Path("/"), entries=[Path("some/other/path")])
     gateway.stage_object_files("A", update_bundle)
 
     object_files = gateway.get_object_files("A", include_staged=True)
