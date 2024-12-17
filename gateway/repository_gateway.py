@@ -1,8 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
+from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.object_file import ObjectFile
-from gateway.package import Package
+
 
 class RepositoryGateway(metaclass=ABCMeta):
 
@@ -15,7 +16,7 @@ class RepositoryGateway(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def stage_object_files(self, id: str, source_package: Package) -> None:
+    def stage_object_files(self, id: str, source_bundle: Bundle) -> None:
         pass
 
     @abstractmethod
