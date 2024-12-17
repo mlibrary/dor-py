@@ -290,7 +290,5 @@ class DescriptorFileParserTest(TestCase):
                 ),
             ],
         )
-       
-
         parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_resource(), expected_resource)

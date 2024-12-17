@@ -7,11 +7,6 @@ from .models import *
 
 
 class DescriptorFileParser:
-    namespaces: dict[str, str] = {
-        "METS": "http://www.loc.gov/METS/v2",
-        "PREMIS": "http://www.loc.gov/premis/v3",
-    }
-
     def __init__(self, element_adapter: ElementAdapter, descriptor_path: Path):
         self.tree: ElementAdapter = element_adapter
         self.descriptor_path = descriptor_path
