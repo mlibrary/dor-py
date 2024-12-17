@@ -69,7 +69,7 @@ class DescriptorFileParser:
         mdtype: Optional[str] = None
         mimetype: Optional[str] = None 
         if md_red_element:
-            locref = self._apply_relative_path(self.descriptor_path, md_red_element.get_optional("LOCREF"), )
+            locref = self._apply_relative_path(self.descriptor_path, md_red_element.get_optional("LOCREF"))
             mdtype = md_red_element.get_optional("MDTYPE")
             mimetype = md_red_element.get_optional("MIMETYPE")
 
@@ -143,7 +143,10 @@ class DescriptorFileParser:
 
     def _apply_relative_path(self, descriptor_path: Path, path_to_apply: str) -> str:
         if path_to_apply.startswith("../"):
-            relative_path = (descriptor_path.parent / path_to_apply).resolve()
+            combined_path  =  (Path(descriptor_path).parent / path_to_apply)
+            print ("Desc:", Path(combined_path).resolve())
+            print(descriptor_path.parent)
+            relative_path = (Path(combined_path)).resolve().relative_to(descriptor_path.parent)
             return str(relative_path)
         return path_to_apply
     

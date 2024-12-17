@@ -35,12 +35,3 @@ class PackageResourceProvider:
             
         return package_resources
         
-    
-    def _apply_relative_path(self, descriptor_path: str, locref: str) -> str:
-        if locref.startswith("../"):
-            relative_path = (Path(descriptor_path).parent / locref).resolve()
-            return str(relative_path)
-        return locref
-    
-    def resolve_path(self, path: str, locref: str) -> str:
-        return self._apply_relative_path(path, locref)
