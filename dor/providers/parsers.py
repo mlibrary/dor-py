@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List, Optional
 import uuid
 
 from utils.element_adapter import ElementAdapter
@@ -11,28 +12,29 @@ class DescriptorFileParser:
         "PREMIS": "http://www.loc.gov/premis/v3",
     }
 
-    def __init__(self, descriptor_path):
-        text = descriptor_path.read_text()
-        self.tree: ElementAdapter = ElementAdapter.from_string(text, self.namespaces)
+    def __init__(self, element_adapter: ElementAdapter, descriptor_path: Path):
+        self.tree: ElementAdapter = element_adapter
+        self.descriptor_path = descriptor_path
 
-    def get_id(self):
+    def get_id(self):        
         return uuid.UUID(self.tree.get("OBJID"))
 
     def get_type(self):
         hdr = self.tree.find("METS:metsHdr")
         return hdr.get("TYPE")
 
-    def get_alternate_identifier(self):
+    def get_alternate_identifier(self) -> AlternateIdentifier:
         alt_record_id = self.tree.find("METS:metsHdr/METS:altRecordID")
         if alt_record_id:
             return AlternateIdentifier(
                 type=alt_record_id.get("TYPE"), id=alt_record_id.text
             )
+        return AlternateIdentifier(type="", id="")       
 
     def get_preservation_events(self) -> list[PreservationEvent]:
         return [self.get_event(elem) for elem in self.tree.findall(".//PREMIS:event")]
 
-    def get_event(self, elem) -> PreservationEvent:
+    def get_event(self, elem: ElementAdapter) -> PreservationEvent:
         event_identifier = elem.find(".//PREMIS:eventIdentifierValue").text
         event_type = elem.find(".//PREMIS:eventType").text
         event_datetime = elem.find(".//PREMIS:eventDateTime").text
@@ -59,50 +61,58 @@ class DescriptorFileParser:
             for elem in self.tree.findall(".//METS:file")
         ]
 
-    def get_md_file_metadatum(self, elem):
+    def get_md_file_metadatum(self, elem: ElementAdapter):
         id_ = elem.get("ID")
         use = elem.get("USE")
-        locref = elem.find("METS:mdRef").get_optional("LOCREF")
-        mdtype = elem.find("METS:mdRef").get_optional("MDTYPE")
-        mimetype = elem.find("METS:mdRef").get_optional("MIMETYPE")
+        md_red_element = elem.find("METS:mdRef")
+        locref: Optional[str] = None
+        mdtype: Optional[str] = None
+        mimetype: Optional[str] = None 
+        if md_red_element:
+            locref = self._apply_relative_path(self.descriptor_path, md_red_element.get_optional("LOCREF"), )
+            mdtype = md_red_element.get_optional("MDTYPE")
+            mimetype = md_red_element.get_optional("MIMETYPE")
 
         return FileMetadata(
             id=id_,
             use=use,
-            ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
+            ref=FileReference(locref=str(locref), mdtype=str(mdtype), mimetype=str(mimetype)),
         )
 
-    def get_filesec_file_metadatum(self, elem):
+    def get_filesec_file_metadatum(self, elem: ElementAdapter):
         id_ = elem.get("ID")
         use = elem.get("USE")
-        mdid = elem.get_optional("MDID", None)
-        groupid = elem.get_optional("GROUPID", None)
+        mdid = elem.get_optional("MDID")
+        groupid = elem.get_optional("GROUPID")
         mimetype = elem.get('MIMETYPE')
         mdtype = None
-        locref = elem.find("METS:FLocat").get_optional("LOCREF")
+        flocat_element = elem.find("METS:FLocat")
+        locref: Optional[str] = None
+        if flocat_element:
+            locref = self._apply_relative_path(self.descriptor_path, flocat_element.get_optional("LOCREF"))
 
         return FileMetadata(
             id=id_,
             use=use,
             mdid=mdid,
             groupid=groupid,
-            ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
+            ref=FileReference(locref=str(locref), mdtype=str(mdtype), mimetype=str(mimetype)),
         )
 
-    def get_struct_maps(self):
-        struct_maps = []
+    def get_struct_maps(self) -> List[StructMap]:
+        struct_maps: List[StructMap] = []
         for struct_map_elem in self.tree.findall(".//METS:structMap"):
             struct_map_id = struct_map_elem.get("ID")
             struct_map_type = struct_map_elem.get("TYPE")
 
             order_elems = struct_map_elem.findall(".//METS:div[@ORDER]")
 
-            struct_map_items = []
+            struct_map_items: List[StructMapItem] = []
             for order_elem in order_elems:
                 order_number = int(order_elem.get("ORDER"))
                 label = order_elem.get("LABEL")
                 asset_id = order_elem.get("ID")
-                order_elem_type = order_elem.get_optional("TYPE", None)
+                order_elem_type = order_elem.get_optional("TYPE")
                 struct_map_items.append(StructMapItem(
                     order=order_number,
                     label=label,
@@ -123,10 +133,18 @@ class DescriptorFileParser:
     def get_resource(self):
         return PackageResource(
             id=self.get_id(),
-            alternate_identifier=self.get_alternate_identifier(),
+            alternate_identifier= self.get_alternate_identifier(),
             type=self.get_type(),
             events=self.get_preservation_events(),
             metadata_files=self.get_metadata_files(),
             data_files=self.get_data_files(),
             struct_maps=self.get_struct_maps(),
         )
+
+    def _apply_relative_path(self, descriptor_path: Path, path_to_apply: str) -> str:
+        if path_to_apply.startswith("../"):
+            relative_path = (descriptor_path.parent / path_to_apply).resolve()
+            return str(relative_path)
+        return path_to_apply
+    
+

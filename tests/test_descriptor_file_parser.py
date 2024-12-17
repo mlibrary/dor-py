@@ -3,6 +3,7 @@ from unittest import TestCase
 from datetime import datetime, UTC
 import uuid
 
+from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.parsers import *
 from dor.providers.models import *
 
@@ -19,21 +20,32 @@ class DescriptorFileParserTest(TestCase):
             / "descriptor"
             / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml"
         )
+        self.exact_descriptor_path = (
+            self.test_submission_path
+            / "xyzzy-0001-v1"
+            / "data"
+            / "00000000-0000-0000-0000-000000000001"
+            / "descriptor")
+        resource_provider = PackageResourceProvider(self.exact_descriptor_path)
+        self.mets2_resource = None
+
+        if self.descriptor_path in resource_provider.descriptor_files:
+            self.mets2_resource = resource_provider.descriptor_files[self.descriptor_path]
 
         return super().setUp()
 
     def test_parser_can_get_id(self):
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_id(), uuid.UUID("00000000-0000-0000-0000-000000000001"))
 
     def test_parser_can_get_type(self):
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(
             parser.get_type(), "Monograph"
         )
 
     def test_parser_can_get_alternate_identifier(self):
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
 
         expected_identifier = AlternateIdentifier(type="DLXS", id="xyzzy:00000001")
 
@@ -50,12 +62,12 @@ class DescriptorFileParserTest(TestCase):
             )
         ]
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_preservation_events(), expected_events)
 
     def test_parser_can_get_metadata_files(self):
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         expected_file_metadata = [
             FileMetadata(
                 id="_0193972b-e591-7e28-b8cb-1babed52f606",
@@ -89,7 +101,7 @@ class DescriptorFileParserTest(TestCase):
 
     def test_parser_can_get_struct_maps(self):
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         expected_struct_maps = [
             StructMap(
                 id="SM1",
@@ -180,7 +192,7 @@ class DescriptorFileParserTest(TestCase):
             ],
         )
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_resource(), expected_resource)
 
     def test_parser_can_parse_asset(self):
@@ -271,5 +283,6 @@ class DescriptorFileParserTest(TestCase):
             ],
         )
 
-        parser = DescriptorFileParser(descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
+        print(expected_resource)
         self.assertEqual(parser.get_resource(), expected_resource)
