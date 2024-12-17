@@ -1,23 +1,23 @@
 {
     "@schema": "urn:umich.edu:dor:schema:xyzzy",
-    "title": "Job research stage hard.",
-    "author": "Ryan Williams",
-    "author_ja": "\u524d\u7530 \u76f4\u6a39",
-    "description": "On significant ten walk form yeah. Game kid take risk. Painting consumer board decide there set today. Page cultural live feeling whatever national.",
-    "description_ja": "\u767a\u751f\u3059\u308b\u810a\u690e\u4e3b\u4eba\u611f\u8b1d\u3059\u308b\u91ce\u7403\u30ea\u30cb\u30a2\u3002\u57cb\u3081\u8fbc\u3080\u3042\u3063\u305f\u30ce\u30fc\u30c8\u81ea\u4f53\u3002\u30b8\u30e3\u30fc\u30ca\u30eb\u4fdd\u8a3c\u91d1\u6e9d\u8ffd\u653e\u3059\u308b\u3002\u7acb\u6d3e\u306a\u30b9\u30ad\u30fc\u30e0\u30c6\u30f3\u30c8\u5668\u5b98\u96fb\u6c60\u3002\u51fa\u6f14\u8005\u30ab\u30e9\u30e0\u30de\u30ea\u30f3\u898b\u51fa\u3057\u30b9\u30de\u30c3\u30b7\u30e5\u8cde\u8cdb\u3059\u308b\u30ab\u30e9\u30e0\u3002",
-    "publication_date": "2018-05-02",
+    "title": "Discussion also Republican owner hot already itself.",
+    "author": "Kimberly Garza",
+    "author_ja": "\u7530\u4e2d \u771f\u7dbe",
+    "description": "Way become ready think defense. Open middle meet. Every window think painting write American.",
+    "description_ja": "\u6e9d\u30ea\u30cf\u30d3\u30ea\u306f\u3002\u30dc\u30c8\u30eb\u4eca\u65e5\u901a\u884c\u6599\u91d1\u3002\u753b\u9762\u51fa\u6f14\u8005\u63a2\u67fb\u30b7\u30e5\u30ac\u30fc\u30b3\u30fc\u30e9\u30b9\u30d6\u30e9\u30f3\u30c1\u6e9d\u3002\u50ac\u7720\u8853\u5206\u5272\u611f\u8b1d\u3059\u308b\u30d5\u30ec\u30fc\u30e0\u5275\u50b7\u7acb\u6d3e\u306a\u3002\u7d22\u5f15\u301c\u30af\u30eb\u30fc\u8650\u5f85\u30d7\u30e9\u30b9\u30c1\u30c3\u30af\u79fb\u52d5\u81ea\u4f53\u3002",
+    "publication_date": "1989-04-16",
     "places": [
-        "\u30b7\u30a8\u30e9\u30ec\u30aa\u30cd",
-        "Gibilterra",
-        "Isola di Man",
-        "\u30a2\u30f3\u30c6\u30a3\u30b0\u30a2\u30d0\u30fc\u30d6\u30fc\u30c0",
-        "North Macedonia"
+        "Liechtenstein",
+        "Vietnam",
+        "San Bartolomeo",
+        "Bangladesh",
+        "Liberia"
     ],
     "identification": [
-        "Danio Rerio",
-        "Xenopus laevis",
-        "Schizosaccharomyces pombe",
         "Mus musculus",
-        "Saccharomyces cervisiae"
+        "Schizosaccharomyces pombe",
+        "Caenorhabditis elegans",
+        "Drosophila melanogaster",
+        "Xenopus laevis"
     ]
 }
