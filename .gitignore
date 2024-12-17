@@ -17,3 +17,9 @@ requirements.txt
 output/
 tests/test_storage
 tests/test_workspaces
+
+
+features/scratch/storage/*
+!features/scratch/storage/.keep
+features/scratch/workspaces/*
+!features/scratch/workspaces/.keep

@@ -39,7 +39,7 @@ class Workspace:
         return self.package_directory() / "data" / self.root_identifier
     
     def _apply_relative_path(self, path: Path, path_to_apply: Path) -> Path:
-        return (path / path_to_apply).resolve().relative_to(self.object_data_directory())
+        return (path / path_to_apply).resolve().relative_to(self.object_data_directory().resolve())
 
     def get_bundle(self, entries: list[Path]) -> Bundle:
         resolved_entries = []
