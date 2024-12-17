@@ -83,6 +83,7 @@ class OcflRepositoryGateway(RepositoryGateway):
         try:
             subprocess.run(args, check=True, capture_output=True)
         except CalledProcessError as e:
+            print(e.stderr)
             no_staged_changes_message = f"No staged changes found for object {id}"
             if no_staged_changes_message in e.stderr.decode():
                 raise NoStagedChangesError() from e
