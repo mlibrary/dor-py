@@ -1,3 +1,3 @@
-Bag-Software-Agent: bagit.py v1.8.1 <https://github.com/LibraryOfCongress/bagit-python>
-Bagging-Date: 2024-12-05
-Payload-Oxum: 85984.17
+Bag-Software-Agent: bagit.py v1.9b2 <https://github.com/LibraryOfCongress/bagit-python>
+Bagging-Date: 2024-12-17
+Payload-Oxum: 85663.17
