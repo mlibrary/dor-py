@@ -74,7 +74,8 @@ class PackageResource:
     def get_entries(self) -> list[Path]:
         entries = []
         for file_metadata in self.metadata_files:
-            entries.append(Path(file_metadata.ref.locref))
+            if not file_metadata.ref.locref.startswith("https://"):
+                entries.append(Path(file_metadata.ref.locref))
 
         for file_metadata in self.data_files:
             entries.append(Path(file_metadata.ref.locref))
