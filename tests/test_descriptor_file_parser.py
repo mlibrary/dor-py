@@ -66,135 +66,136 @@ class DescriptorFileParserTest(TestCase):
         parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_preservation_events(), expected_events)
 
-    # def test_parser_can_get_metadata_files(self):
+    def test_parser_can_get_metadata_files(self):
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
+        expected_file_metadata = [
+            FileMetadata(
+                id="_0193972b-e591-7e28-b8cb-1babed52f606",
+                use="DESCRIPTIVE/COMMON",
+                ref=FileReference(
+                    locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
+                    mdtype="DOR:SCHEMA",
+                    mimetype="application/json",
+                ),
+            ),
+            FileMetadata(
+                id="_0193972b-e592-7647-8e51-10db514433f7",
+                use="DESCRIPTIVE",
+                ref=FileReference(
+                    locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                    mdtype="DOR:SCHEMA",
+                    mimetype="application/json",
+                ),
+            ),
+            FileMetadata(
+                id="RIGHTS1",
+                use="RIGHTS",
+                ref=FileReference(
+                    locref="https://creativecommons.org/publicdomain/zero/1.0/",
+                    mdtype="OTHER",
+                    mimetype="None"
+                ),
+            ),
+        ]
 
-    #     parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
-    #     expected_file_metadata = [
-    #         FileMetadata(
-    #             id="_0193972b-e591-7e28-b8cb-1babed52f606",
-    #             use="DESCRIPTIVE/COMMON",
-    #             ref=FileReference(
-    #                 locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
-    #                 mdtype="DOR:SCHEMA",
-    #                 mimetype="application/json",
-    #             ),
-    #         ),
-    #         FileMetadata(
-    #             id="_0193972b-e592-7647-8e51-10db514433f7",
-    #             use="DESCRIPTIVE",
-    #             ref=FileReference(
-    #                 locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
-    #                 mdtype="DOR:SCHEMA",
-    #                 mimetype="application/json",
-    #             ),
-    #         ),
-    #         FileMetadata(
-    #             id="RIGHTS1",
-    #             use="RIGHTS",
-    #             ref=FileReference(
-    #                 locref="https://creativecommons.org/publicdomain/zero/1.0/",
-    #                 mdtype="OTHER",
-    #             ),
-    #         ),
-    #     ]
+        self.assertEqual(parser.get_metadata_files(), expected_file_metadata)
 
-    #     self.assertEqual(parser.get_metadata_files(), expected_file_metadata)
+    def test_parser_can_get_struct_maps(self):
 
-    # def test_parser_can_get_struct_maps(self):
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
+        expected_struct_maps = [
+            StructMap(
+                id="SM1",
+                type=StructMapType.PHYSICAL,
+                items=[
+                    StructMapItem(
+                        order=1,
+                        type="page",
+                        label="Page 1",
+                        asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                    ),
+                    StructMapItem(
+                        order=2,
+                        type="page",
+                        label="Page 2",
+                        asset_id="urn:dor:00000000-0000-0000-0000-000000001002",
+                    ),
+                ],
+            )
+        ]
 
-    #     parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
-    #     expected_struct_maps = [
-    #         StructMap(
-    #             id="SM1",
-    #             type=StructMapType.PHYSICAL,
-    #             items=[
-    #                 StructMapItem(
-    #                     order=1,
-    #                     type="page",
-    #                     label="Page 1",
-    #                     asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
-    #                 ),
-    #                 StructMapItem(
-    #                     order=2,
-    #                     type="page",
-    #                     label="Page 2",
-    #                     asset_id="urn:dor:00000000-0000-0000-0000-000000001002",
-    #                 ),
-    #             ],
-    #         )
-    #     ]
+        self.assertEqual(parser.get_struct_maps(), expected_struct_maps)
 
-    #     self.assertEqual(parser.get_struct_maps(), expected_struct_maps)
+    def test_parser_can_parse_monograph(self):
 
-    # def test_parser_can_parse_monograph(self):
+        expected_resource = PackageResource(
+            id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+            type="Monograph",
+            alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
+            events=[
+                PreservationEvent(
+                    identifier="e01727d0-b4d9-47a5-925a-4018f9cac6b8",
+                    type="ingest",
+                    datetime=datetime(1983, 5, 17, 11, 9, 45, tzinfo=UTC),
+                    detail="Girl voice lot another blue nearly.",
+                    agent=Agent(
+                        address="matthew24@example.net", role="collection manager"
+                    ),
+                )
+            ],
+            metadata_files=[
+                FileMetadata(
+                    id="_0193972b-e591-7e28-b8cb-1babed52f606",
+                    use="DESCRIPTIVE/COMMON",
+                    ref=FileReference(
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
+                        mdtype="DOR:SCHEMA",
+                        mimetype="application/json",
+                    ),
+                ),
+                FileMetadata(
+                    id="_0193972b-e592-7647-8e51-10db514433f7",
+                    use="DESCRIPTIVE",
+                    ref=FileReference(
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                        mdtype="DOR:SCHEMA",
+                        mimetype="application/json",
+                    ),
+                ),
+                FileMetadata(
+                    id="RIGHTS1",
+                    use="RIGHTS",
+                    ref=FileReference(
+                        locref="https://creativecommons.org/publicdomain/zero/1.0/",
+                        mdtype="OTHER",
+                        mimetype="None"
+                    ),
+                ),
+            ],
+            struct_maps=[
+                StructMap(
+                    id="SM1",
+                    type=StructMapType.PHYSICAL,
+                    items=[
+                        StructMapItem(
+                            order=1,
+                            type="page",
+                            label="Page 1",
+                            asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                        ),
+                        StructMapItem(
+                            order=2,
+                            type="page",
+                            label="Page 2",
+                            asset_id="urn:dor:00000000-0000-0000-0000-000000001002",
+                        ),
+                    ],
+                )
+            ],
+        )
 
-    #     expected_resource = PackageResource(
-    #         id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
-    #         type="Monograph",
-    #         alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
-    #         events=[
-    #             PreservationEvent(
-    #                 identifier="e01727d0-b4d9-47a5-925a-4018f9cac6b8",
-    #                 type="ingest",
-    #                 datetime=datetime(1983, 5, 17, 11, 9, 45, tzinfo=UTC),
-    #                 detail="Girl voice lot another blue nearly.",
-    #                 agent=Agent(
-    #                     address="matthew24@example.net", role="collection manager"
-    #                 ),
-    #             )
-    #         ],
-    #         metadata_files=[
-    #             FileMetadata(
-    #                 id="_0193972b-e591-7e28-b8cb-1babed52f606",
-    #                 use="DESCRIPTIVE/COMMON",
-    #                 ref=FileReference(
-    #                     locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
-    #                     mdtype="DOR:SCHEMA",
-    #                     mimetype="application/json",
-    #                 ),
-    #             ),
-    #             FileMetadata(
-    #                 id="_0193972b-e592-7647-8e51-10db514433f7",
-    #                 use="DESCRIPTIVE",
-    #                 ref=FileReference(
-    #                     locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
-    #                     mdtype="DOR:SCHEMA",
-    #                     mimetype="application/json",
-    #                 ),
-    #             ),
-    #             FileMetadata(
-    #                 id="RIGHTS1",
-    #                 use="RIGHTS",
-    #                 ref=FileReference(
-    #                     locref="https://creativecommons.org/publicdomain/zero/1.0/",
-    #                     mdtype="OTHER",
-    #                 ),
-    #             ),
-    #         ],
-    #         struct_maps=[
-    #             StructMap(
-    #                 id="SM1",
-    #                 type=StructMapType.PHYSICAL,
-    #                 items=[
-    #                     StructMapItem(
-    #                         order=1,
-    #                         type="page",
-    #                         label="Page 1",
-    #                         asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
-    #                     ),
-    #                     StructMapItem(
-    #                         order=2,
-    #                         type="page",
-    #                         label="Page 2",
-    #                         asset_id="urn:dor:00000000-0000-0000-0000-000000001002",
-    #                     ),
-    #                 ],
-    #             )
-    #         ],
-    #     )
-
-    #     parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
-    #     self.assertEqual(parser.get_resource(), expected_resource)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
+        self.assertEqual(parser.get_resource(), expected_resource)
 
     def test_parser_can_parse_asset(self):
         base_path = Path("/app")
@@ -230,24 +231,27 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.source.jpg.mix.xml",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.source.jpg.mix.xml",
                         mdtype="NISOIMG",
+                        mimetype="None"
                     ),
                 ),
                 FileMetadata(
                     id="_0193972b-e4ae-73eb-848d-5f8893b68253",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.access.jpg.mix.xml",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.access.jpg.mix.xml",
                         mdtype="NISOIMG",
+                        mimetype="None"
                     ),
                 ),
                 FileMetadata(
                     id="_0193972b-e572-7107-b69c-e2f4c660a9aa",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.plaintext.txt.textmd.xml",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.plaintext.txt.textmd.xml",
                         mdtype="TEXTMD",
+                        mimetype="None"
                     ),
                 ),
             ],
@@ -257,8 +261,9 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="../data/00000001.source.jpg",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.source.jpg",
                         mimetype="image/jpeg",
+                        mdtype="None"
                     ),
                 ),
                 FileMetadata(
@@ -267,8 +272,9 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193972b-e4ae-73eb-848d-5f8893b68253",
                     use="ACCESS",
                     ref=FileReference(
-                        locref="../data/00000001.access.jpg",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.access.jpg",
                         mimetype="image/jpeg",
+                        mdtype="None"
                     ),
                 ),
                 FileMetadata(
@@ -277,15 +283,14 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193972b-e572-7107-b69c-e2f4c660a9aa",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="../data/00000001.plaintext.txt",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.plaintext.txt",
                         mimetype="text/plain",
+                        mdtype="None"
                     ),
                 ),
             ],
         )
+       
 
-        parser = DescriptorFileParser(self.mets2_resource, descriptor_path)
-        print(expected_resource)
-        print("next....")
-        print(parser.get_resource())
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_resource(), expected_resource)

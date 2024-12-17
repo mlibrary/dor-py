@@ -143,11 +143,7 @@ class DescriptorFileParser:
 
     def _apply_relative_path(self, descriptor_path: Path, path_to_apply: str) -> str:
         if path_to_apply.startswith("../"):
-            combined_path  =  (Path(descriptor_path).parent / path_to_apply)
-            print ("Desc:", Path(combined_path).resolve())
-            print(descriptor_path.parent)
-            relative_path = (Path(combined_path)).resolve().relative_to(descriptor_path.parent)
-            return str(relative_path)
+            combined_path = (descriptor_path / path_to_apply).resolve().relative_to(Path.cwd())
+            path_to_apply = str(combined_path)
         return path_to_apply
-    
-
+        
