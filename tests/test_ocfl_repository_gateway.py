@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 from unittest import TestCase
 
+from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
-from gateway.deposit_directory import DepositDirectory
 from gateway.exceptions import (
     NoStagedChangesError,
     ObjectDoesNotExistError,
@@ -19,9 +19,18 @@ from gateway.ocfl_repository_gateway import OcflRepositoryGateway, StorageLayout
 class OcflRepositoryGatewayTest(TestCase):
 
     def setUp(self):
-        test_deposit_path = Path("tests/fixtures/test_deposit")
-        self.deposit_dir = DepositDirectory(test_deposit_path)
+        test_deposit_path = Path("tests/fixtures/test_deposit").resolve()
         
+        self.deposit_one_bundle = Bundle(
+            root_path=test_deposit_path / "deposit_one",
+            entries=[Path("A.txt"), Path("B/B.txt"), Path("C/D/D.txt")]
+        )
+
+        self.deposit_one_update_bundle = Bundle(
+            root_path=test_deposit_path / "deposit_one_update",
+            entries=[Path("E.txt"), Path("B/B.txt")]
+        )
+
         self.storage_path = Path("tests/test_storage")
         self.pres_storage = self.storage_path / "test_preservation_storage"
         self.extensions_path = self.pres_storage / "extensions" / "rocfl-staging"
@@ -81,8 +90,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
 
         self.assertTrue(self.extensions_path.exists())
 
@@ -101,16 +109,14 @@ class OcflRepositoryGatewayTest(TestCase):
     def test_gateway_raises_when_staging_changes_for_object_that_does_not_exist(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
-        package = self.deposit_dir.get_package(Path("deposit_one"))
         with self.assertRaises(ObjectDoesNotExistError):
-            gateway.stage_object_files("deposit_one", package)
+            gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
 
     def test_gateway_commits_changes(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
@@ -137,8 +143,7 @@ class OcflRepositoryGatewayTest(TestCase):
         )
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
@@ -177,8 +182,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
@@ -214,8 +218,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
@@ -227,14 +230,12 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
 
-        update_package = self.deposit_dir.get_package(Path("deposit_one_update"))
-        gateway.stage_object_files("deposit_one", update_package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_update_bundle)
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding second version!"
         )
@@ -265,8 +266,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
 
         object_files = gateway.get_object_files("deposit_one", True)
 
@@ -285,8 +285,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
@@ -306,13 +305,11 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
-        package = self.deposit_dir.get_package(Path("deposit_one"))
-        gateway.stage_object_files("deposit_one", package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
             "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
         )
-        update_package = self.deposit_dir.get_package(Path("deposit_one_update"))
-        gateway.stage_object_files("deposit_one", update_package)
+        gateway.stage_object_files("deposit_one", self.deposit_one_update_bundle)
 
         object_files = gateway.get_object_files("deposit_one", True)
 
