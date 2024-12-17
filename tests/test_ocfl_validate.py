@@ -1,5 +1,4 @@
 import hashlib
-import json
 from pathlib import Path
 import subprocess
 import unittest
@@ -55,15 +54,6 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         self.assertEqual(result, "Object urn:example:rocfl:object-1 is valid.\n")
 
     def test_validate_repository_missing_versions_E008(self):
-        # Simulate the removal of version directories v1 and v2
-        v1_path = self.fixture_path / '0=ocfl_object_1.0' / 'v1'
-        v2_path = self.fixture_path / '0=ocfl_object_1.0' / 'v2'
-        
-        # Simulate the deletion of version directories by not calling rmtree (directories don't exist)
-        self.mock_rmtree(v1_path)
-        self.mock_rmtree(v2_path)
-
-        # Simulate a failure message from rocfl validate for missing versions (E008)
         self.mock_run.return_value = MagicMock(
             stdout="Error: E008 OCFL Object content must be stored as a sequence of one or more versions.\n",
             returncode=1
@@ -185,18 +175,6 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         self.assertIn("For content-addressing, OCFL Objects SHOULD use sha512.", result)
         
     def test_validate_object_suppress_warning_W004(self):
-        v1_metadata_path = self.fixture_path / '0=ocfl_object_1.0' / 'v1' / 'inventory.json'
-
-        with open(v1_metadata_path, 'r') as f:
-            metadata_v1 = json.load(f)
-
-        # Simulate modification by removing sha512 and adding a dummy sha1 hash
-        metadata_v1['content'][0]['sha1'] = "dummy_sha1_hash_value_here"
-        del metadata_v1['content'][0]['sha512']
-
-        with open(v1_metadata_path, 'w') as f:
-            json.dump(metadata_v1, f, indent=4)
-
         # Simulate the suppression of warning W004
         self.mock_run.return_value = MagicMock(
             stdout="Valid repository. Warning W004 suppressed: 'For content-addressing, OCFL Objects SHOULD use sha512.'\n",
@@ -364,8 +342,7 @@ class RocflOCFLFixityValidatorIntegrationTest(unittest.TestCase):
         except subprocess.CalledProcessError as e:
             self.fail(f"ROCFL validation failed: {e.stderr}")                   
                 
-    def test_validate_specific_object_no_fixity_check(self):
-        
+    def test_validate_specific_object_no_fixity_check(self):   
         try:
             # Updated the content file 
             #Test validating an object without fixity checks, does not throw fixity check error.
@@ -376,8 +353,7 @@ class RocflOCFLFixityValidatorIntegrationTest(unittest.TestCase):
         except RuntimeError as e:
             self.fail(f"ROCFL validation failed with error: {e}")   
 
-    def test_validate_specific_object_with_fixity_check(self):
-        
+    def test_validate_specific_object_with_fixity_check(self):      
         try:
             # Updated the content file 
             # validating an object with fixity checks, throws fixity error.
@@ -387,3 +363,23 @@ class RocflOCFLFixityValidatorIntegrationTest(unittest.TestCase):
             self.assertIn("fixity check", result_fixity)  
         except RuntimeError as e:
             self.fail(f"ROCFL validation failed with error: {e}")   
+            
+    def test_validate_fixity_repository(self):      
+        try:
+            result_fixity = self.validator.validate_repository()
+
+            remove_space_result = ' '.join(result_fixity.split())
+            self.assertIn("Total objects: 5", remove_space_result)
+            self.assertIn("Invalid objects: 2", remove_space_result)  
+                        
+            self.assertIn("[E023]", result_fixity)
+            self.assertIn("Warning", result_fixity)
+            self.assertIn("[W004]", result_fixity)
+            
+            self.assertIn("Object ark:123/abc is valid", result_fixity)
+            self.assertIn("Object ark:/12345/bcd987 is valid", result_fixity)
+            self.assertIn("Object ark:123/abc1 is valid", result_fixity)
+            self.assertIn("Object http://example.org/minimal_mixed_digests is invalid", result_fixity)
+            self.assertIn("Object info:bad05 is invalid", result_fixity)           
+        except RuntimeError as e:
+            self.fail(f"ROCFL validation failed with error: {e}")          
