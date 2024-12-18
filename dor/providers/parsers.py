@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 import uuid
 
 from utils.element_adapter import ElementAdapter
@@ -94,15 +94,15 @@ class DescriptorFileParser:
             ref=FileReference(locref=str(locref), mdtype=str(mdtype), mimetype=str(mimetype)),
         )
 
-    def get_struct_maps(self) -> List[StructMap]:
-        struct_maps: List[StructMap] = []
+    def get_struct_maps(self) -> list[StructMap]:
+        struct_maps: list[StructMap] = []
         for struct_map_elem in self.tree.findall(".//METS:structMap"):
             struct_map_id = struct_map_elem.get("ID")
             struct_map_type = struct_map_elem.get("TYPE")
 
             order_elems = struct_map_elem.findall(".//METS:div[@ORDER]")
 
-            struct_map_items: List[StructMapItem] = []
+            struct_map_items: list[StructMapItem] = []
             for order_elem in order_elems:
                 order_number = int(order_elem.get("ORDER"))
                 label = order_elem.get("LABEL")
