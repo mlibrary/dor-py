@@ -6,19 +6,17 @@ from dor.adapters.bag_reader import BagReader, DorInfoMissingError, ValidationEr
 
 
 @pytest.fixture
-def valid_bag_path() -> Path:
-    return Path("tests/fixtures/test_bag_valid")
+def test_bags_path() -> Path:
+    return Path("tests/fixtures/test_bags")
 
-@pytest.fixture
-def dor_info_missing_bag_path() -> Path:
-    return Path("tests/fixtures/test_bag_missing_dor_info")
-
-def test_passes_validation(valid_bag_path: Path):
-    reader = BagReader(valid_bag_path)
+def test_passes_validation(test_bags_path: Path):
+    path = test_bags_path / "test_bag_valid"
+    reader = BagReader(path)
     reader.validate()
 
-def test_fails_validation_when_dor_info_missing(dor_info_missing_bag_path: Path):
-    reader = BagReader(dor_info_missing_bag_path)
+def test_fails_validation_when_dor_info_missing(test_bags_path: Path):
+    path = test_bags_path / "test_bag_missing_dor_info"
+    reader = BagReader(path)
     with pytest.raises(ValidationError) as excinfo:
         reader.validate()
     expected_message = (
@@ -27,8 +25,8 @@ def test_fails_validation_when_dor_info_missing(dor_info_missing_bag_path: Path)
     )
     assert expected_message == excinfo.value.message
 
-def test_fails_validation_when_file_has_been_modified():
-    path = Path("tests/fixtures/test_bag_with_modified_file")
+def test_fails_validation_when_file_has_been_modified(test_bags_path: Path):
+    path = test_bags_path / "test_bag_with_modified_file"
     reader = BagReader(path)
     with pytest.raises(ValidationError) as excinfo:
         reader.validate()
@@ -38,20 +36,21 @@ def test_fails_validation_when_file_has_been_modified():
     )
     assert expected_message == excinfo.value.message
 
-def test_fails_validation_when_dor_info_not_in_tagmanifest():
-    path = Path("tests/fixtures/test_bag_with_dor_info_not_in_manifest")
+def test_fails_validation_when_dor_info_not_in_tagmanifest(test_bags_path: Path):
+    path = test_bags_path / "test_bag_with_dor_info_not_in_manifest"
     reader = BagReader(path)
     with pytest.raises(ValidationError) as excinfo:
         reader.validate()
     expected_message = "dor-info.txt must be listed in the tagmanifest file."
     assert expected_message == excinfo.value.message
 
-def test_read_dor_info(valid_bag_path: Path):
-    reader = BagReader(valid_bag_path)
+def test_read_dor_info(test_bags_path: Path):
+    path = test_bags_path / "test_bag_valid"
+    reader = BagReader(path)
     assert reader.dor_info == {"Deposit-Group-Identifier": "d752b492-eb0b-4150-bcf5-b4cb74bd4a7f"}
 
-def test_read_dor_info_when_missing(dor_info_missing_bag_path: Path):
-    reader = BagReader(dor_info_missing_bag_path)
+def test_read_dor_info_when_missing(test_bags_path: Path):
+    path = test_bags_path / "test_bag_missing_dor_info"
+    reader = BagReader(path)
     with pytest.raises(DorInfoMissingError):
         reader.dor_info
-
