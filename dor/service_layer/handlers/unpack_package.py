@@ -6,14 +6,14 @@ from gateway.coordinator import Coordinator
 def unpack_package(
     event: PackageVerified,
     uow: UnitOfWork,
-    bag_reader_class: type,
+    bag_adapter_class: type,
     package_resource_provider_class: type,
     workspace_class: type
 ) -> None:
     workspace = workspace_class(event.workspace_identifier)
-    bag_reader = bag_reader_class(workspace.package_directory())
+    bag_adapter = bag_adapter_class(workspace.package_directory())
 
-    info = bag_reader.dor_info
+    info = bag_adapter.dor_info
     workspace.root_identifier = info["Root-Identifier"]
     resources = package_resource_provider_class(workspace.object_data_directory()).get_resources()
 
