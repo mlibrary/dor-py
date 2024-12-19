@@ -1,11 +1,13 @@
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
 import os
-from pathlib import Path
-from typing import Callable, Type
 import shutil
 import uuid
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Callable, Type
 
+from behave import given, when, then
+
+from dor.adapters.bag_adapter import BagAdapter
 from dor.domain.events import (
     Event,
     PackageReceived,
@@ -14,35 +16,17 @@ from dor.domain.events import (
     PackageVerified,
     PackageUnpacked
 )
-
-from behave import given, when, then
-from dor.adapters.bag_reader import BagReader 
-from dor.providers.translocator import FakeTranslocator, FakeWorkspace, Translocator, Workspace
+from dor.providers.translocator import Translocator, Workspace
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.service_layer.handlers.store_files import store_files
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import UnitOfWork
-from gateway.fake_repository_gateway import FakeRepositoryGateway
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
 from dor.service_layer.handlers.receive_package import receive_package
 from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.handlers.unpack_package import unpack_package
 from dor.providers.models import Agent, FileMetadata, FileReference, PackageResource, PreservationEvent, AlternateIdentifier, StructMap, StructMapItem, StructMapType
 
-
-class FakeBagReader():
-
-    def __init__(self, identifier: str) -> None:
-        self.identifier = identifier
-
-    def is_valid(self) -> bool:
-        return True
-    
-    @property
-    def dor_info(self) -> dict:
-        return {
-            'Root-Identifier': "00000000-0000-0000-0000-000000000001"
-        }
 
 class FakePackageResourceProvider:
 
@@ -198,11 +182,6 @@ class FakePackageResourceProvider:
         ]
 
 
-# - if the workspace is under namespace dor
-#   but gateway is outside of it, issues with
-#   where code is living.
-# - does gateway be moved under dor proper now?
-
 # Test
 
 @given(u'a package containing the scanned pages, OCR, and metadata')
@@ -230,9 +209,9 @@ def step_impl(context) -> None:
 
     handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [lambda event: receive_package(event, context.uow, context.translocator)],
-        PackageReceived: [lambda event: verify_package(event, context.uow, BagReader, Workspace)],
+        PackageReceived: [lambda event: verify_package(event, context.uow, BagAdapter, Workspace)],
         PackageVerified: [lambda event: unpack_package(
-            event, context.uow, BagReader, PackageResourceProvider, Workspace
+            event, context.uow, BagAdapter, PackageResourceProvider, Workspace
         )],
         PackageUnpacked: [lambda event: store_files(event, context.uow, Workspace)],
         PackageStored: [lambda event: stored_callback(event, context.uow)]
