@@ -16,7 +16,22 @@ class ValidationError(Exception):
         self.message = message
 
 
-class BagReader:
+class FakeBagAdapter():
+
+    def __init__(self, identifier: str) -> None:
+        self.identifier = identifier
+
+    def validate(self) -> None:
+        return
+    
+    @property
+    def dor_info(self) -> dict:
+        return {
+            'Root-Identifier': "00000000-0000-0000-0000-000000000001"
+        }
+
+
+class BagAdapter:
     
     dor_info_file_name = "dor-info.txt"
 
