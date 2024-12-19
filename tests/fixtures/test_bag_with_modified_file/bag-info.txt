@@ -1,0 +1,4 @@
+Bag-Software-Agent: bagit.py v1.9b2 <https://github.com/LibraryOfCongress/bagit-python>
+Bagging-Date: 2024-12-03
+Contact-Name: Greg Kostin
+Payload-Oxum: 13.1
