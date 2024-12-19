@@ -3,8 +3,18 @@ from pathlib import Path
 
 import bagit 
 
+
 class DorInfoMissingError(Exception):
     pass
+
+
+class ValidationError(Exception):
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+        self.message = message
+
 
 class BagReader:
     
@@ -13,20 +23,18 @@ class BagReader:
     def __init__(self, path: Path) -> None:
         self.bag = bagit.Bag(str(path))
 
-    def is_valid(self):
-        is_valid = True
-
+    def validate(self) -> None:
         try:
             self.bag.validate()
         except bagit.BagValidationError as e:
-            is_valid = False
-            print(e)
-            
+            raise ValidationError(f"Validation failed with the following message: \"{str(e)}\"")
+
         tag_files = [file for file in self.bag.tagfile_entries()]
         dor_info_in_tagmanifest = self.dor_info_file_name in tag_files
+        if not dor_info_in_tagmanifest:
+            raise ValidationError("dor-info.txt must be listed in the tagmanifest file.")
+        return
 
-        return is_valid and dor_info_in_tagmanifest
-    
     @property
     def dor_info(self) -> dict[str, str]:
         path = self.bag.path
