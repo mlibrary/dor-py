@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 from dor.providers.models import PackageResource
 from dor.providers.parsers import DescriptorFileParser
