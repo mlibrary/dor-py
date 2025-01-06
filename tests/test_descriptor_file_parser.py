@@ -2,7 +2,9 @@ from pathlib import Path
 from unittest import TestCase
 from datetime import datetime, UTC
 import uuid
+import os
 
+from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.parsers import *
 from dor.providers.models import *
 
@@ -19,21 +21,32 @@ class DescriptorFileParserTest(TestCase):
             / "descriptor"
             / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml"
         )
+        
+        self.exact_descriptor_path = (
+            self.test_submission_path
+            / "xyzzy-0001-v1"
+            / "data"
+            / "00000000-0000-0000-0000-000000000001"
+            / "descriptor")
+        self.resource_provider = PackageResourceProvider(self.exact_descriptor_path)
+        self.mets2_resource = None
+        if self.descriptor_path in self.resource_provider.descriptor_files:
+            self.mets2_resource = self.resource_provider.descriptor_files[self.descriptor_path]
 
         return super().setUp()
 
     def test_parser_can_get_id(self):
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_id(), uuid.UUID("00000000-0000-0000-0000-000000000001"))
 
     def test_parser_can_get_type(self):
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(
             parser.get_type(), "Monograph"
         )
 
     def test_parser_can_get_alternate_identifier(self):
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
 
         expected_identifier = AlternateIdentifier(type="DLXS", id="xyzzy:00000001")
 
@@ -50,18 +63,18 @@ class DescriptorFileParserTest(TestCase):
             )
         ]
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_preservation_events(), expected_events)
 
     def test_parser_can_get_metadata_files(self):
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         expected_file_metadata = [
             FileMetadata(
                 id="_0193972b-e591-7e28-b8cb-1babed52f606",
                 use="DESCRIPTIVE/COMMON",
                 ref=FileReference(
-                    locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
+                    locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
                     mdtype="DOR:SCHEMA",
                     mimetype="application/json",
                 ),
@@ -70,7 +83,7 @@ class DescriptorFileParserTest(TestCase):
                 id="_0193972b-e592-7647-8e51-10db514433f7",
                 use="DESCRIPTIVE",
                 ref=FileReference(
-                    locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                    locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
                     mdtype="DOR:SCHEMA",
                     mimetype="application/json",
                 ),
@@ -89,7 +102,7 @@ class DescriptorFileParserTest(TestCase):
 
     def test_parser_can_get_struct_maps(self):
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         expected_struct_maps = [
             StructMap(
                 id="SM1",
@@ -135,7 +148,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193972b-e591-7e28-b8cb-1babed52f606",
                     use="DESCRIPTIVE/COMMON",
                     ref=FileReference(
-                        locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
                         mdtype="DOR:SCHEMA",
                         mimetype="application/json",
                     ),
@@ -144,7 +157,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193972b-e592-7647-8e51-10db514433f7",
                     use="DESCRIPTIVE",
                     ref=FileReference(
-                        locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
                         mdtype="DOR:SCHEMA",
                         mimetype="application/json",
                     ),
@@ -180,16 +193,17 @@ class DescriptorFileParserTest(TestCase):
             ],
         )
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_resource(), expected_resource)
 
     def test_parser_can_parse_asset(self):
-        descriptor_path = ( 
+        descriptor_path = os.path.normpath( 
             self.descriptor_path 
             / ".." 
             / "00000000-0000-0000-0000-000000001001.asset.mets2.xml" 
-        ).resolve()
+        )
 
+        self.mets2_resource = self.resource_provider.descriptor_files[Path(descriptor_path)]
         expected_resource = PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
             type="Asset",
@@ -217,7 +231,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.source.jpg.mix.xml",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.source.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
@@ -225,7 +239,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193972b-e4ae-73eb-848d-5f8893b68253",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.access.jpg.mix.xml",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.access.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
@@ -233,7 +247,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193972b-e572-7107-b69c-e2f4c660a9aa",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.plaintext.txt.textmd.xml",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.plaintext.txt.textmd.xml",
                         mdtype="TEXTMD",
                     ),
                 ),
@@ -244,7 +258,7 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193972b-e4a4-7985-abe2-f3f1259b78ec",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="../data/00000001.source.jpg",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.source.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -254,7 +268,7 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193972b-e4ae-73eb-848d-5f8893b68253",
                     use="ACCESS",
                     ref=FileReference(
-                        locref="../data/00000001.access.jpg",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.access.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -264,12 +278,12 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193972b-e572-7107-b69c-e2f4c660a9aa",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="../data/00000001.plaintext.txt",
+                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.plaintext.txt",
                         mimetype="text/plain",
                     ),
                 ),
             ],
         )
 
-        parser = DescriptorFileParser(descriptor_path)
+        parser = DescriptorFileParser(self.mets2_resource, self.exact_descriptor_path)
         self.assertEqual(parser.get_resource(), expected_resource)
