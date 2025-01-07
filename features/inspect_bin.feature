@@ -12,11 +12,11 @@ Feature: Inspect Bin
   I want to review the contents of its bin.
 
   Scenario:
-    Given a preserved monograph with an alternate identifier
-    When the Collection Manager looks up the bin by the identifier
+    Given a preserved monograph with an alternate identifier of "xyzzy:00000001"
+    When the Collection Manager looks up the bin by "xyzzy:00000001"
     Then the Collection Manager sees the summary of the bin
 
   Scenario:
-    Given a preserved monograph with an alternate identifier
+    Given a preserved monograph with an alternate identifier of "xyzzy:00000001"
     When the Collection Manager lists the contents of the bin
     Then the Collection Manager sees the file sets.
