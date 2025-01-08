@@ -4,6 +4,7 @@ from typing import Optional
 import uuid
 from pathlib import Path
 
+from dor.providers.utils import Utils
 from utils.element_adapter import ElementAdapter
 from .models import Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource, PreservationEvent, StructMap, StructMapItem, StructMapType
 
@@ -71,7 +72,7 @@ class DescriptorFileParser:
         mdtype: Optional[str] = None
         mimetype: Optional[str] = None 
         if md_red_element:
-            locref = self._apply_relative_path(self.descriptor_path, md_red_element.get_optional("LOCREF"))
+            locref = Utils._apply_relative_path(self.descriptor_path, md_red_element.get_optional("LOCREF"))
             mdtype = md_red_element.get_optional("MDTYPE")
             mimetype = md_red_element.get_optional("MIMETYPE", None)
 
@@ -92,7 +93,7 @@ class DescriptorFileParser:
         locref: Optional[str] = None
         
         if flocat_element:
-            locref = self._apply_relative_path(self.descriptor_path, flocat_element.get_optional("LOCREF"))
+            locref = Utils._apply_relative_path(self.descriptor_path, flocat_element.get_optional("LOCREF"))
 
         return FileMetadata(
             id=id_,
@@ -143,10 +144,3 @@ class DescriptorFileParser:
             data_files=self.get_data_files(),
             struct_maps=self.get_struct_maps(),
         )
-        
-    def _apply_relative_path(self, descriptor_path: Path, path_to_apply: str) -> str:
-        resolved_combined_path = path_to_apply
-        if path_to_apply.startswith("../"):
-            combined_path = os.path.join(descriptor_path, path_to_apply) 
-            resolved_combined_path = str(os.path.normpath(combined_path))
-        return resolved_combined_path    

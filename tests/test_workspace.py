@@ -32,5 +32,5 @@ def test_provides_bundle() -> None:
     ]
     result = workspace.get_bundle(entries)
     assert result.root_path == Path("/tmp/UID-00001/data/00000000-0000-0000-0000-000000000001") 
-    assert result.entries == [Path("metadata/file.xml"), Path("data/file.jpg")]
+    assert result.entries == ["/tmp/UID-00001/data/00000000-0000-0000-0000-000000000001/metadata/file.xml", "/tmp/UID-00001/data/00000000-0000-0000-0000-000000000001/data/file.jpg"]
     
