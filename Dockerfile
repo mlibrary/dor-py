@@ -29,7 +29,8 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   pkg-config \
   vim-tiny \
   curl \
-  unzip
+  unzip \
+  libpq-dev
 
 # Set the working directory to /app
 WORKDIR /app
