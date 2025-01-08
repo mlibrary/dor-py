@@ -29,7 +29,14 @@ def engine() -> sqlalchemy.Engine:
 def db_session(engine: sqlalchemy.Engine) -> sqlalchemy.orm.Session:
     mapper_registry.metadata.drop_all(engine)
     mapper_registry.metadata.create_all(engine)
-    return sqlalchemy.orm.Session(engine)
+    
+    connection = engine.connect()
+    session = sqlalchemy.orm.Session(bind=connection)
+
+    yield session
+
+    session.close()
+    connection.close()
 
 
 @pytest.fixture
