@@ -64,13 +64,13 @@ def test_catalog_adds_bin(db_session, sample_bin) -> None:
         catalog.add(sample_bin)
         db_session.commit()
 
-    rows = list(
-        db_session.execute(sqlalchemy.text("""
-            select *
-            from catalog_bin
-            where identifier = :identifier
-        """), { "identifier": "00000000-0000-0000-0000-000000000001" })
-    )
+        rows = list(
+            db_session.execute(sqlalchemy.text("""
+                select *
+                from catalog_bin
+                where identifier = :identifier
+            """), { "identifier": "00000000-0000-0000-0000-000000000001" })
+        )
     assert len(rows) == 1
     assert str(rows[0].identifier) == "00000000-0000-0000-0000-000000000001"
 
