@@ -1,23 +1,24 @@
-from dataclasses import dataclass, field
+# from dataclasses import dataclass, field
+from dataclasses import field
+# from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
+
 import uuid
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
-@dataclass
-class AlternateIdentifier:
+class AlternateIdentifier(BaseModel):
     type: str
     id: str
 
 
-@dataclass
-class Agent:
+class Agent(BaseModel):
     address: str
     role: str
 
 
-@dataclass
-class PreservationEvent:
+class PreservationEvent(BaseModel):
     identifier: str
     type: str
     datetime: datetime
@@ -25,15 +26,13 @@ class PreservationEvent:
     agent: Agent
 
 
-@dataclass
-class FileReference:
+class FileReference(BaseModel):
     locref: str
     mdtype: str = None
     mimetype: str = None
 
 
-@dataclass
-class FileMetadata:
+class FileMetadata(BaseModel):
     id: str
     use: str
     mdid: str = None
@@ -46,23 +45,20 @@ class StructMapType(Enum):
     LOGICAL = "LOGICAL"
 
 
-@dataclass
-class StructMapItem:
+class StructMapItem(BaseModel):
     order: int
     label: str
     asset_id: str
     type: str = None
 
 
-@dataclass
-class StructMap:
+class StructMap(BaseModel):
     id: str
     type: StructMapType
     items: list[StructMapItem]
 
 
-@dataclass
-class PackageResource:
+class PackageResource(BaseModel):
     id: uuid.UUID
     type: str
     alternate_identifier: AlternateIdentifier

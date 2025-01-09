@@ -5,16 +5,24 @@ from sqlalchemy import (
     Column, String, select, Table, Uuid
 )
 from sqlalchemy.orm import registry
-
+import pydantic.json
+import json
 
 mapper_registry = registry()
+
+def _custom_json_serializer(*args, **kwargs) -> str:
+    """
+    Encodes json in the same way that pydantic does.
+    """
+    return json.dumps(*args, default=pydantic.json.pydantic_encoder, **kwargs)
 
 bin_table = Table(
     "catalog_bin",
     mapper_registry.metadata,
     Column("identifier", Uuid, primary_key=True),
     Column("alternate_identifiers", ARRAY(String)),
-    Column("common_metadata", JSONB)
+    Column("common_metadata", JSONB),
+    Column("package_resources", JSONB)
 )
 
 
