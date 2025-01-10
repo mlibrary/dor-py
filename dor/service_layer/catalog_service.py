@@ -1,20 +1,19 @@
-from dataclasses import dataclass
 import uuid
 from typing import Any
+from pydantic_core import to_jsonable_python
 
 from dor.domain.models import Bin
 
-@dataclass
-class BinSummary:
-    identifier: uuid.UUID
-    alternate_identifiers: list[str]
-    common_metadata: dict[str, Any]
-
 
 def summarize(bin: Bin):
-    return BinSummary(
+    return to_jsonable_python(dict(
         identifier=bin.identifier,
         alternate_identifiers=bin.alternate_identifiers,
         common_metadata=bin.common_metadata
-    )
+    ))
 
+def get_file_sets(bin: Bin):
+    return [
+        to_jsonable_python(resource) 
+        for resource in bin.package_resources if resource.type == 'Asset'
+    ]
