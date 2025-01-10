@@ -8,6 +8,8 @@ from sqlalchemy.orm import registry
 from pydantic_core import to_jsonable_python
 import json
 
+from dor.providers.models import PackageResource
+
 mapper_registry = registry()
 
 def _custom_json_serializer(*args, **kwargs) -> str:
@@ -58,7 +60,10 @@ class SqlalchemyCatalog:
         statement = select(Bin).where(Bin.identifier == identifier)
         results = self.session.execute(statement).one()
         if len(results) == 1:
-            return results[0]
+            result = results[0]
+            for i, resource in enumerate(result.package_resources):
+                result.package_resources[i] = PackageResource(**resource)
+            return result
         return None
 
 
