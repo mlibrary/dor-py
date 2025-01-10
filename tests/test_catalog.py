@@ -1,13 +1,12 @@
 import os
 import uuid
 import json
-import copy
 
 import pytest
 import sqlalchemy
 from datetime import datetime, UTC
 
-from dor.adapters.catalog import mapper_registry, SqlalchemyCatalog, start_mappers, _custom_json_serializer
+from dor.adapters.catalog import Base, SqlalchemyCatalog, _custom_json_serializer
 from dor.domain.models import Bin
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
@@ -15,7 +14,7 @@ from dor.providers.models import (
 )
 
 def setup_module() -> None:
-    start_mappers()
+    pass
 
 
 @pytest.fixture
@@ -33,8 +32,9 @@ def engine() -> sqlalchemy.Engine:
 
 @pytest.fixture
 def db_session(engine: sqlalchemy.Engine) -> sqlalchemy.orm.Session:
-    mapper_registry.metadata.drop_all(engine)
-    mapper_registry.metadata.create_all(engine)
+    Base.metadata.drop_all(engine)
+    # mapper_registry.metadata.create_all(engine)
+    Base.metadata.create_all(engine)
     
     connection = engine.connect()
     session = sqlalchemy.orm.Session(bind=connection)
@@ -212,7 +212,7 @@ def sample_bin() -> Bin:
 def test_catalog_adds_bin(db_session, sample_bin) -> None:
     catalog = SqlalchemyCatalog(db_session)
     with db_session.begin():
-        catalog.add(copy.deepcopy(sample_bin))
+        catalog.add(sample_bin)
         db_session.commit()
 
     rows = list(
@@ -229,7 +229,7 @@ def test_catalog_adds_bin(db_session, sample_bin) -> None:
 def test_catalog_gets_bin(db_session, sample_bin) -> None:
     catalog = SqlalchemyCatalog(db_session)
     with db_session.begin():
-        catalog.add(copy.deepcopy(sample_bin))
+        catalog.add(sample_bin)
         db_session.commit()
 
     bin = catalog.get("00000000-0000-0000-0000-000000000001")
