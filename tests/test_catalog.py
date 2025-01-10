@@ -234,3 +234,22 @@ def test_catalog_gets_bin(db_session, sample_bin) -> None:
 
     bin = catalog.get("00000000-0000-0000-0000-000000000001")
     assert bin == sample_bin
+
+def test_catalog_gets_by_alternate_identifier(db_session, sample_bin) -> None:
+    catalog = SqlalchemyCatalog(db_session)
+    with db_session.begin():
+        catalog.add(sample_bin)
+        db_session.commit()
+
+    bin = catalog.get_by_alternate_identifier("xyzzy:00000001")
+    assert bin == sample_bin
+
+def test_catalog_returns_none_when_no_alternate_identifier_matches(db_session, sample_bin) -> None:
+    catalog = SqlalchemyCatalog(db_session)
+    with db_session.begin():
+        catalog.add(sample_bin)
+        db_session.commit()
+
+    bin = catalog.get_by_alternate_identifier("xyzzy:00000001.404")
+    assert bin is None
+
