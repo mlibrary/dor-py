@@ -1,6 +1,7 @@
 import os
 import uuid
 import json
+import copy
 
 import pytest
 import sqlalchemy
@@ -211,7 +212,7 @@ def sample_bin() -> Bin:
 def test_catalog_adds_bin(db_session, sample_bin) -> None:
     catalog = SqlalchemyCatalog(db_session)
     with db_session.begin():
-        catalog.add(sample_bin)
+        catalog.add(copy.deepcopy(sample_bin))
         db_session.commit()
 
     rows = list(
@@ -228,7 +229,7 @@ def test_catalog_adds_bin(db_session, sample_bin) -> None:
 def test_catalog_gets_bin(db_session, sample_bin) -> None:
     catalog = SqlalchemyCatalog(db_session)
     with db_session.begin():
-        catalog.add(sample_bin)
+        catalog.add(copy.deepcopy(sample_bin))
         db_session.commit()
 
     bin = catalog.get("00000000-0000-0000-0000-000000000001")
