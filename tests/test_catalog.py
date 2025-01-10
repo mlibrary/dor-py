@@ -252,4 +252,3 @@ def test_catalog_returns_none_when_no_alternate_identifier_matches(db_session, s
 
     bin = catalog.get_by_alternate_identifier("xyzzy:00000001.404")
     assert bin is None
-
