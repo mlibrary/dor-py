@@ -13,6 +13,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.ext.mutable import MutableList
+import sqlalchemy.exc
 
 from pydantic_core import to_jsonable_python
 import json
@@ -81,9 +82,15 @@ class SqlalchemyCatalog:
 
     def get(self, identifier) -> models.Bin | None:
         statement = select(Bin).where(Bin.identifier == identifier)
-        results = self.session.execute(statement).one()
-        if len(results) == 1:
-            result = results[0]
+        return self._fetch_one(statement)
+
+    def get_by_alternate_identifier(self, identifier: str) -> Bin | None:
+        statement = select(Bin).filter(Bin.alternate_identifiers.contains([identifier]))
+        return self._fetch_one(statement)
+
+    def _fetch_one(self, statement):
+        try:
+            result = self.session.scalars(statement).one()
             bin = models.Bin(
                 identifier=result.identifier,
                 alternate_identifiers=result.alternate_identifiers,
@@ -91,4 +98,5 @@ class SqlalchemyCatalog:
                 package_resources=result.package_resources
             )
             return bin
-        return None
+        except sqlalchemy.exc.NoResultFound:
+            return None
