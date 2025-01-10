@@ -18,5 +18,5 @@ Feature: Inspect Bin
 
   Scenario:
     Given a preserved monograph with an alternate identifier of "xyzzy:00000001"
-    When the Collection Manager lists the contents of the bin
+    When the Collection Manager lists the contents of the bin for "xyzzy:00000001"
     Then the Collection Manager sees the file sets.
