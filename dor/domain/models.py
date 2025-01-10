@@ -1,5 +1,5 @@
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from gateway.coordinator import Coordinator
@@ -10,6 +10,7 @@ from dor.providers.models import PackageResource
 class VersionInfo():
     coordinator: Coordinator
     message: str
+
 
 @dataclass
 class Bin:
