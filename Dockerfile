@@ -78,6 +78,8 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
 # Switch to the non-root user "user"
 USER app
 
+EXPOSE 8000
+
 # We don't want poetry on in production, so we copy the needed files form the build stage
 FROM base AS production
 # Switch to the non-root user "user"
@@ -88,5 +90,7 @@ COPY --chown=${UID}:${GID} . /app
 COPY --chown=${UID}:${GID} --from=build "/app/requirements.txt" /app/requirements.txt
 
 RUN pip install -r /app/requirements.txt
+
+EXPOSE 8000
 
 USER app
