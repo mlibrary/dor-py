@@ -1,6 +1,6 @@
-import os
 import uuid
 
+from dor.config import config
 from dor.service_layer import catalog_service
 import sqlalchemy
 from fastapi import APIRouter, Depends, status
@@ -11,14 +11,7 @@ from dor.adapters.catalog import SqlalchemyCatalog
 
 catalog_router = APIRouter(prefix="/catalog")
 
-url = sqlalchemy.engine.URL.create(
-    drivername="postgresql+psycopg",
-    username=os.environ["POSTGRES_USER"],
-    password=os.environ["POSTGRES_PASSWORD"],
-    host=os.environ["POSTGRES_HOST"],
-    database="dor_test"
-)
-ENGINE = sqlalchemy.create_engine(url)
+ENGINE = sqlalchemy.create_engine(config.get_database_engine_url())
 
 
 def get_db_session():

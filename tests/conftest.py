@@ -1,46 +1,13 @@
-import os
 import uuid
 from datetime import datetime, UTC
-from typing import Generator
 
 import pytest
-import sqlalchemy
 
-from dor.adapters.catalog import Base, _custom_json_serializer
 from dor.domain.models import Bin
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
-
-
-@pytest.fixture
-def engine() -> sqlalchemy.Engine:
-    engine_url = sqlalchemy.engine.URL.create(
-        drivername="postgresql+psycopg",
-        username=os.environ["POSTGRES_USER"],
-        password=os.environ["POSTGRES_PASSWORD"],
-        host=os.environ["POSTGRES_HOST"],
-        database="dor_test"
-    )
-    engine = sqlalchemy.create_engine(
-        engine_url, echo=True, json_serializer=_custom_json_serializer
-    )
-    return engine
-
-
-@pytest.fixture
-def db_session(engine: sqlalchemy.Engine) -> Generator[sqlalchemy.orm.Session, None, None]:
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-    
-    connection = engine.connect()
-    session = sqlalchemy.orm.Session(bind=connection)
-
-    yield session
-
-    session.close()
-    connection.close()
 
 
 @pytest.fixture
