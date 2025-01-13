@@ -3,6 +3,7 @@ import os
 import sqlalchemy
 from pydantic.dataclasses import dataclass
 
+
 @dataclass
 class DatabaseConfig:
     host: str
