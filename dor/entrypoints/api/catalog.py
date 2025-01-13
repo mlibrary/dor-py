@@ -43,7 +43,7 @@ def get_bin_summary(identifier: str, session = Depends(get_db_session)) -> JSONR
 
 
 @catalog_router.get("/bins/{identifier}/filesets")
-def get_bin_summary(identifier: str, session = Depends(get_db_session)) -> JSONResponse:
+def get_bin_filesets(identifier: str, session = Depends(get_db_session)) -> JSONResponse:
     try:
         uuid_identifier = uuid.UUID(identifier)
     except ValueError:
