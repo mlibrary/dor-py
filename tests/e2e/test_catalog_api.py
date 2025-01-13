@@ -32,7 +32,7 @@ def db_session() -> Generator[sqlalchemy.orm.Session, None, None]:
 
 
 @pytest.fixture
-def test_client(db_session):
+def test_client(db_session) -> Generator[TestClient, None, None]:
     def get_db_session_override():
         return db_session
 
@@ -43,8 +43,8 @@ def test_client(db_session):
 
 
 @pytest.mark.usefixtures("sample_bin")
-def test_catalog_api_returns_201_and_summary(
-    sample_bin: Bin, db_session, test_client: TestClient
+def test_catalog_api_returns_200_and_summary(
+    sample_bin: Bin, db_session, test_client
 ) -> None:
     catalog = SqlalchemyCatalog(db_session)
     with db_session.begin():
@@ -63,7 +63,7 @@ def test_catalog_api_returns_201_and_summary(
 
 
 @pytest.mark.usefixtures("sample_bin")
-def test_catalog_api_returns_201_and_file_sets(
+def test_catalog_api_returns_200_and_file_sets(
     sample_bin: Bin, db_session, test_client
 ) -> None:
     catalog = SqlalchemyCatalog(db_session)
