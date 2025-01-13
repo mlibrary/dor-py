@@ -10,10 +10,6 @@ from dor.domain.models import Bin
 from dor.entrypoints.api.main import app
 
 
-def get_api_url() -> str:
-    return os.environ["URL"] + "/api/v1"
-
-
 def get_test_client() -> TestClient:
     return TestClient(app)
 
@@ -28,7 +24,7 @@ def test_catalog_api_returns_201_and_summary(
         db_session.commit()
 
     test_client = get_test_client()
-    response = test_client.get(get_api_url() + f"/catalog/bins/{sample_bin.identifier}/")
+    response = test_client.get(f"/api/v1/catalog/bins/{sample_bin.identifier}/")
 
     assert response.status_code == 200
     expected_summary = to_jsonable_python(dict(
@@ -37,6 +33,7 @@ def test_catalog_api_returns_201_and_summary(
         common_metadata=sample_bin.common_metadata,
     ))
     assert response.json() == expected_summary
+
 
 @pytest.mark.usefixtures("db_session", "sample_bin")
 def test_catalog_api_returns_201_and_file_sets(
@@ -48,7 +45,7 @@ def test_catalog_api_returns_201_and_file_sets(
         db_session.commit()
 
     test_client = get_test_client()
-    response = test_client.get(get_api_url() + f"/catalog/bins/{sample_bin.identifier}/filesets")
+    response = test_client.get(f"/api/v1/catalog/bins/{sample_bin.identifier}/filesets")
 
     assert response.status_code == 200
     expected_summary = to_jsonable_python([sample_bin.package_resources[1]])
