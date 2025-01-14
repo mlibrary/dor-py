@@ -1,37 +1,22 @@
 from pathlib import Path
-from typing import Dict
 
-from dor.providers.models import PackageResource
-from utils.element_adapter import ElementAdapter
+from dor.providers.FileProvider import FileProvider
 
 from .parsers import DescriptorFileParser
 
-
 class PackageResourceProvider:
 
-    namespaces: dict[str, str] = {
-        "METS": "http://www.loc.gov/METS/v2",
-        "PREMIS": "http://www.loc.gov/premis/v3",
-    }
-    
-    def __init__(self, descriptor_path: Path):
-        self.descriptor_path = descriptor_path
-        self._descriptor_files: Dict[Path, ElementAdapter] = {}
-        self._read_descriptor_files()
-
-    def _read_descriptor_files(self):
-        for file in self.descriptor_path.iterdir():
-            descriptor_text = file.read_text()
-            self._descriptor_files[file] = ElementAdapter.from_string(descriptor_text, self.namespaces)
+    def __init__(self, data_path: Path, file_provider: FileProvider):
+        self.data_path = data_path
+        self.file_provider = file_provider
 
     @property
     def descriptor_files(self):
-        return self._descriptor_files 
+        descriptor_path = self.data_path / "descriptor"
+        return [file for file in descriptor_path.iterdir()]
 
-    def get_resources(self) -> list[PackageResource]:
-        package_resources: list[PackageResource] = []
-        for file_element in self._descriptor_files.values():
-            resource = DescriptorFileParser(file_element, self.descriptor_path).get_resource()
-            package_resources.append(resource)
-
-        return package_resources
+    def get_resources(self):
+        return [
+            DescriptorFileParser(file, self.file_provider).get_resource() for file in self.descriptor_files
+        ]
+        

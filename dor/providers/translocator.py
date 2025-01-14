@@ -3,7 +3,6 @@ from pathlib import Path
 import shutil
 from typing import Callable
 
-from dor.providers.utils import Utils
 from gateway.bundle import Bundle
 
 
@@ -43,8 +42,7 @@ class Workspace:
         resolved_entries = []
         for entry in entries:
             resolved_entries.append(
-                Utils._apply_relative_path(self.object_data_directory() / "descriptor", str(entry))
-            )
+                str(entry))
 
         return Bundle(
             root_path=self.object_data_directory(),

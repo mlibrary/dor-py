@@ -1,10 +1,9 @@
 from datetime import datetime
-import os
-from typing import Optional
+from typing import Union
 import uuid
 from pathlib import Path
 
-from dor.providers.utils import Utils
+from dor.providers.FileProvider import FileProvider
 from utils.element_adapter import ElementAdapter
 from .models import Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource, PreservationEvent, StructMap, StructMapItem, StructMapType
 
@@ -15,10 +14,12 @@ class DescriptorFileParser:
         "PREMIS": "http://www.loc.gov/premis/v3",
     }
 
-    def __init__(self, element_adapter: ElementAdapter, descriptor_path: Path):
-        self.tree: ElementAdapter = element_adapter
-        self.descriptor_path = descriptor_path
-
+    def __init__(self, descriptor_file_path: Path, file_provider: FileProvider):
+        text = descriptor_file_path.read_text()
+        self.tree: ElementAdapter = ElementAdapter.from_string(text, self.namespaces)
+        self.file_provider = file_provider
+        self.data_path = file_provider.get_data_dir(descriptor_file_path)
+        
     def get_id(self):
         return uuid.UUID(self.tree.get("OBJID"))
 
@@ -26,13 +27,13 @@ class DescriptorFileParser:
         hdr = self.tree.find("METS:metsHdr")
         return hdr.get("TYPE")
 
-    def get_alternate_identifier(self)-> AlternateIdentifier:
+    def get_alternate_identifier(self)-> Union[AlternateIdentifier, None]:
         alt_record_id = self.tree.find("METS:metsHdr/METS:altRecordID")
+        
         if alt_record_id:
             return AlternateIdentifier(
                 type=alt_record_id.get("TYPE"), id=alt_record_id.text
-            )
-        return AlternateIdentifier(type="", id="")    
+            ) 
 
     def get_preservation_events(self) -> list[PreservationEvent]:
         return [self.get_event(elem) for elem in self.tree.findall(".//PREMIS:event")]
@@ -68,11 +69,9 @@ class DescriptorFileParser:
         id_ = elem.get("ID")
         use = elem.get("USE")
         md_red_element = elem.find("METS:mdRef")
-        locref: Optional[str] = None
-        mdtype: Optional[str] = None
-        mimetype: Optional[str] = None 
+        
         if md_red_element:
-            locref = Utils._apply_relative_path(self.descriptor_path, md_red_element.get_optional("LOCREF"))
+            locref = self.file_provider.apply_relative_path(self.data_path, md_red_element.get_optional("LOCREF"))
             mdtype = md_red_element.get_optional("MDTYPE")
             mimetype = md_red_element.get_optional("MIMETYPE", None)
 
@@ -90,10 +89,9 @@ class DescriptorFileParser:
         mimetype = elem.get_optional('MIMETYPE', None)
         mdtype = None
         flocat_element = elem.find("METS:FLocat")
-        locref: Optional[str] = None
         
         if flocat_element:
-            locref = Utils._apply_relative_path(self.descriptor_path, flocat_element.get_optional("LOCREF"))
+            locref = self.file_provider.apply_relative_path(self.data_path, flocat_element.get_optional("LOCREF"))
 
         return FileMetadata(
             id=id_,
