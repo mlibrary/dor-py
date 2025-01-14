@@ -1,13 +1,50 @@
 import uuid
 from datetime import datetime, UTC
+from typing import Generator
 
 import pytest
+import sqlalchemy
+from fastapi.testclient import TestClient
 
+from dor.adapters.catalog import _custom_json_serializer, Base
+from dor.config import config
 from dor.domain.models import Bin
+from dor.entrypoints.api.dependencies import get_db_session
+from dor.entrypoints.api.main import app
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
+
+
+@pytest.fixture
+def db_session() -> Generator[sqlalchemy.orm.Session, None, None]:
+    engine_url = config.get_test_database_engine_url()
+    engine = sqlalchemy.create_engine(
+        engine_url, echo=True, json_serializer=_custom_json_serializer
+    )
+
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+    connection = engine.connect()
+    session = sqlalchemy.orm.Session(bind=connection)
+
+    yield session
+
+    session.close()
+    connection.close()
+
+
+@pytest.fixture
+def test_client(db_session) -> Generator[TestClient, None, None]:
+    def get_db_session_override():
+        return db_session
+
+    app.dependency_overrides[get_db_session] = get_db_session_override
+    test_client = TestClient(app)
+    yield test_client
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
