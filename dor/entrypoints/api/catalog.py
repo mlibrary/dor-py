@@ -1,22 +1,14 @@
 import uuid
 
-from dor.config import config
-from dor.service_layer import catalog_service
-import sqlalchemy
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from dor.adapters.catalog import SqlalchemyCatalog
+from dor.entrypoints.api.dependencies import get_db_session
+from dor.service_layer import catalog_service
 
 
 catalog_router = APIRouter(prefix="/catalog")
-
-ENGINE = sqlalchemy.create_engine(config.get_database_engine_url())
-
-
-def get_db_session():
-    with sqlalchemy.orm.Session(ENGINE) as session:
-        yield session
 
 
 @catalog_router.get("/bins/{identifier}/")

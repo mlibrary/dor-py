@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from dor.adapters.catalog import Base, SqlalchemyCatalog, _custom_json_serializer
 from dor.config import config
 from dor.domain.models import Bin
-from dor.entrypoints.api.catalog import get_db_session
+from dor.entrypoints.api.dependencies import get_db_session
 from dor.entrypoints.api.main import app
 
 
