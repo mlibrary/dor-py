@@ -29,14 +29,21 @@ class Config:
             )
         )
 
-    def get_database_engine_url(self, test=False):
+    def _make_database_engine_url(self, database: str):
         url = sqlalchemy.engine.URL.create(
             drivername="postgresql+psycopg",
             username=self.database.user,
             password=self.database.password,
             host=self.database.host,
-            database=self.database.test_database if test else self.database.database
+            database=database
         )
         return url
+
+    def get_database_engine_url(self):
+        return self._make_database_engine_url(self.database.database)
+
+    def get_test_database_engine_url(self):
+        return self._make_database_engine_url(self.database.test_database)
+
 
 config = Config.from_env()
