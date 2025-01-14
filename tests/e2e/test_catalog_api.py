@@ -1,48 +1,11 @@
-from typing import Generator
-
 import pytest
-import sqlalchemy
 from pydantic_core import to_jsonable_python
-from fastapi.testclient import TestClient
 
-from dor.adapters.catalog import Base, SqlalchemyCatalog, _custom_json_serializer
-from dor.config import config
+from dor.adapters.catalog import SqlalchemyCatalog
 from dor.domain.models import Bin
-from dor.entrypoints.api.dependencies import get_db_session
-from dor.entrypoints.api.main import app
 
 
-@pytest.fixture
-def db_session() -> Generator[sqlalchemy.orm.Session, None, None]:
-    engine_url = config.get_test_database_engine_url()
-    engine = sqlalchemy.create_engine(
-        engine_url, echo=True, json_serializer=_custom_json_serializer
-    )
-
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-
-    connection = engine.connect()
-    session = sqlalchemy.orm.Session(bind=connection)
-
-    yield session
-
-    session.close()
-    connection.close()
-
-
-@pytest.fixture
-def test_client(db_session) -> Generator[TestClient, None, None]:
-    def get_db_session_override():
-        return db_session
-
-    app.dependency_overrides[get_db_session] = get_db_session_override
-    test_client = TestClient(app)
-    yield test_client
-    app.dependency_overrides.clear()
-
-
-@pytest.mark.usefixtures("sample_bin")
+@pytest.mark.usefixtures("sample_bin", "db_session", "test_client")
 def test_catalog_api_returns_200_and_summary(
     sample_bin: Bin, db_session, test_client
 ) -> None:
@@ -62,7 +25,7 @@ def test_catalog_api_returns_200_and_summary(
     assert response.json() == expected_summary
 
 
-@pytest.mark.usefixtures("sample_bin")
+@pytest.mark.usefixtures("sample_bin", "db_session", "test_client")
 def test_catalog_api_returns_200_and_file_sets(
     sample_bin: Bin, db_session, test_client
 ) -> None:
