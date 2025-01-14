@@ -14,7 +14,7 @@ from dor.entrypoints.api.main import app
 
 @pytest.fixture
 def db_session() -> Generator[sqlalchemy.orm.Session, None, None]:
-    engine_url = config.get_database_engine_url(test=True)
+    engine_url = config.get_test_database_engine_url()
     engine = sqlalchemy.create_engine(
         engine_url, echo=True, json_serializer=_custom_json_serializer
     )
