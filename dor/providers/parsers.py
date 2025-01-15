@@ -3,7 +3,7 @@ from typing import Union
 import uuid
 from pathlib import Path
 
-from dor.providers.FileProvider import FileProvider
+from dor.providers.file_provider import FileProvider
 from utils.element_adapter import ElementAdapter
 from .models import Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource, PreservationEvent, StructMap, StructMapItem, StructMapType
 
@@ -29,9 +29,7 @@ class DescriptorFileParser:
 
     def get_alternate_identifier(self)-> Union[AlternateIdentifier, None]:
         alt_record_id = self.tree.find("METS:metsHdr/METS:altRecordID")
-        
-        if alt_record_id:
-            return AlternateIdentifier(
+        return AlternateIdentifier(
                 type=alt_record_id.get("TYPE"), id=alt_record_id.text
             ) 
 
@@ -68,12 +66,11 @@ class DescriptorFileParser:
     def get_md_file_metadatum(self, elem: ElementAdapter):
         id_ = elem.get("ID")
         use = elem.get("USE")
-        md_red_element = elem.find("METS:mdRef")
+        md_ref_element = elem.find("METS:mdRef")
         
-        if md_red_element:
-            locref = self.file_provider.apply_relative_path(self.data_path, md_red_element.get_optional("LOCREF"))
-            mdtype = md_red_element.get_optional("MDTYPE")
-            mimetype = md_red_element.get_optional("MIMETYPE", None)
+        locref = self.file_provider.apply_relative_path(self.data_path, md_ref_element.get_optional("LOCREF"))
+        mdtype = md_ref_element.get_optional("MDTYPE")
+        mimetype = md_ref_element.get_optional("MIMETYPE")
 
         return FileMetadata(
             id=id_,
@@ -84,14 +81,14 @@ class DescriptorFileParser:
     def get_filesec_file_metadatum(self, elem: ElementAdapter):
         id_ = elem.get("ID")
         use = elem.get("USE")
-        mdid = elem.get_optional("MDID", None)
-        groupid = elem.get_optional("GROUPID", None)
-        mimetype = elem.get_optional('MIMETYPE', None)
+        mdid = elem.get_optional("MDID")
+        groupid = elem.get_optional("GROUPID")
+        mimetype = elem.get_optional('MIMETYPE')
         mdtype = None
         flocat_element = elem.find("METS:FLocat")
         
-        if flocat_element:
-            locref = self.file_provider.apply_relative_path(self.data_path, flocat_element.get_optional("LOCREF"))
+
+        locref = self.file_provider.apply_relative_path(self.data_path, flocat_element.get_optional("LOCREF"))
 
         return FileMetadata(
             id=id_,
@@ -114,7 +111,7 @@ class DescriptorFileParser:
                 order_number = int(order_elem.get("ORDER"))
                 label = order_elem.get("LABEL")
                 asset_id = order_elem.get("ID")
-                order_elem_type = order_elem.get_optional("TYPE", None)
+                order_elem_type = order_elem.get_optional("TYPE")
                 struct_map_items.append(StructMapItem(
                     order=order_number,
                     label=label,

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from dor.providers.FileProvider import FileProvider
+from dor.providers.file_provider import FileProvider
 
 from .parsers import DescriptorFileParser
 
