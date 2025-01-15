@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest import TestCase
 
 from dor.providers.package_resource_provider import PackageResourceProvider
-from dor.service_layer.handlers.FilesystemHandler import FilesystemHandler
+from dor.providers.file_system_file_provider import FilesystemHandler
 
 class PackageResourceProviderTest(TestCase):
     def setUp(self):

@@ -1,3 +1,4 @@
+from typing import Any
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element
 
@@ -37,7 +38,7 @@ class ElementAdapter:
             )
         return result
 
-    def get_optional(self, key: str, default=None):
+    def get_optional(self, key: str, default: str | None=None):
         return self.elem.get(key, default)
 
     def findall(self, path: str) -> "list[ElementAdapter]":

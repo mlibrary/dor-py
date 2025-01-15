@@ -1,11 +1,20 @@
 from datetime import datetime
-from typing import Union
 import uuid
 from pathlib import Path
 
 from dor.providers.file_provider import FileProvider
 from utils.element_adapter import ElementAdapter
-from .models import Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource, PreservationEvent, StructMap, StructMapItem, StructMapType
+from .models import (
+    Agent,
+    AlternateIdentifier,
+    FileMetadata,
+    FileReference,
+    PackageResource,
+    PreservationEvent,
+    StructMap,
+    StructMapItem,
+    StructMapType,
+)
 
 
 class DescriptorFileParser:
@@ -19,7 +28,7 @@ class DescriptorFileParser:
         self.tree: ElementAdapter = ElementAdapter.from_string(text, self.namespaces)
         self.file_provider = file_provider
         self.data_path = file_provider.get_data_dir(descriptor_file_path)
-        
+
     def get_id(self):
         return uuid.UUID(self.tree.get("OBJID"))
 
@@ -27,11 +36,11 @@ class DescriptorFileParser:
         hdr = self.tree.find("METS:metsHdr")
         return hdr.get("TYPE")
 
-    def get_alternate_identifier(self)-> Union[AlternateIdentifier, None]:
+    def get_alternate_identifier(self) -> AlternateIdentifier:
         alt_record_id = self.tree.find("METS:metsHdr/METS:altRecordID")
         return AlternateIdentifier(
-                type=alt_record_id.get("TYPE"), id=alt_record_id.text
-            ) 
+            type=alt_record_id.get("TYPE"), id=alt_record_id.text
+        )
 
     def get_preservation_events(self) -> list[PreservationEvent]:
         return [self.get_event(elem) for elem in self.tree.findall(".//PREMIS:event")]
@@ -67,8 +76,9 @@ class DescriptorFileParser:
         id_ = elem.get("ID")
         use = elem.get("USE")
         md_ref_element = elem.find("METS:mdRef")
-        
-        locref = self.file_provider.apply_relative_path(self.data_path, md_ref_element.get_optional("LOCREF"))
+        locref = md_ref_element.get("LOCREF")
+        if not locref.startswith("https"):
+            locref = self.file_provider.apply_relative_path(self.data_path, locref)
         mdtype = md_ref_element.get_optional("MDTYPE")
         mimetype = md_ref_element.get_optional("MIMETYPE")
 
@@ -83,12 +93,12 @@ class DescriptorFileParser:
         use = elem.get("USE")
         mdid = elem.get_optional("MDID")
         groupid = elem.get_optional("GROUPID")
-        mimetype = elem.get_optional('MIMETYPE')
+        mimetype = elem.get_optional("MIMETYPE")
         mdtype = None
         flocat_element = elem.find("METS:FLocat")
-        
-
-        locref = self.file_provider.apply_relative_path(self.data_path, flocat_element.get_optional("LOCREF"))
+        locref = flocat_element.get("LOCREF")
+        if not locref.startswith("https"):
+            locref = self.file_provider.apply_relative_path(self.data_path, locref)
 
         return FileMetadata(
             id=id_,
@@ -98,7 +108,7 @@ class DescriptorFileParser:
             ref=FileReference(locref=str(locref), mdtype=mdtype, mimetype=mimetype),
         )
 
-    def get_struct_maps(self)-> list[StructMap]:
+    def get_struct_maps(self) -> list[StructMap]:
         struct_maps: list[StructMap] = []
         for struct_map_elem in self.tree.findall(".//METS:structMap"):
             struct_map_id = struct_map_elem.get("ID")
@@ -112,12 +122,14 @@ class DescriptorFileParser:
                 label = order_elem.get("LABEL")
                 asset_id = order_elem.get("ID")
                 order_elem_type = order_elem.get_optional("TYPE")
-                struct_map_items.append(StructMapItem(
-                    order=order_number,
-                    label=label,
-                    asset_id=asset_id,
-                    type=order_elem_type,
-                ))
+                struct_map_items.append(
+                    StructMapItem(
+                        order=order_number,
+                        label=label,
+                        asset_id=asset_id,
+                        type=order_elem_type,
+                    )
+                )
 
             struct_maps.append(
                 StructMap(

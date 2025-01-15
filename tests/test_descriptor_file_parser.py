@@ -4,7 +4,7 @@ from datetime import datetime, UTC
 import uuid
 import pytest
 
-from dor.service_layer.handlers.FilesystemHandler import FilesystemHandler
+from dor.providers.file_system_file_provider import FilesystemHandler
 from dor.providers.parsers import DescriptorFileParser
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,

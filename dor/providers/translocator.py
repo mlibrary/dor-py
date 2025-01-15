@@ -39,14 +39,9 @@ class Workspace:
         return self.package_directory() / "data" / self.root_identifier
 
     def get_bundle(self, entries: list[Path]) -> Bundle:
-        resolved_entries = []
-        for entry in entries:
-            resolved_entries.append(
-                str(entry))
-
         return Bundle(
             root_path=self.object_data_directory(),
-            entries=resolved_entries
+            entries=entries
         )
 
 
