@@ -32,23 +32,16 @@ This will:
 ```sh
  docker compose run --rm app poetry run YOUR_COMMAND
 ```
+## Features and Tests
 
-## Behave
+Behavior driven development (BDD) with [pytest-bdd](https://github.com/pytest-dev/pytest-bdd)
 
-Behavior driven development with [behave](https://behave.readthedocs.io/en/stable/) 
+Test driven development (TDD) with [pytest](https://docs.pytest.org/)
 
-[Advanced Guide to Behavior-Driven Development with Behave in Python](https://behave.readthedocs.io/en/stable/install.html)
-
-```sh
-docker compose run --rm app poetry run behave
-```
-
-## Tests
-
-To run the tests located in the [`tests`](/tests/) directory, use the following command:
+To run the features located in the ['features'](/features/) directory and tests located in the [`tests`](/tests/) directory, use the following command:
 
 ```sh
-docker compose run app poetry run pytest
+docker compose run --rm app poetry run pytest
 ```
 
 ## Generating Samples
