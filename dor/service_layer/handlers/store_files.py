@@ -1,8 +1,8 @@
 from dor.domain.events import PackageStored, PackageUnpacked
-from dor.service_layer.unit_of_work import UnitOfWork
+from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
 
-def store_files(event: PackageUnpacked, uow: UnitOfWork, workspace_class: type) -> None:
+def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class: type) -> None:
     workspace = workspace_class(event.workspace_identifier, event.identifier)
 
     entries = []
@@ -24,6 +24,7 @@ def store_files(event: PackageUnpacked, uow: UnitOfWork, workspace_class: type) 
 
     stored_event = PackageStored(
         identifier=event.identifier,
-        tracking_identifier=event.tracking_identifier
+        tracking_identifier=event.tracking_identifier,
+        resources=event.resources
     )
     uow.add_event(stored_event)

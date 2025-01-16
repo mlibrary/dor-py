@@ -49,3 +49,10 @@ class PackageUnpacked(Event):
 class PackageStored(Event):
     identifier: str
     tracking_identifier: str
+    resources: list[Any]
+
+@dataclass
+class BinCataloged(Event):
+    identifier: str
+    tracking_identifier: str
+
