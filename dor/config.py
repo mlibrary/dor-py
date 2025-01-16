@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import sqlalchemy
 from pydantic.dataclasses import dataclass
@@ -15,11 +16,17 @@ class DatabaseConfig:
 
 @dataclass
 class Config:
+    storage_path: Path
+    inbox_path: Path
+    workspaces_path: Path
     database: DatabaseConfig
 
     @classmethod
     def from_env(cls):
         return cls(
+            storage_path=Path(os.getenv("STORAGE_PATH", "")),
+            inbox_path=Path(os.getenv("INBOX_PATH", "")),
+            workspaces_path=Path(os.getenv("WORKSPACES_PATH", "")),
             database=DatabaseConfig(
                 user=os.getenv("POSTGRES_USER", "postgres"),
                 password=os.getenv("POSTGRES_PASSWORD", "postgres"),

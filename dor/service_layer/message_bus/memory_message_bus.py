@@ -1,6 +1,6 @@
 from typing import Callable, Type
 from dor.domain.events import Event
-from dor.service_layer.unit_of_work import UnitOfWork
+from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
 
 class MemoryMessageBus:
@@ -13,14 +13,14 @@ class MemoryMessageBus:
             self.event_handlers[event_type] = []
         self.event_handlers[event_type].append(handler)    
 
-    def handle(self, message, uow: UnitOfWork):
+    def handle(self, message, uow: AbstractUnitOfWork):
         # Handles a message, which must be an event.
         if isinstance(message, Event):
             self._handle_event(message, uow)
         else:
             raise ValueError(f"Message of type {type(message)} is not a valid Event")
 
-    def _handle_event(self, event: Event, uow: UnitOfWork):
+    def _handle_event(self, event: Event, uow: AbstractUnitOfWork):
         # Handles an event by executing its registered handlers.
         if event.__class__ not in self.event_handlers:
             raise NoHandlerForEventError(f"No handler found for event type {type(event)}")
