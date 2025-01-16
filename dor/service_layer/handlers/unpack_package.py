@@ -1,11 +1,11 @@
 from dor.domain.events import PackageUnpacked, PackageVerified
 from dor.domain.models import VersionInfo
-from dor.service_layer.unit_of_work import UnitOfWork
+from dor.service_layer.unit_of_work import AbstractUnitOfWork
 from gateway.coordinator import Coordinator
 
 def unpack_package(
     event: PackageVerified,
-    uow: UnitOfWork,
+    uow: AbstractUnitOfWork,
     bag_adapter_class: type,
     package_resource_provider_class: type,
     workspace_class: type

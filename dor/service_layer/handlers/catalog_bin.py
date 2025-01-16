@@ -1,29 +1,28 @@
+import json
+from pathlib import Path
+
 from dor.domain.events import PackageStored, BinCataloged
-from dor.service_layer.unit_of_work import AbstractUnitOfWork
 from dor.domain.models import Bin
+from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
 def catalog_bin(event: PackageStored, uow: AbstractUnitOfWork) -> None:
     root_resource = [resource for resource in event.resources if resource.type == 'Monograph'][0]
-
-    # Need to ask gatway for path to file
-    # Gatway has get object file then search for logical path then get the literal path
-    # Then we can add the literal path to the resource
-    # root_resource.path = gatway.get_path(root_resource.identifier)
-    # Going to have to parse the file name from the path and deserialize 
-
-    # I want common metadata
-    # We should already have it
-    # Goes back to the root resource problem
-    # We can refactor next MVP, still working with a baby sample.
-    # There is a lot of work to do here
-
-    # Roger is really good at this stuff
-
+    common_metadata_file = [
+        metadata_file for metadata_file in root_resource.metadata_files if "common" in metadata_file.ref.locref
+    ][0]
+    # Path is still relative, but won't be once after Jaya's change
+    common_metadata_file_path = Path(common_metadata_file.ref.locref.replace("../", ""))
+    object_files = uow.gateway.get_object_files(event.identifier)
+    matching_object_file = [
+        object_file for object_file in object_files if common_metadata_file_path == object_file.logical_path
+    ][0]
+    literal_common_metadata_path = matching_object_file.literal_path
+    common_metadata = json.loads(literal_common_metadata_path.read_text())
 
     bin = Bin(
         identifier=event.identifier,
         alternate_identifiers=[root_resource.alternate_identifier.id],
-        common_metadata={},
+        common_metadata=common_metadata,
         package_resources=event.resources
     )
     with uow:
