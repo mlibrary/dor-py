@@ -17,6 +17,7 @@ class Md:
     loctype: str = "URL"
     mdtype: str = None
     checksum: str = None
+    mimetype: str = None
 
 
 @dataclass
@@ -52,6 +53,8 @@ class Identifier:
     uuid: uuid6.UUID = None
 
     def __post_init__(self):
+        if self.uuid:
+            self.start = self.uuid.int
         if self.start >= 0:
             self.uuid = uuid6.UUID(int=self.start)
         else:

@@ -60,6 +60,7 @@ def generate(
     start: int = typer.Option(default=1, help="seed number for the root identifier"),
     versions: int = typer.Option(default=1, help="number of versions to generate"),
     output_pathname: str = pathlib.Path(__file__).resolve().parent.parent.parent.joinpath("output"),
+    seed: int = typer.Option(default=-1, help="Faker seed value"),
 ):
 
     """
@@ -76,6 +77,7 @@ def generate(
         # images=images,
         # texts=texts,
         output_pathname=output_pathname,
+        seed=seed,
     )
 
     if deposit_group is None:

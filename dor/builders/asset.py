@@ -39,6 +39,7 @@ def build_image(use, seq, version):
 
 def build_plaintext(use, seq, version):
     fake = Faker(["it_IT", "en_US", "ja_JP"])
+    
     buffer = [f"Page v{version}.{seq}"]
     buffer.append(fake["en_US"].paragraph(nb_sentences=5))
     buffer.append(fake["it_IT"].paragraph(nb_sentences=5))
@@ -54,8 +55,9 @@ def build_asset(item_identifier, seq, object_pathname, version):
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
     asset_template = template_env.get_template("mets_asset.xml")
+    premis_event_template = template_env.get_template("premis_event.xml")
 
-    md_group = MdGrp(use="TECHNICAL")
+    mdsec_items = []
     file_group = FileGrp(use="CONTENTS")
 
     metadata = {}
@@ -77,7 +79,7 @@ def build_asset(item_identifier, seq, object_pathname, version):
     image.save(image_pathname)
     metadata_pathname.open("w").write(mix_template.render(**metadata))
 
-    md_group.items.append(
+    mdsec_items.append(
         Md(
             use="TECHNICAL",
             mdtype="NISOIMG",
@@ -93,7 +95,7 @@ def build_asset(item_identifier, seq, object_pathname, version):
     file = File(
         id=generate_md5(image_filename),
         use=str(FileUses.source.value),
-        mdid=md_group.items[-1].id,
+        mdid=mdsec_items[-1].id,
         locref=f"../data/{image_filename}",
         mimetype="image/jpeg",
         checksum=calculate_checksum(image_pathname),
@@ -113,7 +115,7 @@ def build_asset(item_identifier, seq, object_pathname, version):
         mix_template.render(**metadata)
     )
 
-    md_group.items.append(
+    mdsec_items.append(
         Md(
             use="TECHNICAL",
             mdtype="NISOIMG",
@@ -126,15 +128,27 @@ def build_asset(item_identifier, seq, object_pathname, version):
         id=generate_md5(image_filename),
         group_id=source_file_identifier,
         use=str(FileUses.access.value),
-        mdid=md_group.items[-1].id,
+        mdid=mdsec_items[-1].id,
         locref=f"../data/{image_filename}",
         mimetype="image/jpeg",
         checksum=calculate_checksum(image_pathname)
     )
     file_group.files.append(file)
 
-    premis_events = []
-    premis_events.append(build_event(event_type='generate access derivative', linking_agent_type='image processing'))
+    premis_event = build_event(event_type='generate access derivative', linking_agent_type='image processing')
+    mdsec_items.append(
+        Md(
+            use="PROVENANCE",
+            mdtype="PREMIS",
+            locref=f"../metadata/{image_filename}.premis.event.xml",
+            mimetype="text/xml"
+        )
+    )
+    object_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
+        premis_event_template.render(
+            event=premis_event
+        )
+    )
 
     plaintext = build_plaintext(use=FileUses.source, seq=seq, version=version)
     text_filename = f"{padded_seq}.plaintext.txt"
@@ -146,7 +160,7 @@ def build_asset(item_identifier, seq, object_pathname, version):
         textmd_template.render(**metadata)
     )
 
-    md_group.items.append(
+    mdsec_items.append(
         Md(
             use="TECHNICAL",
             mdtype="TEXTMD",
@@ -159,23 +173,36 @@ def build_asset(item_identifier, seq, object_pathname, version):
         id=generate_md5(text_filename),
         group_id=source_file_identifier,
         use=str(FileUses.source.value),
-        mdid=md_group.items[-1].id,
+        mdid=mdsec_items[-1].id,
         locref=f"../data/{text_filename}",
         mimetype="text/plain",
         checksum=calculate_checksum(text_pathname),
     )
     file_group.files.append(file)
-    premis_events.append(build_event(event_type='extract text', linking_agent_type='ocr processing'))
+
+    premis_event = build_event(event_type='extract text', linking_agent_type='ocr processing')
+    mdsec_items.append(
+        Md(
+            use="PROVENANCE",
+            mdtype="PREMIS",
+            locref=f"../metadata/{image_filename}.premis.event.xml",
+            mimetype="text/xml"
+        )
+    )
+    object_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
+        premis_event_template.render(
+            event=premis_event
+        )
+    )
 
     object_pathname.joinpath("descriptor", local_identifier + ".asset.mets2.xml").open("w").write(
         asset_template.render(
             object_identifier=identifier,
             alternate_identifier=f"{item_identifier.alternate_identifier}:{padded_seq}",
             file_group=file_group, 
-            md_group=md_group,
+            mdsec_items=mdsec_items,
             seq=seq,
             action=S.action.value,
-            events=premis_events,
             create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         )
     )

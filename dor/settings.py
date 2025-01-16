@@ -23,6 +23,7 @@ class Settings:
     texts: bool = True
     total: int = 1
     output_pathname: str = None
+    seed: int = -1
 
     def update(self, **kw):
         for key, value in kw.items():

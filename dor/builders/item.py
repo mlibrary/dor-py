@@ -22,6 +22,8 @@ def build_item(package_pathname, item_identifier, version=1):
         d_pathname.mkdir()
 
     item_template = template_env.get_template("mets_item.xml")
+    premis_event_template = template_env.get_template("premis_event.xml")
+    premis_object_template = template_env.get_template("premis_object.xml")
 
     asset_identifiers = []
     num_scans = random.randint(1, 10) if S.num_scans < 0 else S.num_scans
@@ -49,8 +51,29 @@ def build_item(package_pathname, item_identifier, version=1):
         )
         return object_identifier
 
+    if S.seed > -1: Faker.seed(S.seed)
     fake = Faker(locale=["it_IT", "en_US", "ja_JP"])
     fake["en_US"].add_provider(ModelOrganism)
+
+    mdsec_items = []
+
+    collections_pathname = item_pathname.joinpath(
+        "metadata", item_identifier + ".collections.xml"
+    )
+    # other possible formats: 
+    # <link rel="dcam:memberOf" href="urn:dlxs:xyzzy" />
+    collections_pathname.open("w").write(
+        f'''<dcam:memberOf xmlns:dcam="http://purl.org/dc/dcam/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:resource="urn:dlxs:{S.collid}" />'''
+    )
+    mdsec_items.append(
+        Md(
+            use="COLLECTIONS",
+            mdtype="DC",
+            mimetype="text/xml",
+            locref=f"../metadata/{item_identifier}.collections.xml"
+        )
+    )
+
     metadata = {}
     metadata["@schema"] = f"urn:umich.edu:dor:schema:{S.collid}"
     metadata["title"] = fake["en_US"].sentence()
@@ -79,22 +102,53 @@ def build_item(package_pathname, item_identifier, version=1):
     )
     common_pathname.open("w").write(json.dumps(metadata, indent=4))
 
-    desc_group = MdGrp(use="DESCRIPTIVE")
-    desc_group.items.append(
+    mdsec_items.append(
         Md(
             use="DESCRIPTIVE/COMMON",
             mdtype="DOR:SCHEMA",
             locref=f"../metadata/{item_identifier}.common.json",
             checksum=calculate_checksum(common_pathname),
+            mimetype="application/json",
         )
     )
 
-    desc_group.items.append(
+    mdsec_items.append(
         Md(
             use="DESCRIPTIVE",
             mdtype="DOR:SCHEMA",
             locref=f"../metadata/{item_identifier}.metadata.json",
             checksum=calculate_checksum(metadata_pathname),
+            mimetype="application/json",
+        )
+    )
+
+    item_pathname.joinpath("metadata", item_identifier + ".premis.object.xml").open("w").write(
+        premis_object_template.render(
+            alternate_identifier=alternate_identifier,
+            scans_count=len(asset_identifiers)
+        )
+    )
+    mdsec_items.append(
+        Md(
+            use="PROVENANCE",
+            mdtype="PREMIS",
+            locref=f"../metadata/{item_identifier}.premis.object.xml",
+            mimetype="text/xml"
+        )
+    )
+
+    premis_event =build_event(event_type="ingest", linking_agent_type="collection manager")
+    item_pathname.joinpath("metadata", item_identifier + ".premis.event.xml").open("w").write(
+        premis_event_template.render(
+            event=premis_event
+        )
+    )
+    mdsec_items.append(
+        Md(
+            use="PROVENANCE",
+            mdtype="PREMIS",
+            locref=f"../metadata/{item_identifier}.premis.event.xml",
+            mimetype="text/xml"
         )
     )
 
@@ -105,14 +159,12 @@ def build_item(package_pathname, item_identifier, version=1):
             asset_identifiers=asset_identifiers,
             object_identifier=item_identifier,
             alternate_identifier=alternate_identifier,
-            desc_group=desc_group,
+            mdsec_items=mdsec_items,
             action=S.action.value,
             create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             version=version,
             collid=S.collid,
-            event=build_event(
-                event_type="ingest", linking_agent_type="collection manager"
-            ),
+            premis_event=premis_event
         )
     )
 
