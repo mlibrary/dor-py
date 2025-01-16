@@ -22,6 +22,7 @@ from dor.domain.events import (
     PackageSubmitted,
     PackageVerified,
     PackageUnpacked,
+    BinCataloged,
 )
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.translocator import Translocator, Workspace
@@ -33,6 +34,7 @@ from gateway.ocfl_repository_gateway import OcflRepositoryGateway
 from dor.service_layer.handlers.receive_package import receive_package
 from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.handlers.unpack_package import unpack_package
+from dor.service_layer.handlers.catalog_bin import catalog_bin
 
 # Test
 
@@ -63,8 +65,8 @@ def step_impl(context) -> None:
 
     context.translocator = Translocator(inbox_path = inbox, workspaces_path = workspaces, minter = lambda: value)
 
-    def stored_callback(event: PackageStored, uow: UnitOfWork) -> None:
-        context.stored_event = event
+    def cataloged_callback(event: BinCataloged, uow: UnitOfWork) -> None:
+        context.cataloged_event = event
 
     handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [
@@ -84,7 +86,8 @@ def step_impl(context) -> None:
             )
         ],
         PackageUnpacked: [lambda event: store_files(event, context.uow, Workspace)],
-        PackageStored: [lambda event: stored_callback(event, context.uow)],
+        PackageStored: [lambda event: catalog_bin(event, context.uow)],
+        BinCataloged: [lambda event: cataloged_callback(event, context.uow)]
     }
     context.message_bus = MemoryMessageBus(handlers)
 
@@ -99,6 +102,12 @@ def step_impl(context):
 
 @then("the Collection Manager can see that it was preserved.")
 def step_impl(context):
-    event = context.stored_event
+    event = context.cataloged_event
     assert event.identifier == "00000000-0000-0000-0000-000000000001"
     assert context.uow.gateway.has_object(event.identifier)
+
+    with context.uow:
+        bin = context.uow.catalog.get(event.identifier)
+        assert bin is not None
+
+
