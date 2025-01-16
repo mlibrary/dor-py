@@ -1,4 +1,5 @@
 # from dor.domain.models import Bin
+from abc import ABC, abstractmethod
 from dor.domain import models
 
 import uuid
@@ -46,7 +47,23 @@ class Bin(Base):
     #     DateTime(timezone=True), server_default=func.now()
     # )
 
-class MemoryCatalog:
+
+class Catalog(ABC):
+
+    @abstractmethod
+    def add(self, bin: models.Bin):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get(self, identifier: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_by_alternate_identifier(self, identifier: str):
+        raise NotImplementedError
+
+
+class MemoryCatalog(Catalog):
     def __init__(self):
         self.bins = []
         
@@ -66,7 +83,7 @@ class MemoryCatalog:
         return None
 
 
-class SqlalchemyCatalog:
+class SqlalchemyCatalog(Catalog):
     
     def __init__(self, session):
         self.session = session
