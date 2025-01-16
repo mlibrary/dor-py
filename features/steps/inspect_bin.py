@@ -1,15 +1,21 @@
 from behave import given, then, when
 import uuid
 from datetime import datetime, UTC
-from pydantic_core import to_jsonable_python
 
-from dor.adapters.catalog import MemoryCatalog
+from pydantic_core import to_jsonable_python
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from dor.adapters.catalog import Base, _custom_json_serializer
+from dor.config import config
 from dor.domain.models import Bin
 from dor.service_layer import catalog_service
+from dor.service_layer.unit_of_work import SqlalchemyUnitOfWork, UnitOfWork
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
+from gateway.fake_repository_gateway import FakeRepositoryGateway
 
 
 @given(u'a preserved monograph with an alternate identifier of "{alt_id}"')
@@ -174,13 +180,24 @@ def step_impl(context, alt_id):
             )
         ]
     )
-    context.catalog = MemoryCatalog()
-    context.catalog.add(bin)
+
+    engine = create_engine(
+        config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
+    )
+    session_factory = sessionmaker(bind=engine)
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+    context.uow = SqlalchemyUnitOfWork(gateway=FakeRepositoryGateway(), session_factory=session_factory)
+    with context.uow:
+        context.uow.catalog.add(bin)
+        context.uow.commit()
 
 @when(u'the Collection Manager looks up the bin by "{alt_id}"')
 def step_impl(context, alt_id):
     context.alt_id = alt_id
-    context.bin = context.catalog.get_by_alternate_identifier(alt_id)
+    with context.uow:
+        context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
     context.summary = catalog_service.summarize(context.bin)
 
 @then(u'the Collection Manager sees the summary of the bin')
@@ -203,7 +220,8 @@ def step_impl(context):
 
 @when(u'the Collection Manager lists the contents of the bin for "{alt_id}"')
 def step_impl(context, alt_id):
-    context.bin = context.catalog.get_by_alternate_identifier(alt_id)
+    with context.uow:
+        context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
     context.file_sets = catalog_service.get_file_sets(context.bin)
 
 @then(u'the Collection Manager sees the file sets.')
