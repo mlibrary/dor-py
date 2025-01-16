@@ -42,16 +42,20 @@ from dor.service_layer.handlers.catalog_bin import catalog_bin
 @given("a package containing the scanned pages, OCR, and metadata")
 def step_impl(context) -> None:
     inbox = Path("./features/fixtures/inbox")
-    storage = Path("./features/scratch/storage")
-    workspaces = Path("./features/scratch/workspaces")
 
     value = "55ce2f63-c11a-4fac-b3a9-160305b1a0c4"
 
-    shutil.rmtree(path=f"./features/scratch/workspaces/{value}", ignore_errors=True)
-    shutil.rmtree(path=storage, ignore_errors=True)
+    scratch = Path("./features/scratch")    
+    shutil.rmtree(path = scratch, ignore_errors = True)
+    os.mkdir(scratch)
+
+    storage = Path("./features/scratch/storage")
     os.mkdir(storage)
 
-    gateway = OcflRepositoryGateway(storage_path=storage)
+    workspaces = Path("./features/scratch/workspaces")
+    os.mkdir(workspaces)
+
+    gateway = OcflRepositoryGateway(storage_path = storage)
     gateway.create_repository()
  
     engine = create_engine(
