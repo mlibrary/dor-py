@@ -1,4 +1,9 @@
-from dataclasses import dataclass, field
+# from dataclasses import dataclass, field
+from dataclasses import field
+from pydantic.dataclasses import dataclass
+# from pydantic import BaseModel
+from typing import Optional
+
 import uuid
 from datetime import datetime
 from enum import Enum

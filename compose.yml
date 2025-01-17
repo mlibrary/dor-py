@@ -1,5 +1,7 @@
 services:
   app:
+    depends_on:
+      - db
     build: 
       context: .
       target: development
@@ -15,3 +17,36 @@ services:
       - .:/app
     tty: true
     stdin_open: true
+  api:
+    depends_on:
+      - db
+    build: 
+      context: .
+      target: development
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        DEV: ${DEV:-false}
+        POETRY_VERSION: ${POETRY_VERSION:-1.8.4}
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    tty: true
+    stdin_open: true
+    command: ["poetry", "run", "fastapi", "dev", "dor/entrypoints/api/main.py", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - ${API_PORT:-8000}:8000
+  db:
+    ports:
+      - "5432:5432"
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+volumes:
+  db-data:

@@ -20,11 +20,16 @@ typer = "^0.12.5"
 uuid6 = "^2024.7.10"
 python-ulid = "^2.7.0"
 jinja2 = "^3.1.4"
+psycopg = "^3.2.3"
+sqlalchemy = "^2.0.36"
+pydantic = "^2.10.5"
+fastapi = {extras = ["standard"], version = "^0.115.6"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
 ruff = "^0.2.2"
 behave = "^1.2.6"
+pytest-bdd = "^8.1.0"
 
 [build-system]
 requires = ["poetry-core"]

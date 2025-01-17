@@ -33,22 +33,38 @@ This will:
  docker compose run --rm app poetry run YOUR_COMMAND
 ```
 
+## Features and Tests
+
+Behavior driven development (BDD) with [pytest-bdd](https://github.com/pytest-dev/pytest-bdd)
+
 ## Behave
 
-Behavior driven development with [behave](https://behave.readthedocs.io/en/stable/) 
+Test driven development (TDD) with [pytest](https://docs.pytest.org/)
 
-[Advanced Guide to Behavior-Driven Development with Behave in Python](https://behave.readthedocs.io/en/stable/install.html)
+To run the features located in the ['features'](/features/) directory and tests located in the [`tests`](/tests/) directory, use the following command:
 
 ```sh
-docker compose run --rm app poetry run behave
+docker compose run --rm app poetry run pytest
 ```
 
-## Tests
+## PostgreSQL database
 
-To run the tests located in the [`tests`](/tests/) directory, use the following command:
+Some operations and tests rely on a PostgreSQL database that can be run using a separate Docker service.
+Use the following command to start up the database.
 
 ```sh
-docker compose run app poetry run pytest
+docker compose up db
+```
+
+## REST API
+
+The application provides a few REST API endpoints for reporting purposes.
+Use the following command to start up the server.
+API documentation for the routes will be available at [http://0.0.0.0:8000/docs](http://0.0.0.0:8000/docs),
+or using a different port if you set the `API_PORT` environment variable to a different value.
+
+```sh
+docker compose up api
 ```
 
 ## Generating Samples
