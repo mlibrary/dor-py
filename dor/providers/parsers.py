@@ -27,7 +27,9 @@ class DescriptorFileParser:
         text = descriptor_file_path.read_text()
         self.tree: ElementAdapter = ElementAdapter.from_string(text, self.namespaces)
         self.file_provider = file_provider
-        self.data_path = file_provider.get_data_dir(descriptor_file_path)
+        self.descriptor_path: Path = file_provider.get_descriptor_dir(
+            descriptor_file_path
+        )
 
     def get_id(self):
         return uuid.UUID(self.tree.get("OBJID"))
@@ -78,7 +80,9 @@ class DescriptorFileParser:
         md_ref_element = elem.find("METS:mdRef")
         locref = md_ref_element.get("LOCREF")
         if not locref.startswith("https"):
-            locref = self.file_provider.apply_relative_path(self.data_path, locref)
+            locref = self.file_provider.apply_relative_path(
+                self.descriptor_path, locref
+            )
         mdtype = md_ref_element.get_optional("MDTYPE")
         mimetype = md_ref_element.get_optional("MIMETYPE")
 
@@ -98,7 +102,9 @@ class DescriptorFileParser:
         flocat_element = elem.find("METS:FLocat")
         locref = flocat_element.get("LOCREF")
         if not locref.startswith("https"):
-            locref = self.file_provider.apply_relative_path(self.data_path, locref)
+            locref = self.file_provider.apply_relative_path(
+                self.descriptor_path, locref
+            )
 
         return FileMetadata(
             id=id_,

@@ -75,7 +75,7 @@ class DescriptorFileParserTest(TestCase):
                 id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
                 use="DESCRIPTIVE/COMMON",
                 ref=FileReference(
-                    locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
+                    locref="metadata/00000000-0000-0000-0000-000000000001.common.json",
                     mdtype="DOR:SCHEMA",
                     mimetype="application/json",
                 ),
@@ -84,7 +84,7 @@ class DescriptorFileParserTest(TestCase):
                 id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
                 use="DESCRIPTIVE",
                 ref=FileReference(
-                    locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                    locref="metadata/00000000-0000-0000-0000-000000000001.metadata.json",
                     mdtype="DOR:SCHEMA",
                     mimetype="application/json",
                 ),
@@ -150,7 +150,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
                     use="DESCRIPTIVE/COMMON",
                     ref=FileReference(
-                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
+                        locref="metadata/00000000-0000-0000-0000-000000000001.common.json",
                         mdtype="DOR:SCHEMA",
                         mimetype="application/json",
                     ),
@@ -159,7 +159,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
                     use="DESCRIPTIVE",
                     ref=FileReference(
-                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                        locref="metadata/00000000-0000-0000-0000-000000000001.metadata.json",
                         mdtype="DOR:SCHEMA",
                         mimetype="application/json",
                     ),
@@ -200,7 +200,7 @@ class DescriptorFileParserTest(TestCase):
 
     def test_parser_can_parse_asset(self):
         parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
-        descriptor_file_path = parser.file_provider.apply_relative_path(
+        descriptor_file_path = parser.file_provider.get_norm_path(
             self.descriptor_path,
             "../00000000-0000-0000-0000-000000001001.asset.mets2.xml",
         )
@@ -236,7 +236,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.source.jpg.mix.xml",
+                        locref="metadata/00000001.source.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
@@ -244,7 +244,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7e75-7803-8e41-71323b7b3284",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.access.jpg.mix.xml",
+                        locref="metadata/00000001.access.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
@@ -252,7 +252,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/metadata/00000001.plaintext.txt.textmd.xml",
+                        locref="metadata/00000001.plaintext.txt.textmd.xml",
                         mdtype="TEXTMD",
                     ),
                 ),
@@ -263,7 +263,7 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.source.jpg",
+                        locref="data/00000001.source.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -273,7 +273,7 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193d5f0-7e75-7803-8e41-71323b7b3284",
                     use="ACCESS",
                     ref=FileReference(
-                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.access.jpg",
+                        locref="data/00000001.access.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -283,7 +283,7 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="tests/fixtures/test_submission_package/xyzzy-0001-v1/data/00000000-0000-0000-0000-000000000001/data/00000001.plaintext.txt",
+                        locref="data/00000001.plaintext.txt",
                         mimetype="text/plain",
                     ),
                 ),
