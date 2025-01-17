@@ -2,7 +2,6 @@ from pathlib import Path
 from unittest import TestCase
 from datetime import datetime, UTC
 import uuid
-import pytest
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.parsers import DescriptorFileParser
