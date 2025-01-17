@@ -20,7 +20,7 @@ from gateway.ocfl_repository_gateway import OcflRepositoryGateway, StorageLayout
 class OcflRepositoryGatewayTest(TestCase):
 
     def setUp(self):
-        test_deposit_path = Path("tests/fixtures/test_deposit")  # .resolve()
+        test_deposit_path = Path("tests/fixtures/test_deposit")
 
         self.deposit_one_bundle = Bundle(
             root_path=test_deposit_path / "deposit_one",
