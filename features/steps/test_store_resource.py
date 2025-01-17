@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Callable, Type
 
 from functools import partial
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 from pytest_bdd import scenario, given, when, then
 
 from dor.adapters.bag_adapter import BagAdapter
@@ -65,13 +66,24 @@ def _():
         context.stored_event = event
 
     handlers: dict[Type[Event], list[Callable]] = {
-        PackageSubmitted: [lambda event: receive_package(event, context.uow, context.translocator)],
-        PackageReceived: [lambda event: verify_package(event, context.uow, BagAdapter, Workspace)],
-        PackageVerified: [lambda event: unpack_package(
-            event, context.uow, BagAdapter, PackageResourceProvider, Workspace
-        )],
+        PackageSubmitted: [
+            lambda event: receive_package(event, context.uow, context.translocator)
+        ],
+        PackageReceived: [
+            lambda event: verify_package(event, context.uow, BagAdapter, Workspace)
+        ],
+        PackageVerified: [
+            lambda event: unpack_package(
+                event,
+                context.uow,
+                BagAdapter,
+                PackageResourceProvider,
+                Workspace,
+                FilesystemFileProvider(),
+            )
+        ],
         PackageUnpacked: [lambda event: store_files(event, context.uow, Workspace)],
-        PackageStored: [lambda event: stored_callback(event, context.uow)]
+        PackageStored: [lambda event: stored_callback(event, context.uow)],
     }
     context.message_bus = MemoryMessageBus(handlers)
     return context
