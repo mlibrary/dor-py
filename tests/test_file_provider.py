@@ -1,10 +1,10 @@
 from pathlib import Path
 import pytest
 
-from dor.providers.file_system_file_provider import FilesystemHandler
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 
 
-file_provider = FilesystemHandler()
+file_provider = FilesystemFileProvider()
 
 
 @pytest.mark.parametrize(

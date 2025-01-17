@@ -4,11 +4,12 @@ from pathlib import Path
 from unittest import TestCase
 
 from dor.providers.package_resource_provider import PackageResourceProvider
-from dor.providers.file_system_file_provider import FilesystemHandler
+from dor.providers.file_system_file_provider import FilesystemFileProvider
+
 
 class PackageResourceProviderTest(TestCase):
     def setUp(self):
-        self.file_provider = FilesystemHandler()
+        self.file_provider = FilesystemFileProvider()
         self.test_submission_path = Path("tests/fixtures/test_submission_package")
         self.data_path = (
             self.test_submission_path
@@ -18,7 +19,7 @@ class PackageResourceProviderTest(TestCase):
         )
 
         return super().setUp()
-    
+
     def test_provider_can_be_set_up(self):
         provider = PackageResourceProvider(self.data_path, self.file_provider)
 
@@ -52,4 +53,3 @@ class PackageResourceProviderTest(TestCase):
 
         resources = provider.get_resources()
         self.assertEqual(len(resources), 3)
-        
