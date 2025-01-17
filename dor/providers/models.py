@@ -33,17 +33,17 @@ class PreservationEvent:
 @dataclass
 class FileReference:
     locref: str
-    mdtype: Optional[str] = None
-    mimetype: Optional[str] = None
+    mdtype: str | None = None
+    mimetype: str | None = None
 
 
 @dataclass
 class FileMetadata:
     id: str
     use: str
-    mdid: Optional[str] = None
-    groupid: Optional[str] = None
-    ref: FileReference = None
+    ref: FileReference
+    mdid: str | None = None
+    groupid: str | None = None
 
 
 class StructMapType(Enum):
@@ -56,7 +56,7 @@ class StructMapItem:
     order: int
     label: str
     asset_id: str
-    type: Optional[str] = None
+    type: str | None = None
 
 
 @dataclass
@@ -77,7 +77,7 @@ class PackageResource:
     struct_maps: list[StructMap] = field(default_factory=list)
 
     def get_entries(self) -> list[Path]:
-        entries = []
+        entries: list[Path] = []
         for file_metadata in self.metadata_files:
             if not file_metadata.ref.locref.startswith("https://"):
                 entries.append(Path(file_metadata.ref.locref))

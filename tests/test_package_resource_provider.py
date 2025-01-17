@@ -2,12 +2,12 @@ from pathlib import Path
 from unittest import TestCase
 
 from dor.providers.package_resource_provider import PackageResourceProvider
-from dor.providers.package_resource_provider import *
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 
 
 class PackageResourceProviderTest(TestCase):
-
     def setUp(self):
+        self.file_provider = FilesystemFileProvider()
         self.test_submission_path = Path("tests/fixtures/test_submission_package")
         self.data_path = (
             self.test_submission_path
@@ -19,7 +19,7 @@ class PackageResourceProviderTest(TestCase):
         return super().setUp()
 
     def test_provider_can_be_set_up(self):
-        provider = PackageResourceProvider(self.data_path)
+        provider = PackageResourceProvider(self.data_path, self.file_provider)
 
     def test_provider_can_find_descriptors(self):
 
@@ -41,13 +41,13 @@ class PackageResourceProviderTest(TestCase):
             / "00000000-0000-0000-0000-000000001002.asset.mets2.xml"
         )
 
-        provider = PackageResourceProvider(self.data_path)
+        provider = PackageResourceProvider(self.data_path, self.file_provider)
         descriptor_files = provider.descriptor_files
         self.assertSetEqual(set(descriptor_files), set(expected_files))
 
     def test_provider_can_parse_resources(self):
 
-        provider = PackageResourceProvider(self.data_path)
+        provider = PackageResourceProvider(self.data_path, self.file_provider)
 
         resources = provider.get_resources()
         self.assertEqual(len(resources), 3)

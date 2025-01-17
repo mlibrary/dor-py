@@ -27,8 +27,8 @@ def test_raises_when_no_root_identifier_provided() -> None:
 def test_provides_bundle() -> None:
     workspace = Workspace(identifier="/tmp/UID-00001", root_identifier="00000000-0000-0000-0000-000000000001")
     entries= [
-        Path("../metadata/file.xml"),
-        Path("../data/file.jpg")
+        Path("metadata/file.xml"),
+        Path("data/file.jpg")
     ]
     result = workspace.get_bundle(entries)
     assert result.root_path == Path("/tmp/UID-00001/data/00000000-0000-0000-0000-000000000001") 

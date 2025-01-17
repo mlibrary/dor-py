@@ -11,24 +11,32 @@ from gateway.coordinator import Coordinator
 from gateway.exceptions import (
     NoStagedChangesError,
     ObjectDoesNotExistError,
-    StagedObjectAlreadyExistsError
+    StagedObjectAlreadyExistsError,
 )
 from gateway.object_file import ObjectFile
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway, StorageLayout
 
+
 class OcflRepositoryGatewayTest(TestCase):
 
     def setUp(self):
-        test_deposit_path = Path("tests/fixtures/test_deposit").resolve()
-        
+        test_deposit_path = Path("tests/fixtures/test_deposit")
+
         self.deposit_one_bundle = Bundle(
             root_path=test_deposit_path / "deposit_one",
-            entries=[Path("A.txt"), Path("B/B.txt"), Path("C/D/D.txt")]
+            entries=[
+                Path("A.txt"),
+                Path("B/B.txt"),
+                Path("C/D/D.txt"),
+            ],
         )
 
         self.deposit_one_update_bundle = Bundle(
             root_path=test_deposit_path / "deposit_one_update",
-            entries=[Path("E.txt"), Path("B/B.txt")]
+            entries=[
+                Path("E.txt"),
+                Path("B/B.txt"),
+            ],
         )
 
         self.storage_path = Path("tests/test_storage")
@@ -50,9 +58,9 @@ class OcflRepositoryGatewayTest(TestCase):
     def get_hashed_n_tuple_object_path(
         object_id: str, tuple_size: int = 3, num_tuples: int = 3
     ) -> Path:
-        digest = hashlib.sha256(bytes(object_id, 'utf-8')).hexdigest()
+        digest = hashlib.sha256(bytes(object_id, "utf-8")).hexdigest()
         n_tuple = tuple(
-            digest[i:i + tuple_size]
+            digest[i : i + tuple_size]
             for i in range(0, tuple_size * num_tuples, tuple_size)
         )
         return Path().joinpath(*n_tuple, digest)
@@ -68,14 +76,20 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
 
-        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path(
+            "deposit_one"
+        )
         full_object_path = self.extensions_path / object_path
         self.assertTrue(full_object_path.exists())
 
-        inventory_data = OcflRepositoryGatewayTest.read_inventory(full_object_path / "inventory.json")
+        inventory_data = OcflRepositoryGatewayTest.read_inventory(
+            full_object_path / "inventory.json"
+        )
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
-        logical_paths = [path for paths in head_version["state"].values() for path in paths]
+        logical_paths = [
+            path for paths in head_version["state"].values() for path in paths
+        ]
         self.assertListEqual([], logical_paths)
 
     def test_gateway_raises_when_creating_staged_object_that_already_exists(self):
@@ -94,17 +108,21 @@ class OcflRepositoryGatewayTest(TestCase):
 
         self.assertTrue(self.extensions_path.exists())
 
-        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path(
+            "deposit_one"
+        )
         full_object_path = self.extensions_path / object_path
         self.assertTrue(full_object_path.exists())
 
-        inventory_data = OcflRepositoryGatewayTest.read_inventory(full_object_path / "inventory.json")
+        inventory_data = OcflRepositoryGatewayTest.read_inventory(
+            full_object_path / "inventory.json"
+        )
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
-        logical_paths = [path for paths in head_version["state"].values() for path in paths]
-        self.assertSetEqual(
-            set(["A.txt", "B/B.txt", "C/D/D.txt"]), set(logical_paths)
-        )
+        logical_paths = [
+            path for paths in head_version["state"].values() for path in paths
+        ]
+        self.assertSetEqual(set(["A.txt", "B/B.txt", "C/D/D.txt"]), set(logical_paths))
 
     def test_gateway_raises_when_staging_changes_for_object_that_does_not_exist(self):
         gateway = OcflRepositoryGateway(self.pres_storage)
@@ -118,19 +136,23 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
         )
 
         full_object_path = self.pres_storage / "deposit_one"
         self.assertTrue(full_object_path.exists())
 
-        inventory_data = OcflRepositoryGatewayTest.read_inventory(full_object_path / "inventory.json")
+        inventory_data = OcflRepositoryGatewayTest.read_inventory(
+            full_object_path / "inventory.json"
+        )
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
-        logical_paths = [path for paths in head_version["state"].values() for path in paths]
-        self.assertSetEqual(
-            set(["A.txt", "B/B.txt", "C/D/D.txt"]), set(logical_paths)
-        )
+        logical_paths = [
+            path for paths in head_version["state"].values() for path in paths
+        ]
+        self.assertSetEqual(set(["A.txt", "B/B.txt", "C/D/D.txt"]), set(logical_paths))
 
         self.assertEqual("Adding first version!", head_version["message"])
         self.assertEqual("test", head_version["user"]["name"])
@@ -138,17 +160,20 @@ class OcflRepositoryGatewayTest(TestCase):
 
     def test_gateway_can_use_a_different_storage_layout_for_committed_object(self):
         gateway = OcflRepositoryGateway(
-            storage_path=self.pres_storage,
-            storage_layout=StorageLayout.HASHED_N_TUPLE
+            storage_path=self.pres_storage, storage_layout=StorageLayout.HASHED_N_TUPLE
         )
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
         )
 
-        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path(
+            "deposit_one"
+        )
         full_object_path = self.pres_storage / object_path
         self.assertTrue(full_object_path.exists())
 
@@ -160,7 +185,7 @@ class OcflRepositoryGatewayTest(TestCase):
             gateway.commit_object_changes(
                 "deposit_zero",
                 Coordinator("test", "test@example.edu"),
-                "Did I stage an object first?"
+                "Did I stage an object first?",
             )
 
     def test_gateway_commits_empty_object(self):
@@ -168,14 +193,20 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding empty version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding empty version!",
         )
 
         full_object_path = self.pres_storage / "deposit_one"
-        inventory_data = OcflRepositoryGatewayTest.read_inventory(full_object_path / "inventory.json")
+        inventory_data = OcflRepositoryGatewayTest.read_inventory(
+            full_object_path / "inventory.json"
+        )
         self.assertEqual("deposit_one", inventory_data["id"])
         head_version = inventory_data["versions"][inventory_data["head"]]
-        logical_paths = [path for paths in head_version["state"].values() for path in paths]
+        logical_paths = [
+            path for paths in head_version["state"].values() for path in paths
+        ]
         self.assertListEqual([], logical_paths)
 
     def test_gateway_purges_object(self):
@@ -184,7 +215,9 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
         )
 
         full_object_path = self.pres_storage / "deposit_one"
@@ -220,7 +253,9 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
         )
         result = gateway.has_object("deposit_one")
 
@@ -232,12 +267,16 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
         )
 
         gateway.stage_object_files("deposit_one", self.deposit_one_update_bundle)
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding second version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding second version!",
         )
 
         object_files = gateway.get_object_files("deposit_one")
@@ -245,11 +284,16 @@ class OcflRepositoryGatewayTest(TestCase):
         self.assertListEqual(
             [
                 ObjectFile(Path("A.txt"), prefix.joinpath("v1", "content", "A.txt")),
-                ObjectFile(Path("B/B.txt"), prefix.joinpath("v2", "content", "B", "B.txt")),
-                ObjectFile(Path("C/D/D.txt"), prefix.joinpath("v1", "content", "C", "D", "D.txt")),
-                ObjectFile(Path("E.txt"), prefix.joinpath("v2", "content", "E.txt"))
+                ObjectFile(
+                    Path("B/B.txt"), prefix.joinpath("v2", "content", "B", "B.txt")
+                ),
+                ObjectFile(
+                    Path("C/D/D.txt"),
+                    prefix.joinpath("v1", "content", "C", "D", "D.txt"),
+                ),
+                ObjectFile(Path("E.txt"), prefix.joinpath("v2", "content", "E.txt")),
             ],
-            object_files
+            object_files,
         )
 
     def test_gateway_provides_no_object_files_when_there_are_none(self):
@@ -270,15 +314,22 @@ class OcflRepositoryGatewayTest(TestCase):
 
         object_files = gateway.get_object_files("deposit_one", True)
 
-        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        object_path = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path(
+            "deposit_one"
+        )
         prefix = self.extensions_path / object_path
         self.assertListEqual(
             [
                 ObjectFile(Path("A.txt"), prefix.joinpath("v1", "content", "A.txt")),
-                ObjectFile(Path("B/B.txt"), prefix.joinpath("v1", "content", "B", "B.txt")),
-                ObjectFile(Path("C/D/D.txt"), prefix.joinpath("v1", "content", "C", "D", "D.txt")),
+                ObjectFile(
+                    Path("B/B.txt"), prefix.joinpath("v1", "content", "B", "B.txt")
+                ),
+                ObjectFile(
+                    Path("C/D/D.txt"),
+                    prefix.joinpath("v1", "content", "C", "D", "D.txt"),
+                ),
             ],
-            object_files
+            object_files,
         )
 
     def test_gateway_provides_object_files_when_no_staged_ones_exist(self):
@@ -287,7 +338,9 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
         )
 
         object_files = gateway.get_object_files("deposit_one", True)
@@ -295,10 +348,15 @@ class OcflRepositoryGatewayTest(TestCase):
         self.assertListEqual(
             [
                 ObjectFile(Path("A.txt"), prefix.joinpath("v1", "content", "A.txt")),
-                ObjectFile(Path("B/B.txt"), prefix.joinpath("v1", "content", "B", "B.txt")),
-                ObjectFile(Path("C/D/D.txt"), prefix.joinpath("v1", "content", "C", "D", "D.txt")),
+                ObjectFile(
+                    Path("B/B.txt"), prefix.joinpath("v1", "content", "B", "B.txt")
+                ),
+                ObjectFile(
+                    Path("C/D/D.txt"),
+                    prefix.joinpath("v1", "content", "C", "D", "D.txt"),
+                ),
             ],
-            object_files
+            object_files,
         )
 
     def test_gateway_provides_object_files_when_versioned_and_staged_files_exist(self):
@@ -307,23 +365,37 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
         gateway.commit_object_changes(
-            "deposit_one", Coordinator("test", "test@example.edu"), "Adding first version!"
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
         )
         gateway.stage_object_files("deposit_one", self.deposit_one_update_bundle)
 
         object_files = gateway.get_object_files("deposit_one", True)
 
         storage_prefix = self.pres_storage / "deposit_one"
-        object_path_in_staging = OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        object_path_in_staging = (
+            OcflRepositoryGatewayTest.get_hashed_n_tuple_object_path("deposit_one")
+        )
         staging_prefix = self.extensions_path / object_path_in_staging
         self.assertListEqual(
             [
-                ObjectFile(Path("A.txt"), storage_prefix.joinpath("v1", "content", "A.txt")),
-                ObjectFile(Path("B/B.txt"), staging_prefix.joinpath("v2", "content", "B", "B.txt")),
-                ObjectFile(Path("C/D/D.txt"), storage_prefix.joinpath("v1", "content", "C", "D", "D.txt")),
-                ObjectFile(Path("E.txt"), staging_prefix.joinpath("v2", "content", "E.txt"))
+                ObjectFile(
+                    Path("A.txt"), storage_prefix.joinpath("v1", "content", "A.txt")
+                ),
+                ObjectFile(
+                    Path("B/B.txt"),
+                    staging_prefix.joinpath("v2", "content", "B", "B.txt"),
+                ),
+                ObjectFile(
+                    Path("C/D/D.txt"),
+                    storage_prefix.joinpath("v1", "content", "C", "D", "D.txt"),
+                ),
+                ObjectFile(
+                    Path("E.txt"), staging_prefix.joinpath("v2", "content", "E.txt")
+                ),
             ],
-            object_files
+            object_files,
         )
 
     def test_gateway_raises_when_providing_files_for_object_that_does_not_exist(self):

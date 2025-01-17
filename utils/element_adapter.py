@@ -37,7 +37,7 @@ class ElementAdapter:
             )
         return result
 
-    def get_optional(self, key: str, default=None):
+    def get_optional(self, key: str, default: str | None=None):
         return self.elem.get(key, default)
 
     def findall(self, path: str) -> "list[ElementAdapter]":

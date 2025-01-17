@@ -3,16 +3,25 @@ from unittest import TestCase
 from datetime import datetime, UTC
 import uuid
 
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.parsers import DescriptorFileParser
 from dor.providers.models import (
-    Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
-    PreservationEvent, StructMap, StructMapItem, StructMapType
+    Agent,
+    AlternateIdentifier,
+    FileMetadata,
+    FileReference,
+    PackageResource,
+    PreservationEvent,
+    StructMap,
+    StructMapItem,
+    StructMapType,
 )
 
 
 class DescriptorFileParserTest(TestCase):
 
     def setUp(self):
+        self.file_provider = FilesystemFileProvider()
         self.test_submission_path = Path("tests/fixtures/test_submission_package")
         self.descriptor_path = (
             self.test_submission_path
@@ -22,21 +31,20 @@ class DescriptorFileParserTest(TestCase):
             / "descriptor"
             / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml"
         )
-
         return super().setUp()
 
     def test_parser_can_get_id(self):
-        parser = DescriptorFileParser(self.descriptor_path)
-        self.assertEqual(parser.get_id(), uuid.UUID("00000000-0000-0000-0000-000000000001"))
-
-    def test_parser_can_get_type(self):
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
         self.assertEqual(
-            parser.get_type(), "Monograph"
+            parser.get_id(), uuid.UUID("00000000-0000-0000-0000-000000000001")
         )
 
+    def test_parser_can_get_type(self):
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
+        self.assertEqual(parser.get_type(), "Monograph")
+
     def test_parser_can_get_alternate_identifier(self):
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
 
         expected_identifier = AlternateIdentifier(type="DLXS", id="xyzzy:00000001")
 
@@ -55,18 +63,18 @@ class DescriptorFileParserTest(TestCase):
             )
         ]
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
         self.assertEqual(parser.get_preservation_events(), expected_events)
 
     def test_parser_can_get_metadata_files(self):
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
         expected_file_metadata = [
             FileMetadata(
                 id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
                 use="DESCRIPTIVE/COMMON",
                 ref=FileReference(
-                    locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
+                    locref="metadata/00000000-0000-0000-0000-000000000001.common.json",
                     mdtype="DOR:SCHEMA",
                     mimetype="application/json",
                 ),
@@ -75,7 +83,7 @@ class DescriptorFileParserTest(TestCase):
                 id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
                 use="DESCRIPTIVE",
                 ref=FileReference(
-                    locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                    locref="metadata/00000000-0000-0000-0000-000000000001.metadata.json",
                     mdtype="DOR:SCHEMA",
                     mimetype="application/json",
                 ),
@@ -94,7 +102,7 @@ class DescriptorFileParserTest(TestCase):
 
     def test_parser_can_get_struct_maps(self):
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
         expected_struct_maps = [
             StructMap(
                 id="SM1",
@@ -131,7 +139,8 @@ class DescriptorFileParserTest(TestCase):
                     datetime=datetime(2016, 11, 29, 13, 51, 14, tzinfo=UTC),
                     detail="Middle president push visit information feel most.",
                     agent=Agent(
-                        address="christopherpayne@example.org", role="collection manager"
+                        address="christopherpayne@example.org",
+                        role="collection manager",
                     ),
                 )
             ],
@@ -140,7 +149,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
                     use="DESCRIPTIVE/COMMON",
                     ref=FileReference(
-                        locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
+                        locref="metadata/00000000-0000-0000-0000-000000000001.common.json",
                         mdtype="DOR:SCHEMA",
                         mimetype="application/json",
                     ),
@@ -149,7 +158,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
                     use="DESCRIPTIVE",
                     ref=FileReference(
-                        locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                        locref="metadata/00000000-0000-0000-0000-000000000001.metadata.json",
                         mdtype="DOR:SCHEMA",
                         mimetype="application/json",
                     ),
@@ -185,15 +194,15 @@ class DescriptorFileParserTest(TestCase):
             ],
         )
 
-        parser = DescriptorFileParser(self.descriptor_path)
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
         self.assertEqual(parser.get_resource(), expected_resource)
 
     def test_parser_can_parse_asset(self):
-        descriptor_path = ( 
-            self.descriptor_path 
-            / ".." 
-            / "00000000-0000-0000-0000-000000001001.asset.mets2.xml" 
-        ).resolve()
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
+        descriptor_file_path = parser.file_provider.get_norm_path(
+            self.descriptor_path,
+            "../00000000-0000-0000-0000-000000001001.asset.mets2.xml",
+        )
 
         expected_resource = PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
@@ -207,14 +216,18 @@ class DescriptorFileParserTest(TestCase):
                     type="generate access derivative",
                     datetime=datetime(1993, 6, 11, 4, 44, 7, tzinfo=UTC),
                     detail="Night wonder three him family structure simple.",
-                    agent=Agent(address="arroyoalan@example.net", role="image processing"),
+                    agent=Agent(
+                        address="arroyoalan@example.net", role="image processing"
+                    ),
                 ),
                 PreservationEvent(
                     identifier="3bdcb1e3-4674-4b9c-83c8-4f9f9fe50812",
                     type="extract text",
                     datetime=datetime(1988, 5, 26, 18, 33, 46, tzinfo=UTC),
                     detail="Player center road attorney speak wait partner.",
-                    agent=Agent(address="jonathanjones@example.net", role="ocr processing"),
+                    agent=Agent(
+                        address="jonathanjones@example.net", role="ocr processing"
+                    ),
                 ),
             ],
             metadata_files=[
@@ -222,7 +235,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.source.jpg.mix.xml",
+                        locref="metadata/00000001.source.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
@@ -230,7 +243,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7e75-7803-8e41-71323b7b3284",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.access.jpg.mix.xml",
+                        locref="metadata/00000001.access.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
@@ -238,7 +251,7 @@ class DescriptorFileParserTest(TestCase):
                     id="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.plaintext.txt.textmd.xml",
+                        locref="metadata/00000001.plaintext.txt.textmd.xml",
                         mdtype="TEXTMD",
                     ),
                 ),
@@ -249,7 +262,7 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="../data/00000001.source.jpg",
+                        locref="data/00000001.source.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -259,7 +272,7 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193d5f0-7e75-7803-8e41-71323b7b3284",
                     use="ACCESS",
                     ref=FileReference(
-                        locref="../data/00000001.access.jpg",
+                        locref="data/00000001.access.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -269,12 +282,12 @@ class DescriptorFileParserTest(TestCase):
                     mdid="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="../data/00000001.plaintext.txt",
+                        locref="data/00000001.plaintext.txt",
                         mimetype="text/plain",
                     ),
                 ),
             ],
         )
 
-        parser = DescriptorFileParser(descriptor_path)
+        parser = DescriptorFileParser(Path(descriptor_file_path), self.file_provider)
         self.assertEqual(parser.get_resource(), expected_resource)

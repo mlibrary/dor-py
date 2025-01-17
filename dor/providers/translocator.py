@@ -37,20 +37,11 @@ class Workspace:
         if self.root_identifier is None:
             raise Exception()
         return self.package_directory() / "data" / self.root_identifier
-    
-    def _apply_relative_path(self, path: Path, path_to_apply: Path) -> Path:
-        return (path / path_to_apply).resolve().relative_to(self.object_data_directory().resolve())
 
     def get_bundle(self, entries: list[Path]) -> Bundle:
-        resolved_entries = []
-        for entry in entries:
-            resolved_entries.append(
-                self._apply_relative_path(self.object_data_directory() / "descriptor", entry)
-            )
-
         return Bundle(
             root_path=self.object_data_directory(),
-            entries=resolved_entries
+            entries=entries
         )
 
 
