@@ -1,11 +1,9 @@
-import os
-import shutil
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Callable, Type
 
 from functools import partial
+from dor.providers.file_provider import FileProvider
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from pytest_bdd import scenario, given, when, then
 
@@ -34,6 +32,7 @@ class Context:
     translocator: Translocator = None
     message_bus: MemoryMessageBus = None
     stored_event: PackageStored = None
+    file_provider: FileProvider = FilesystemFileProvider()
 
 
 scenario = partial(scenario, '../store_resource.feature')
@@ -52,15 +51,17 @@ def _():
 
     value = '55ce2f63-c11a-4fac-b3a9-160305b1a0c4'
 
-    shutil.rmtree(path = f"./features/scratch/workspaces/{value}", ignore_errors = True)
-    shutil.rmtree(path = storage, ignore_errors = True)
-    os.mkdir(storage)
+    context.file_provider.delete_dir_and_contents(
+        Path(f"./features/scratch/workspaces/{value}")
+    )
+    context.file_provider.delete_dir_and_contents(storage)
+    context.file_provider.create_directory(storage)
 
     gateway = OcflRepositoryGateway(storage_path = storage)
     gateway.create_repository()
     context.uow = UnitOfWork(gateway=gateway)
 
-    context.translocator = Translocator(inbox_path = inbox, workspaces_path = workspaces, minter = lambda: value)
+    context.translocator = Translocator(inbox_path = inbox, workspaces_path = workspaces, minter = lambda: value, file_provider=context.file_provider)
 
     def stored_callback(event: PackageStored, uow: UnitOfWork) -> None:
         context.stored_event = event
@@ -70,7 +71,13 @@ def _():
             lambda event: receive_package(event, context.uow, context.translocator)
         ],
         PackageReceived: [
-            lambda event: verify_package(event, context.uow, BagAdapter, Workspace)
+            lambda event: verify_package(
+                event,
+                context.uow,
+                BagAdapter,
+                Workspace,
+                context.file_provider
+            )
         ],
         PackageVerified: [
             lambda event: unpack_package(
@@ -79,7 +86,7 @@ def _():
                 BagAdapter,
                 PackageResourceProvider,
                 Workspace,
-                FilesystemFileProvider(),
+                context.file_provider,
             )
         ],
         PackageUnpacked: [lambda event: store_files(event, context.uow, Workspace)],

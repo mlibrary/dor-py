@@ -1,5 +1,3 @@
-import os
-import shutil
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -207,12 +205,15 @@ def step_impl(context) -> None:
     inbox = Path("./features/fixtures/inbox")
     storage = Path("./features/scratch/storage")
     workspaces = Path("./features/scratch/workspaces")
+    context.file_provider =FilesystemFileProvider()
 
     value = "55ce2f63-c11a-4fac-b3a9-160305b1a0c4"
 
-    shutil.rmtree(path=f"./features/scratch/workspaces/{value}", ignore_errors=True)
-    shutil.rmtree(path=storage, ignore_errors=True)
-    os.mkdir(storage)
+    context.file_provider.delete_dir_and_contents(
+        Path(f"./features/scratch/workspaces/{value}")
+    )
+    context.file_provider.delete_dir_and_contents(storage)
+    context.file_provider.create_directory(storage)
 
     gateway = OcflRepositoryGateway(storage_path=storage)
     gateway.create_repository()

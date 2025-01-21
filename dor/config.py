@@ -1,5 +1,5 @@
-import os
-
+from dor.providers.file_provider import FileProvider
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 import sqlalchemy
 from pydantic.dataclasses import dataclass
 
@@ -18,14 +18,22 @@ class Config:
     database: DatabaseConfig
 
     @classmethod
-    def from_env(cls):
+    def from_env(cls, file_provider: FileProvider):
         return cls(
             database=DatabaseConfig(
-                user=os.getenv("POSTGRES_USER", "postgres"),
-                password=os.getenv("POSTGRES_PASSWORD", "postgres"),
-                host=os.getenv("POSTGRES_HOST", "db"),
-                database=os.getenv("POSTGRES_DATABSE", "dor_local"),
-                test_database=os.getenv("POSTGRES_TEST_DATABASE", "dor_test")
+                user=file_provider.get_environment_variable(
+                    "POSTGRES_USER", "postgres"
+                ),
+                password=file_provider.get_environment_variable(
+                    "POSTGRES_PASSWORD", "postgres"
+                ),
+                host=file_provider.get_environment_variable("POSTGRES_HOST", "db"),
+                database=file_provider.get_environment_variable(
+                    "POSTGRES_DATABSE", "dor_local"
+                ),
+                test_database=file_provider.get_environment_variable(
+                    "POSTGRES_TEST_DATABASE", "dor_test"
+                ),
             )
         )
 
@@ -46,4 +54,4 @@ class Config:
         return self._make_database_engine_url(self.database.test_database)
 
 
-config = Config.from_env()
+config = Config.from_env(file_provider=FilesystemFileProvider())

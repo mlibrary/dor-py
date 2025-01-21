@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
-import bagit 
+import bagit
+from dor.providers.file_provider import FileProvider 
 
 
 class DorInfoMissingError(Exception):
@@ -35,8 +35,9 @@ class BagAdapter:
     
     dor_info_file_name = "dor-info.txt"
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, file_provider: FileProvider) -> None:
         self.bag = bagit.Bag(str(path))
+        self.file_provider = file_provider
 
     def validate(self) -> None:
         try:
@@ -52,9 +53,9 @@ class BagAdapter:
 
     @property
     def dor_info(self) -> dict[str, str]:
-        path = self.bag.path
+        path = Path(self.bag.path)
         try:
-            data = bagit._load_tag_file(os.path.join(path, self.dor_info_file_name))
+            data = bagit._load_tag_file(self.file_provider.get_combined_path(path, self.dor_info_file_name))
         except FileNotFoundError as e:
             raise DorInfoMissingError from e
         return data
