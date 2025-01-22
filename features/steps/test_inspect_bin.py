@@ -39,8 +39,6 @@ def test_revision_file_sets():
 
 @given(parsers.parse(u'a preserved monograph with an alternate identifier of "{alt_id}"'), target_fixture="context")
 def _(alt_id):
-    assert alt_id == "xyzzy:00000001"
-
     context = Context()
 
     bin = Bin(
@@ -220,8 +218,6 @@ def _(alt_id):
 
 @when(parsers.parse(u'the Collection Manager looks up the bin by "{alt_id}"'))
 def step_impl(context, alt_id):
-    assert alt_id == "xyzzy:00000001"
-
     context.alt_id = alt_id
     with context.uow:
         context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
@@ -247,8 +243,6 @@ def step_impl(context):
 
 @when(parsers.parse(u'the Collection Manager lists the contents of the bin for "{alt_id}"'))
 def _(context, alt_id):
-    assert alt_id == "xyzzy:00000001"
-
     with context.uow:
         context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
     context.file_sets = catalog_service.get_file_sets(context.bin)
