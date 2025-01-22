@@ -1,25 +1,46 @@
-from behave import given, then, when
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, UTC
 
 from pydantic_core import to_jsonable_python
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from functools import partial
+from pytest_bdd import scenario, given, when, then, parsers
 
 from dor.adapters.catalog import Base, _custom_json_serializer
 from dor.config import config
 from dor.domain.models import Bin
 from dor.service_layer import catalog_service
-from dor.service_layer.unit_of_work import SqlalchemyUnitOfWork, UnitOfWork
+from dor.service_layer.unit_of_work import SqlalchemyUnitOfWork
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
 from gateway.fake_repository_gateway import FakeRepositoryGateway
 
+@dataclass
+class Context:
+    uow: SqlalchemyUnitOfWork = None
+    bin: Bin = None
+    alt_id: str = None
+    summary: dict = None
+    file_sets: list = None
 
-@given(u'a preserved monograph with an alternate identifier of "{alt_id}"')
-def step_impl(context, alt_id):
+scenario = partial(scenario, '../inspect_bin.feature')
+
+@scenario('Revision summary')
+def test_revision_summary():
+    pass
+
+@scenario('Revision file sets')
+def test_revision_file_sets():
+    pass
+
+@given(u'a preserved monograph with an alternate identifier of "xyzzy:00000001"', target_fixture="context")
+def _():
+    context = Context()
+
     bin = Bin(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
         alternate_identifiers=["xyzzy:00000001"], 
@@ -192,9 +213,12 @@ def step_impl(context, alt_id):
     with context.uow:
         context.uow.catalog.add(bin)
         context.uow.commit()
+    
+    return context
 
-@when(u'the Collection Manager looks up the bin by "{alt_id}"')
-def step_impl(context, alt_id):
+@when(u'the Collection Manager looks up the bin by "xyzzy:00000001"')
+def step_impl(context):
+    alt_id = "xyzzy:00000001"
     context.alt_id = alt_id
     with context.uow:
         context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
@@ -218,14 +242,15 @@ def step_impl(context):
     )
     assert context.summary == expected_summary
 
-@when(u'the Collection Manager lists the contents of the bin for "{alt_id}"')
-def step_impl(context, alt_id):
+@when(u'the Collection Manager lists the contents of the bin for "xyzzy:00000001"')
+def _(context):
+    alt_id = "xyzzy:00000001"
     with context.uow:
         context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
     context.file_sets = catalog_service.get_file_sets(context.bin)
 
 @then(u'the Collection Manager sees the file sets.')
-def step_impl(context):
+def _(context):
     expected_file_sets = [
         to_jsonable_python(resource) 
         for resource in context.bin.package_resources if resource.type == 'Asset'
