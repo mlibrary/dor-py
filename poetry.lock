@@ -43,26 +43,6 @@ files = [
 ]
 
 [[package]]
-name = "behave"
-version = "1.2.6"
-description = "behave is behaviour-driven development, Python style"
-optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-files = [
-    {file = "behave-1.2.6-py2.py3-none-any.whl", hash = "sha256:ebda1a6c9e5bfe95c5f9f0a2794e01c7098b3dde86c10a95d8621c5907ff6f1c"},
-    {file = "behave-1.2.6.tar.gz", hash = "sha256:b9662327aa53294c1351b0a9c369093ccec1d21026f050c3bd9b3e5cccf81a86"},
-]
-
-[package.dependencies]
-parse = ">=1.8.2"
-parse-type = ">=0.4.2"
-six = ">=1.11"
-
-[package.extras]
-develop = ["coverage", "invoke (>=0.21.0)", "modernize (>=0.5)", "path.py (>=8.1.2)", "pathlib", "pycmd", "pylint", "pytest (>=3.0)", "pytest-cov", "tox"]
-docs = ["sphinx (>=1.6)", "sphinx-bootstrap-theme (>=0.6)"]
-
-[[package]]
 name = "certifi"
 version = "2024.12.14"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -1566,4 +1546,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "54c21a9779a8b8549941c4946450b9efc5a88c55e7d4ec15e0129e4640f2f73a"
+content-hash = "f466b41b966b0b0ce6f52545f2545166ca0ca66bdef7af5a58a6eff70248923c"
