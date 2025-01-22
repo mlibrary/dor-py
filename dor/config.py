@@ -25,7 +25,7 @@ class Config:
                 password=os.getenv("POSTGRES_PASSWORD", "postgres"),
                 host=os.getenv("POSTGRES_HOST", "db"),
                 database=os.getenv("POSTGRES_DATABSE", "dor_local"),
-                test_database=os.getenv("POSTGRES_TEST_DATABASE", "dor_test"),
+                test_database=os.getenv("POSTGRES_TEST_DATABASE", "dor_test")
             )
         )
 
@@ -35,7 +35,7 @@ class Config:
             username=self.database.user,
             password=self.database.password,
             host=self.database.host,
-            database=database,
+            database=database
         )
         return url
 
