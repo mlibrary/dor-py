@@ -46,14 +46,18 @@ def _():
     context = Context()
 
     inbox = Path("./features/fixtures/inbox")
+
+    scratch = Path("./features/scratch")    
+    shutil.rmtree(path = scratch, ignore_errors = True)
+    os.mkdir(scratch)
+
     storage = Path("./features/scratch/storage")
+    os.mkdir(storage)
+
     workspaces = Path("./features/scratch/workspaces")
+    os.mkdir(workspaces)
 
     value = '55ce2f63-c11a-4fac-b3a9-160305b1a0c4'
-
-    shutil.rmtree(path = f"./features/scratch/workspaces/{value}", ignore_errors = True)
-    shutil.rmtree(path = storage, ignore_errors = True)
-    os.mkdir(storage)
 
     gateway = OcflRepositoryGateway(storage_path = storage)
     gateway.create_repository()
