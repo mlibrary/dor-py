@@ -24,10 +24,6 @@ class FileProvider(ABC):
         pass
 
     @abstractmethod
-    def get_environment_variable(self, env_key: str, default_value: str) -> str:
-        pass
-
-    @abstractmethod
     def delete_dir_and_contents(self, path: Path):
         pass
 

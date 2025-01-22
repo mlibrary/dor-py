@@ -25,9 +25,6 @@ class FilesystemFileProvider(FileProvider):
     def clone_directory_structure(self, source_path: Path, destination_path: Path):
         shutil.copytree(source_path, destination_path)
 
-    def get_environment_variable(self, env_key: str, default_value: str) -> str:
-        return os.getenv(env_key, default_value)
-
     def delete_dir_and_contents(self, path: Path):
         shutil.rmtree(path, ignore_errors=True)
 
