@@ -37,8 +37,10 @@ def test_revision_summary():
 def test_revision_file_sets():
     pass
 
-@given(u'a preserved monograph with an alternate identifier of "xyzzy:00000001"', target_fixture="context")
-def _():
+@given(parsers.parse(u'a preserved monograph with an alternate identifier of "{alt_id}"'), target_fixture="context")
+def _(alt_id):
+    assert alt_id == "xyzzy:00000001"
+
     context = Context()
 
     bin = Bin(
@@ -216,9 +218,10 @@ def _():
     
     return context
 
-@when(u'the Collection Manager looks up the bin by "xyzzy:00000001"')
-def step_impl(context):
-    alt_id = "xyzzy:00000001"
+@when(parsers.parse(u'the Collection Manager looks up the bin by "{alt_id}"'))
+def step_impl(context, alt_id):
+    assert alt_id == "xyzzy:00000001"
+
     context.alt_id = alt_id
     with context.uow:
         context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
@@ -242,9 +245,10 @@ def step_impl(context):
     )
     assert context.summary == expected_summary
 
-@when(u'the Collection Manager lists the contents of the bin for "xyzzy:00000001"')
-def _(context):
-    alt_id = "xyzzy:00000001"
+@when(parsers.parse(u'the Collection Manager lists the contents of the bin for "{alt_id}"'))
+def _(context, alt_id):
+    assert alt_id == "xyzzy:00000001"
+
     with context.uow:
         context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
     context.file_sets = catalog_service.get_file_sets(context.bin)
