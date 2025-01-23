@@ -10,8 +10,7 @@ def catalog_bin(event: PackageStored, uow: AbstractUnitOfWork) -> None:
     common_metadata_file = [
         metadata_file for metadata_file in root_resource.metadata_files if "common" in metadata_file.ref.locref
     ][0]
-    # Path is still relative, but won't be once after Jaya's change
-    common_metadata_file_path = Path(common_metadata_file.ref.locref.replace("../", ""))
+    common_metadata_file_path = Path(common_metadata_file.ref.locref)
     object_files = uow.gateway.get_object_files(event.identifier)
     matching_object_file = [
         object_file for object_file in object_files if common_metadata_file_path == object_file.logical_path
