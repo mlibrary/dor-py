@@ -22,16 +22,16 @@ from dor.domain.events import (
     PackageVerified,
     PackageUnpacked
 )
-from dor.providers.translocator import Translocator, Workspace
 from dor.providers.package_resource_provider import PackageResourceProvider
+from dor.providers.translocator import Translocator, Workspace
+from dor.service_layer.handlers.catalog_bin import catalog_bin
+from dor.service_layer.handlers.receive_package import receive_package
 from dor.service_layer.handlers.store_files import store_files
+from dor.service_layer.handlers.unpack_package import unpack_package
+from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
-from dor.service_layer.handlers.catalog_bin import catalog_bin
-from dor.service_layer.handlers.receive_package import receive_package
-from dor.service_layer.handlers.verify_package import verify_package
-from dor.service_layer.handlers.unpack_package import unpack_package
 
 @dataclass
 class PathData:
