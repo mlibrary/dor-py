@@ -18,5 +18,4 @@ jobs:
       - name: Run tests
         run: |
           ./init.sh
-          docker compose up -d api
           docker compose run --rm app poetry run pytest
