@@ -1,5 +1,4 @@
 import uuid
-from dataclasses import dataclass
 from datetime import datetime, UTC
 from functools import partial
 
@@ -12,12 +11,12 @@ from sqlalchemy.orm import sessionmaker
 from dor.adapters.catalog import Base, _custom_json_serializer
 from dor.config import config
 from dor.domain.models import Bin
-from dor.service_layer import catalog_service
-from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
+from dor.service_layer import catalog_service
+from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
 from gateway.fake_repository_gateway import FakeRepositoryGateway
 
 scenario = partial(scenario, '../inspect_bin.feature')
