@@ -17,6 +17,7 @@ from dor.domain.events import (
     PackageUnpacked,
     PackageVerified,
 )
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
 from dor.service_layer.handlers.catalog_bin import catalog_bin
@@ -46,13 +47,16 @@ def bootstrap() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
         workspaces_path=config.workspaces_path,
         minter = lambda: str(uuid.uuid4())
     )
+    file_provider = FilesystemFileProvider()
 
     handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [lambda event: receive_package(event, uow, translocator)],
         PackageReceived: [lambda event: verify_package(event, uow, BagAdapter, Workspace)],
-        PackageVerified: [lambda event: unpack_package(
-            event, uow, BagAdapter, PackageResourceProvider, Workspace
-        )],
+        PackageVerified: [
+            lambda event: unpack_package(
+                event, uow, BagAdapter, PackageResourceProvider, Workspace, file_provider
+            )
+        ],
         PackageUnpacked: [lambda event: store_files(event, uow, Workspace)],
         PackageStored: [lambda event: catalog_bin(event, uow)],
         BinCataloged: []
