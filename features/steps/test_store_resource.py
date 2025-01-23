@@ -34,16 +34,25 @@ from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.handlers.unpack_package import unpack_package
 
 @dataclass
-class Context:
-    message_bus: MemoryMessageBus | None = None
-    cataloged_event: BinCataloged | None = None
+class PathData:
+    scratch: Path
+    storage: Path
+    workspaces: Path
+    inbox: Path
 
 @pytest.fixture
-def storage_path() -> Path:
-    return Path("./features/scratch/storage")
+def path_data() -> PathData:
+    scratch = Path("./features/scratch")
+
+    return PathData(
+        scratch=scratch,
+        inbox=Path("./features/fixtures/inbox"),
+        workspaces=scratch / "workspaces",
+        storage=scratch / "storage"
+    )
 
 @pytest.fixture
-def unit_of_work(storage_path: Path) -> AbstractUnitOfWork:
+def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
     engine = create_engine(
         config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
     )
@@ -51,40 +60,18 @@ def unit_of_work(storage_path: Path) -> AbstractUnitOfWork:
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
-    gateway = OcflRepositoryGateway(storage_path=storage_path)
+    gateway = OcflRepositoryGateway(storage_path=path_data.storage)
 
     return SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
 
-
-scenario = partial(scenario, '../store_resource.feature')
-
-@scenario('Storing a new resource for immediate release')
-def test_store_resource():
-    pass
-
-@given(u'a package containing the scanned pages, OCR, and metadata', target_fixture="context")
-def _(storage_path: Path, unit_of_work: AbstractUnitOfWork):
-    context = Context()
-
-    scratch = Path("./features/scratch")    
-    shutil.rmtree(path = scratch, ignore_errors = True)
-    os.mkdir(scratch)
-
-    os.mkdir(storage_path)
-
-    unit_of_work.gateway.create_repository()
-
-    inbox = Path("./features/fixtures/inbox")
-
-    workspaces = Path("./features/scratch/workspaces")
-    os.mkdir(workspaces)
-
+@pytest.fixture
+def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
     value = '55ce2f63-c11a-4fac-b3a9-160305b1a0c4'
-
-    translocator = Translocator(inbox_path = inbox, workspaces_path = workspaces, minter = lambda: value)
-
-    def cataloged_callback(event: BinCataloged, uow: AbstractUnitOfWork) -> None:
-        context.cataloged_event = event
+    translocator = Translocator(
+        inbox_path=path_data.inbox,
+        workspaces_path=path_data.workspaces,
+        minter = lambda: value
+    )
 
     handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [lambda event: receive_package(event, unit_of_work, translocator)],
@@ -94,24 +81,38 @@ def _(storage_path: Path, unit_of_work: AbstractUnitOfWork):
         )],
         PackageUnpacked: [lambda event: store_files(event, unit_of_work, Workspace)],
         PackageStored: [lambda event: catalog_bin(event, unit_of_work)],
-        BinCataloged: [lambda event: cataloged_callback(event, unit_of_work)]
+        BinCataloged: []
     }
-    context.message_bus = MemoryMessageBus(handlers)
-    return context
+    message_bus = MemoryMessageBus(handlers)
+    return message_bus
+
+scenario = partial(scenario, '../store_resource.feature')
+
+@scenario('Storing a new resource for immediate release')
+def test_store_resource():
+    pass
+
+@given(u'a package containing the scanned pages, OCR, and metadata')
+def _(path_data: PathData, unit_of_work: AbstractUnitOfWork):
+    shutil.rmtree(path=path_data.scratch, ignore_errors = True)
+    os.mkdir(path_data.scratch)
+    os.mkdir(path_data.storage)
+    os.mkdir(path_data.workspaces)
+
+    unit_of_work.gateway.create_repository()
 
 @when(u'the Collection Manager places the packaged resource in the incoming location')
-def _(context, unit_of_work: AbstractUnitOfWork):
+def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     submission_id = "xyzzy-0001-v1"
 
     event = PackageSubmitted(package_identifier=submission_id)
-    context.message_bus.handle(event, unit_of_work)
+    message_bus.handle(event, unit_of_work)
 
 @then(u'the Collection Manager can see that it was preserved.')
-def _(context, unit_of_work: AbstractUnitOfWork):
-    event = context.cataloged_event
-    assert event.identifier == "00000000-0000-0000-0000-000000000001"
-    assert unit_of_work.gateway.has_object(event.identifier)
+def _(unit_of_work: AbstractUnitOfWork):
+    expected_identifier = "00000000-0000-0000-0000-000000000001"
+    assert unit_of_work.gateway.has_object(expected_identifier)
 
     with unit_of_work:
-        bin = unit_of_work.catalog.get(event.identifier)
+        bin = unit_of_work.catalog.get(expected_identifier)
         assert bin is not None
