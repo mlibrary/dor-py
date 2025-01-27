@@ -187,8 +187,6 @@ def sample_bin():
     )
 
 def test_generator_can_create_descriptor_files(sample_bin):
-    # identifier = '00000000-0000-0000-0000-000000000001'
-
     descriptor_path = Path("./tests/test_workspace/descriptor")
     shutil.rmtree(descriptor_path, ignore_errors=True)
     os.makedirs(descriptor_path)
