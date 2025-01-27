@@ -1,0 +1,15 @@
+{% if resource.struct_maps|length > 0 %}
+  <METS:structSec>
+    {% for struct_map in resource.struct_maps %}
+    <METS:structMap ID="SM{{ loop.index }}" TYPE="{{ struct_map.type }}">
+      <METS:div>
+        {% for item in struct_map.items %}
+        <METS:div ORDERLABEL="{{ item.order }}" TYPE="{{ item.type }}" ORDER="{{ item.order }}" LABEL="{{ item.label }}" ID="{{ item.asset_id }}">
+          <METS:mptr LOCTYPE="URL" LOCREF="{{ asset_map[item.asset_id] }}" />
+        </METS:div>
+        {% endfor %}  
+      </METS:div>
+    </METS:structMap>
+    {% endfor %}
+  </METS:structSec>
+{% endif %}
