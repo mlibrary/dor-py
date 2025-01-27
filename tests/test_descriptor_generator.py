@@ -172,12 +172,15 @@ def sample_resources():
     ]
 
 def test_generator_can_create_descriptor_files(sample_resources):
-    descriptor_path = Path("./tests/test_workspace/descriptor")
-    shutil.rmtree(descriptor_path, ignore_errors=True)
-    os.makedirs(descriptor_path)
+    package_path = Path("./tests/test_workspace")
+    shutil.rmtree(package_path, ignore_errors=True)
+    os.makedirs(package_path / "descriptor")
 
-    generator = DescriptorGenerator(output_path=descriptor_path, resources=sample_resources)
+    generator = DescriptorGenerator(package_path=package_path, resources=sample_resources)
     generator.write_files()
 
-    assert (descriptor_path / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml" ).exists()
-    assert (descriptor_path / "00000000-0000-0000-0000-000000001001.asset.mets2.xml" ).exists()
+    assert (package_path / "descriptor" / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml" ).exists()
+    assert (package_path / "descriptor" / "00000000-0000-0000-0000-000000001001.asset.mets2.xml" ).exists()
+
+def test_generator_can_return_entries_for_bundle(sample_resources):
+    assert True

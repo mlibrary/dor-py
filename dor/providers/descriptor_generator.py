@@ -5,8 +5,8 @@ from dor.settings import S, template_env
 from dor.providers.models import PackageResource
 
 class DescriptorGenerator:
-    def __init__(self, output_path: Path, resources: list[PackageResource]):
-        self.output_path = output_path
+    def __init__(self, package_path: Path, resources: list[PackageResource]):
+        self.package_path = package_path
         self.resources = resources
 
     def write_files(self):
@@ -24,6 +24,6 @@ class DescriptorGenerator:
                 action="stored",
                 create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
-            filename = self.output_path / f"{resource.id}.{resource.type.lower()}.mets2.xml"
-            with filename.open("w") as f:
+            filename = Path(f"descriptor/{resource.id}.{resource.type.lower()}.mets2.xml")
+            with (self.package_path / filename).open("w") as f:
                 f.write(xmldata)
