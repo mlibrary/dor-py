@@ -10,25 +10,20 @@ class DescriptorGenerator:
         self.bin = bin
 
     def write_files(self):
-        filenames = []
-        asset_map = {}
+        struct_map_locref_data = {}
         for resource in self.bin.package_resources:
             if resource.type == "Asset":
                 identifier = f"urn:dor:{resource.id}"
-                asset_map[identifier] = f"{resource.id}.mets2.xml"
+                struct_map_locref_data[identifier] = f"{resource.id}.{resource.type.lower()}.mets2.xml"
 
         entity_template = template_env.get_template("preservation_mets.xml")
         for resource in self.bin.package_resources:
             xmldata = entity_template.render(
                 resource=resource,
-                asset_map=asset_map,
+                struct_map_locref_data=struct_map_locref_data,
                 action="stored",
                 create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
-            filename = self.output_path / f"{resource.id}_{resource.type.lower()}.xml"
+            filename = self.output_path / f"{resource.id}.{resource.type.lower()}.mets2.xml"
             with filename.open("w") as f:
                 f.write(xmldata)
-
-            filenames.append(filename)
-
-        return filenames

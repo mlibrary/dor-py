@@ -194,7 +194,7 @@ def test_generator_can_create_descriptor_files(sample_bin):
     os.makedirs(descriptor_path)
 
     generator = DescriptorGenerator(output_path=descriptor_path, bin=sample_bin)
-    filenames = generator.write_files()
+    generator.write_files()
 
-    for filename in filenames:
-        assert filename.exists()
+    assert (descriptor_path / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml" ).exists()
+    assert (descriptor_path / "00000000-0000-0000-0000-000000001001.asset.mets2.xml" ).exists()
