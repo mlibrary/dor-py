@@ -1,39 +1,52 @@
-#Scratch workflow placeholder to create new workflows from a branch other then main
-name: Scratch - Manual Deploy Unstable
+---
+name: Scratch - Build default image
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: tag
-        required: true
+  workflow_dispatch:  # This allows to kick-off the action manually from GitHub Actions
+  push:
+    branches: [ main ]  # This watches pushes to the "main" branch
+
+env:
+  UUID: ${{ github.run_id }}
 
 jobs:
-  get_short_tag:
-    name: get-short-tag
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: save short tag to environment
-        run: echo "short_tag=$(echo ${{ github.event.inputs.tag }} | head -c 8 )" >> $GITHUB_ENV
-      - name: echo env var
-        run: echo "short_tag ${short_tag}"
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-  build-unstable:
-    name: Build unstable ${{ github.event.inputs.tag }}
-    uses: mlibrary/platform-engineering-workflows/.github/workflows/build-unstable.yml@v1
-    with:
-      image_name: ${{ vars.IMAGE_NAME }}
-      tag: ${{ github.event.inputs.tag }}
-      dockerfile: Dockerfile
-    secrets: inherit
-      
-  deploy-unstable:
-    needs: build-unstable
-    name: Deploy to workshop
-    uses: mlibrary/platform-engineering-workflows/.github/workflows/deploy.yml@v1
-    with:
-      image: ${{ needs.build-unstable.outputs.image }}
-      file: environments/browse/workshop/web-image.txt
-      CONFIG_REPO_RW_APP_ID: ${{ vars.CONFIG_REPO_RW_APP_ID }}
-      CONFIG_REPO_FULL_NAME: ${{ vars.CONFIG_REPO_FULL_NAME }}
-    secrets: inherit
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env
+        run: |
+          echo "UID=$(id -u)" > .env
+          echo "GID=$(id -g)" >> .env
+
+      - name: Build image and push to GitHub Container Registry
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: 'ghcr.io/mlibrary/dor-py/default:${{ github.sha }}, ghcr.io/mlibrary/dor-py/default:latest'
+          file: Dockerfile
+          target: development
+          platforms: linux/amd64, linux/arm64
+
+      - name: Image digest
+        run: |
+          echo '${{ steps.docker_build.outputs.digest }}'

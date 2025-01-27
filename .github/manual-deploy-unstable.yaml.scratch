@@ -1,0 +1,39 @@
+#Scratch workflow placeholder to create new workflows from a branch other then main
+name: Scratch - Manual Deploy Unstable
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: tag
+        required: true
+
+jobs:
+  get_short_tag:
+    name: get-short-tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: save short tag to environment
+        run: echo "short_tag=$(echo ${{ github.event.inputs.tag }} | head -c 8 )" >> $GITHUB_ENV
+      - name: echo env var
+        run: echo "short_tag ${short_tag}"
+
+  build-unstable:
+    name: Build unstable ${{ github.event.inputs.tag }}
+    uses: mlibrary/platform-engineering-workflows/.github/workflows/build-unstable.yml@v1
+    with:
+      image_name: ${{ vars.IMAGE_NAME }}
+      tag: ${{ github.event.inputs.tag }}
+      dockerfile: Dockerfile
+    secrets: inherit
+      
+  deploy-unstable:
+    needs: build-unstable
+    name: Deploy to workshop
+    uses: mlibrary/platform-engineering-workflows/.github/workflows/deploy.yml@v1
+    with:
+      image: ${{ needs.build-unstable.outputs.image }}
+      file: environments/browse/workshop/web-image.txt
+      CONFIG_REPO_RW_APP_ID: ${{ vars.CONFIG_REPO_RW_APP_ID }}
+      CONFIG_REPO_FULL_NAME: ${{ vars.CONFIG_REPO_FULL_NAME }}
+    secrets: inherit
