@@ -1,28 +1,54 @@
-from behave import given, then, when
 import uuid
 from datetime import datetime, UTC
+from functools import partial
 
+import pytest
 from pydantic_core import to_jsonable_python
+from pytest_bdd import scenario, given, when, then, parsers
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from dor.adapters.catalog import Base, _custom_json_serializer
 from dor.config import config
 from dor.domain.models import Bin
-from dor.service_layer import catalog_service
-from dor.service_layer.unit_of_work import SqlalchemyUnitOfWork, UnitOfWork
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
+from dor.service_layer import catalog_service
+from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
 from gateway.fake_repository_gateway import FakeRepositoryGateway
 
+scenario = partial(scenario, '../inspect_bin.feature')
 
-@given(u'a preserved monograph with an alternate identifier of "{alt_id}"')
-def step_impl(context, alt_id):
+@scenario('Revision summary')
+def test_revision_summary():
+    pass
+
+@scenario('Revision file sets')
+def test_revision_file_sets():
+    pass
+
+@pytest.fixture
+def unit_of_work() -> AbstractUnitOfWork:
+    engine = create_engine(
+        config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
+    )
+    session_factory = sessionmaker(bind=engine)
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+    uow = SqlalchemyUnitOfWork(gateway=FakeRepositoryGateway(), session_factory=session_factory)
+    return uow
+
+@given(
+    parsers.parse(u'a preserved monograph with an alternate identifier of "{alt_id}"'),
+    target_fixture="bin"
+)
+def _(alt_id, unit_of_work: AbstractUnitOfWork):
     bin = Bin(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
-        alternate_identifiers=["xyzzy:00000001"], 
+        alternate_identifiers=[alt_id],
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
             "title": "Discussion also Republican owner hot already itself.",
@@ -181,30 +207,27 @@ def step_impl(context, alt_id):
         ]
     )
 
-    engine = create_engine(
-        config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
-    )
-    session_factory = sessionmaker(bind=engine)
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
+    with unit_of_work:
+        unit_of_work.catalog.add(bin)
+        unit_of_work.commit()
 
-    context.uow = SqlalchemyUnitOfWork(gateway=FakeRepositoryGateway(), session_factory=session_factory)
-    with context.uow:
-        context.uow.catalog.add(bin)
-        context.uow.commit()
+    return bin
 
-@when(u'the Collection Manager looks up the bin by "{alt_id}"')
-def step_impl(context, alt_id):
-    context.alt_id = alt_id
-    with context.uow:
-        context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
-    context.summary = catalog_service.summarize(context.bin)
+@when(
+    parsers.parse(u'the Collection Manager looks up the bin by "{alt_id}"'),
+    target_fixture="summary"
+)
+def _(alt_id, unit_of_work: AbstractUnitOfWork):
+    with unit_of_work:
+        bin = unit_of_work.catalog.get_by_alternate_identifier(alt_id)
+    summary = catalog_service.summarize(bin)
+    return summary
 
 @then(u'the Collection Manager sees the summary of the bin')
-def step_impl(context):
+def _(bin: Bin, summary):
     expected_summary = dict(
         identifier="00000000-0000-0000-0000-000000000001", 
-        alternate_identifiers=[context.alt_id],
+        alternate_identifiers=bin.alternate_identifiers,
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
             "title": "Discussion also Republican owner hot already itself.",
@@ -216,19 +239,23 @@ def step_impl(context):
             ]
         }
     )
-    assert context.summary == expected_summary
+    assert summary == expected_summary
 
-@when(u'the Collection Manager lists the contents of the bin for "{alt_id}"')
-def step_impl(context, alt_id):
-    with context.uow:
-        context.bin = context.uow.catalog.get_by_alternate_identifier(alt_id)
-    context.file_sets = catalog_service.get_file_sets(context.bin)
+@when(
+    parsers.parse(u'the Collection Manager lists the contents of the bin for "{alt_id}"'),
+    target_fixture="file_sets"
+)
+def _(alt_id, unit_of_work):
+    with unit_of_work:
+        bin = unit_of_work.catalog.get_by_alternate_identifier(alt_id)
+    file_sets = catalog_service.get_file_sets(bin)
+    return file_sets
 
 @then(u'the Collection Manager sees the file sets.')
-def step_impl(context):
+def _(bin: Bin, file_sets):
     expected_file_sets = [
         to_jsonable_python(resource) 
-        for resource in context.bin.package_resources if resource.type == 'Asset'
+        for resource in bin.package_resources if resource.type == 'Asset'
     ]
-    assert context.file_sets == expected_file_sets
+    assert file_sets == expected_file_sets
 

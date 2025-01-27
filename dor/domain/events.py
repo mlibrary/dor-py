@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from dor.domain.models import VersionInfo
+from dor.providers.models import PackageResource
 
 
 @dataclass
@@ -38,7 +39,7 @@ class PackageNotVerified(Event):
 @dataclass
 class PackageUnpacked(Event):
     identifier: str
-    resources: list[Any]
+    resources: list[PackageResource]
     tracking_identifier: str
     version_info: VersionInfo
     workspace_identifier: str
@@ -47,5 +48,11 @@ class PackageUnpacked(Event):
 
 @dataclass
 class PackageStored(Event):
+    identifier: str
+    tracking_identifier: str
+    resources: list[PackageResource]
+
+@dataclass
+class BinCataloged(Event):
     identifier: str
     tracking_identifier: str

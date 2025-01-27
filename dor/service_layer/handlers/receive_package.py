@@ -1,9 +1,9 @@
 from typing import Any
 
 from dor.domain.events import PackageSubmitted, PackageReceived
-from dor.service_layer.unit_of_work import UnitOfWork
+from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
-def receive_package(event: PackageSubmitted, uow: UnitOfWork, translocator: Any) -> None:
+def receive_package(event: PackageSubmitted, uow: AbstractUnitOfWork, translocator: Any) -> None:
     workspace = translocator.create_workspace_for_package(event.package_identifier)
 
     received_event = PackageReceived(

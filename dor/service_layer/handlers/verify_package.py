@@ -1,11 +1,10 @@
 from dor.adapters.bag_adapter import ValidationError
 from dor.domain.events import PackageNotVerified, PackageReceived, PackageVerified
 from dor.providers.file_provider import FileProvider
-from dor.service_layer.unit_of_work import UnitOfWork
-
+from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
 def verify_package(
-    event: PackageReceived, uow: UnitOfWork, bag_adapter_class: type, workspace_class: type, file_provider: FileProvider
+    event: PackageReceived, uow: AbstractUnitOfWork, bag_adapter_class: type, workspace_class: type, file_provider: FileProvider
 ) -> None:
     workspace = workspace_class(event.workspace_identifier)
 

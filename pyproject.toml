@@ -28,7 +28,6 @@ fastapi = {extras = ["standard"], version = "^0.115.6"}
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
 ruff = "^0.2.2"
-behave = "^1.2.6"
 pytest-bdd = "^8.1.0"
 
 [build-system]

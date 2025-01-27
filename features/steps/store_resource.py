@@ -262,3 +262,4 @@ def step_impl(context):
     event = context.stored_event
     assert event.identifier == "00000000-0000-0000-0000-000000000001"
     assert context.uow.gateway.has_object(event.identifier)
+
