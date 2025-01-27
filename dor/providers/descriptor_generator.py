@@ -8,6 +8,7 @@ class DescriptorGenerator:
     def __init__(self, package_path: Path, resources: list[PackageResource]):
         self.package_path = package_path
         self.resources = resources
+        self.entries = []
 
     def write_files(self):
         struct_map_locref_data = {}
@@ -27,3 +28,4 @@ class DescriptorGenerator:
             filename = Path(f"descriptor/{resource.id}.{resource.type.lower()}.mets2.xml")
             with (self.package_path / filename).open("w") as f:
                 f.write(xmldata)
+            self.entries.append(filename)
