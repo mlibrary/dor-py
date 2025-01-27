@@ -4,6 +4,7 @@ import subprocess
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 from gateway.validate import  FixityValidator, RocflOCFLFixityValidator
 
 class TestRocflOCFLFixityValidator(unittest.TestCase):
@@ -12,14 +13,15 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         self.fixture_path = Path("tests/fixtures/test_ocfl_repo")
         self.repository_path = str(self.fixture_path)
         self.validator = RocflOCFLFixityValidator(repository_path=self.fixture_path)
+        self.file_provider = FilesystemFileProvider()
 
         # Common patches
-        self.mock_makedirs = patch('os.makedirs').start()
+        self.mock_makedirs = patch.object(self.file_provider, "create_directories").start()
         self.mock_open = patch('builtins.open', mock_open(read_data='{"content": [{"sha1": "some_sha1_hash_value", "sha512": "some_sha512_hash_value"}]}')).start()
-        self.mock_rmtree = patch('shutil.rmtree').start()
+        self.mock_rmtree = patch.object(self.file_provider, "delete_dir_and_contents").start()
         self.mock_run = patch('subprocess.run').start()
-        
-        #calling protected method
+
+        # calling protected method
         self.build_command = getattr(self.validator, '_build_command')
 
     def tearDown(self):
@@ -29,7 +31,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
     def test_validate_repository_success(self):
         # Mock the return value for subprocess.run
         self.mock_run.return_value = MagicMock(stdout="Valid repository.\n", returncode=0)
-        
+
         # Run the validation
         result = self.validator.validate_repository()
 
@@ -49,7 +51,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
     def test_validate_object_success(self):
         self.mock_run.return_value = MagicMock(stdout="Object urn:example:rocfl:object-1 is valid.\n", returncode=0)
         result = self.validator.validate_objects(["urn:example:rocfl:object-1"])
-        
+
         self.mock_run.assert_called_once_with(['rocfl',  '-r', self.repository_path, 'validate', 'urn:example:rocfl:object-1'], capture_output=True, text=True, check=True)
         self.assertEqual(result, "Object urn:example:rocfl:object-1 is valid.\n")
 
@@ -83,7 +85,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
     def test_validate_multiple_objects_success(self):
         self.mock_run.return_value = MagicMock(stdout="Valid object object-1/\nValid object object-2/\n", returncode=0)
         result = self.validator.validate_multiple_objects_by_path(["object-1/", "object-2/"])
-        
+
         self.mock_run.assert_called_once_with([
             'rocfl', '-r', self.repository_path, 'validate', '-p', 'object-1/', 'object-2/'
         ], capture_output=True, text=True, check=True)
@@ -91,7 +93,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
     def test_validate_multiple_objects_with_flags(self):
         self.mock_run.return_value = MagicMock(stdout="Valid object object-1/\nValid object object-2/\n", returncode=0)
-        
+
         # Simulate the flags and call the function
         result = self.validator.validate_multiple_objects_by_path(
             ["object-1/", "object-2/"], no_fixity=True, log_level="Error", suppress_warning="ObjectMissing"
@@ -108,20 +110,20 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
     def test_validate_invalid_object(self):
         self.mock_run.return_value = MagicMock(stdout="Error: Object urn:example:rocfl:object-3 not found.\n", returncode=1)
         result = self.validator.validate_objects(["urn:example:rocfl:object-3"])
-        
+
         self.mock_run.assert_called_once_with(['rocfl', '-r', self.repository_path, 'validate', 'urn:example:rocfl:object-3'], capture_output=True, text=True, check=True)
         self.assertEqual(result, "Error: Object urn:example:rocfl:object-3 not found.\n")
 
     def test_fixity_check_failure(self):
         # Simulate a fixity check failure by changing the content and hashing
         new_sha512 = hashlib.sha512(b"modified content").hexdigest()
-        
+
         self.mock_run.return_value = MagicMock(
             stdout=f"Error: Content fixity check failed for urn:example:rocfl:object-1 v1.\nExpected SHA-512 hash: dummy_sha512_hash_value_here\nActual SHA-512 hash: {new_sha512}\n",
             returncode=1
         )
         result = self.validator.validate_objects(["urn:example:rocfl:object-1"])
-        
+
         self.mock_run.assert_called_once_with(['rocfl', '-r', self.repository_path, 'validate', 'urn:example:rocfl:object-1'], capture_output=True, text=True, check=True)
         self.assertIn("Error: Content fixity check failed", result)
         self.assertIn("Expected SHA-512 hash", result)
@@ -133,7 +135,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
             stdout="Valid repository.\nWarning W004: 'For content-addressing, OCFL Objects SHOULD use sha512.'\n",
             returncode=0
         )
-        
+
         result = self.validator.validate_repository()
 
         self.mock_run.assert_called_once_with([
@@ -173,7 +175,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
 
         self.assertIn("Warning W004:", result)
         self.assertIn("For content-addressing, OCFL Objects SHOULD use sha512.", result)
-        
+
     def test_validate_object_suppress_warning_W004(self):
         # Simulate the suppression of warning W004
         self.mock_run.return_value = MagicMock(
@@ -182,7 +184,7 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
         )
         result = self.validator.validate_objects(object_ids=["urn:example:rocfl:object-1"], suppress_warning="W004")
 
-        # Assert 
+        # Assert
         self.mock_run.assert_called_once_with([
             'rocfl', '-r', self.repository_path, 'validate', 'urn:example:rocfl:object-1', '-w', 'W004'
         ], capture_output=True, text=True, check=True)
@@ -194,39 +196,39 @@ class TestRocflOCFLFixityValidator(unittest.TestCase):
     def test_build_command_no_flags(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']      
         result = self.build_command(base_command, no_fixity=False, log_level=None, suppress_warning=None)
-        
+
         # Assert that no flags are added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate'])
 
     def test_build_command_with_no_fixity(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']
         result = self.build_command(base_command, no_fixity=True, log_level=None, suppress_warning=None)
-        
+
         # Assert that '-n' flag is added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate', '-n'])
 
     def test_build_command_with_log_level(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']
         result = self.build_command(base_command, no_fixity=False, log_level='Error', suppress_warning=None)
-        
+
         # Assert that '-l Error' is added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate', '-l', 'Error'])
 
     def test_build_command_with_suppress_warning(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']
         result = self.build_command(base_command, no_fixity=False, log_level=None, suppress_warning='Warning123')
-        
+
         # Assert that '-w Warning123' is added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate', '-w', 'Warning123'])
 
     def test_build_command_with_all_flags(self):
         base_command = ['rocfl', '-r', self.repository_path, 'validate']
         result = self.build_command(base_command, no_fixity=True, log_level='Error', suppress_warning='Warning123')
-        
+
         # Assert that all flags are correctly added
         self.assertEqual(result, ['rocfl', '-r', self.repository_path, 'validate', '-n', '-l', 'Error', '-w', 'Warning123'])
-        
-        
+
+
 class TestFixityValidator(unittest.TestCase):
     def test_validator_checks_object_fixity(self):
         self.mockrocflvalidator = MagicMock(spec = RocflOCFLFixityValidator)
@@ -237,7 +239,7 @@ class TestFixityValidator(unittest.TestCase):
         self.mockrocflvalidator.validate_objects.assert_called_once_with(["object-1"])
         self.assertTrue(result.is_valid)
         self.assertEqual("Object object-1 is valid", result.message)
-        
+
 class RocflOCFLFixityValidatorIntegrationTest(unittest.TestCase):   
     def setUp(self):
         # Link to fixtures -> https://github.com/OCFL/fixtures

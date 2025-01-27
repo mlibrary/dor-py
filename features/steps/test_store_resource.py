@@ -70,7 +70,8 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
     translocator = Translocator(
         inbox_path=path_data.inbox,
         workspaces_path=path_data.workspaces,
-        minter = lambda: value
+        minter = lambda: value,
+        file_provider=FilesystemFileProvider()
     )
 
     handlers: dict[Type[Event], list[Callable]] = {
@@ -107,10 +108,11 @@ def test_store_resource():
 
 @given(u'a package containing the scanned pages, OCR, and metadata')
 def _(path_data: PathData, unit_of_work: AbstractUnitOfWork):
-    shutil.rmtree(path=path_data.scratch, ignore_errors = True)
-    os.mkdir(path_data.scratch)
-    os.mkdir(path_data.storage)
-    os.mkdir(path_data.workspaces)
+    file_provider = FilesystemFileProvider()
+    file_provider.delete_dir_and_contents(path=path_data.scratch)
+    file_provider.create_directory(path_data.scratch)
+    file_provider.create_directory(path_data.storage)
+    file_provider.create_directory(path_data.workspaces)
 
     unit_of_work.gateway.create_repository()
 
