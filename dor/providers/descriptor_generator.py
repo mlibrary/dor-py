@@ -4,6 +4,11 @@ from datetime import datetime, UTC
 from dor.settings import S, template_env
 from dor.providers.models import PackageResource
 
+def relative_path_or_not(locref: str):
+    if locref.startswith("https://"):
+        return locref
+    return f"../{locref}"
+
 class DescriptorGenerator:
     def __init__(self, package_path: Path, resources: list[PackageResource]):
         self.package_path = package_path
@@ -20,6 +25,7 @@ class DescriptorGenerator:
         entity_template = template_env.get_template("preservation_mets.xml")
         for resource in self.resources:
             xmldata = entity_template.render(
+                relative_path_or_not=relative_path_or_not,
                 resource=resource,
                 struct_map_locref_data=struct_map_locref_data,
                 action="stored",
