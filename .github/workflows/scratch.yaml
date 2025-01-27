@@ -6,9 +6,6 @@ on:
   push:
     branches: [ main ]  # This watches pushes to the "main" branch
 
-env:
-  UUID: ${{ github.run_id }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,11 +29,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create .env
-        run: |
-          echo "UID=$(id -u)" > .env
-          echo "GID=$(id -g)" >> .env
-
       - name: Build image and push to GitHub Container Registry
         uses: docker/build-push-action@v5
         with:
@@ -44,9 +36,5 @@ jobs:
           push: true
           tags: 'ghcr.io/mlibrary/dor-py/default:${{ github.sha }}, ghcr.io/mlibrary/dor-py/default:latest'
           file: Dockerfile
-          target: development
+          target: production
           platforms: linux/amd64, linux/arm64
-
-      - name: Image digest
-        run: |
-          echo '${{ steps.docker_build.outputs.digest }}'

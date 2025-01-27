@@ -39,7 +39,8 @@ ENV PYTHONPATH="/app"
 
 # Download rocfl and place in /usr/local/bin
 RUN curl -LO https://github.com/pwinckles/rocfl/releases/download/v1.7.0/rocfl-linux-x86_64-no-s3.zip && \
-  unzip -d /usr/local/bin rocfl-linux-x86_64-no-s3.zip
+  unzip -d /usr/local/bin rocfl-linux-x86_64-no-s3.zip && \
+  rm rocfl-linux-x86_64-no-s3.zip
 
 CMD ["tail", "-f", "/dev/null"]
 
