@@ -1,10 +1,10 @@
 import uuid
-# from dataclasses import dataclass, field
-from dataclasses import field
+from enum import Enum
+from datetime import datetime
+from typing import Any
+
 from pydantic import field_validator
 from pydantic.dataclasses import dataclass
-
-from typing import Any
 
 from gateway.coordinator import Coordinator
 from dor.providers.models import PackageResource
@@ -27,3 +27,23 @@ class Bin:
     @classmethod
     def coerce_to_instance(cls, values):
         return [PackageResource(**v) if isinstance(v, dict) else v for v in values]
+
+
+class WorkflowEventType(Enum):
+    PACKAGE_SUBMITTED = "PackageSubmitted"
+    PACKAGE_RECEIVED = "PackageReceived"
+    PACKAGE_VERIFIED = "PackageVerified"
+    PACKAGE_NOT_VERIFIED = "PackageNotVerified"
+    PACKAGE_UNPACKED = "PackageUnpacked"
+    PACKAGE_STORED = "PackageStored"
+    BIN_CATALOGED = "BinCataloged"
+
+
+@dataclass
+class WorkflowEvent:
+    identifier: uuid.UUID
+    package_identifier: str
+    tracking_identifier: str
+    event_type: WorkflowEventType
+    timestamp: datetime
+    message: str | None
