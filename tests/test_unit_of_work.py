@@ -3,7 +3,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from dor.adapters.catalog import SqlalchemyCatalog, Base, _custom_json_serializer
+from dor.adapters.catalog import SqlalchemyCatalog
+from dor.adapters.sqlalchemy import Base, _custom_json_serializer
 from dor.config import config
 from dor.service_layer.unit_of_work import SqlalchemyUnitOfWork
 

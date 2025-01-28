@@ -6,7 +6,7 @@ import pytest
 import sqlalchemy
 from fastapi.testclient import TestClient
 
-from dor.adapters.catalog import _custom_json_serializer, Base
+from dor.adapters.sqlalchemy import Base, _custom_json_serializer
 from dor.config import config
 from dor.domain.models import Bin
 from dor.entrypoints.api.dependencies import get_db_session
