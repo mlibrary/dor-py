@@ -20,7 +20,7 @@ class FilesystemFileProvider(FileProvider):
         return resolved_combined_path
 
     def get_combined_path(self, base_path: Path, path_to_apply: str) -> Path:
-        return Path(os.path.join(base_path, path_to_apply))
+        return base_path / path_to_apply
 
     def clone_directory_structure(self, source_path: Path, destination_path: Path):
         shutil.copytree(source_path, destination_path)
