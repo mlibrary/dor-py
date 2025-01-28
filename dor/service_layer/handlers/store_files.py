@@ -18,7 +18,6 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
         source_bundle=bundle,
     )
 
-    #### INSERT HERE
     generator = DescriptorGenerator(
         package_path=workspace.object_data_directory(),
         resources=event.resources
