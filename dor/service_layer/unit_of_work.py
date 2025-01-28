@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from dor.adapters.catalog import Catalog, MemoryCatalog, SqlalchemyCatalog, _custom_json_serializer
+from dor.adapters.catalog import Catalog, MemoryCatalog, SqlalchemyCatalog
+from dor.adapters.sqlalchemy import _custom_json_serializer
 from dor.config import config
 from dor.domain.events import Event
 from gateway.repository_gateway import RepositoryGateway

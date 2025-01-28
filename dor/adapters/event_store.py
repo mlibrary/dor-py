@@ -7,8 +7,8 @@ from sqlalchemy import DateTime, String, select, Uuid
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
+from dor.adapters.sqlalchemy import Base
 from dor.domain import models
-from dor.adapters.catalog import Base
 
 
 class EventStore(ABC):

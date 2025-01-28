@@ -1,36 +1,18 @@
-# from dor.domain.models import Bin
-from abc import ABC, abstractmethod
-from dor.domain import models
-
 import uuid
+from abc import ABC, abstractmethod
 
-from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+import sqlalchemy.exc
 from sqlalchemy import (
-    Column, String, select, Table, Uuid
+    Column, String, select, Uuid
 )
-from sqlalchemy.orm import registry
-
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.ext.mutable import MutableList
-import sqlalchemy.exc
 
-from pydantic_core import to_jsonable_python
-import json
+from dor.adapters.sqlalchemy import Base
+from dor.domain import models
 
-from dor.providers.models import PackageResource
-
-mapper_registry = registry()
-
-def _custom_json_serializer(*args, **kwargs) -> str:
-    """
-    Encodes json in the same way that pydantic does.
-    """
-    return json.dumps(*args, default=to_jsonable_python, **kwargs)
-
-class Base(DeclarativeBase):
-    pass
 
 class Bin(Base):
     __tablename__ = "catalog_bin"

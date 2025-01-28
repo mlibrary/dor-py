@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from dor.adapters.bag_adapter import BagAdapter
-from dor.adapters.catalog import Base, _custom_json_serializer
+from dor.adapters.sqlalchemy import Base, _custom_json_serializer
 from dor.config import config
 from dor.domain.events import (
     Event,
