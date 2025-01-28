@@ -1,13 +1,16 @@
 from pathlib import Path
 from datetime import datetime, UTC
 
-from dor.settings import S, template_env
+from dor.settings import template_env
 from dor.providers.models import PackageResource
 
 def relative_path_or_not(locref: str):
     if locref.startswith("https://"):
         return locref
     return f"../{locref}"
+
+def build_descriptor_filename(resource):
+    return f"{resource.id}.{resource.type.lower()}.mets2.xml"
 
 class DescriptorGenerator:
     def __init__(self, package_path: Path, resources: list[PackageResource]):
@@ -20,7 +23,7 @@ class DescriptorGenerator:
         for resource in self.resources:
             if resource.type == "Asset":
                 identifier = f"urn:dor:{resource.id}"
-                struct_map_locref_data[identifier] = f"{resource.id}.{resource.type.lower()}.mets2.xml"
+                struct_map_locref_data[identifier] = build_descriptor_filename(resource)
 
         entity_template = template_env.get_template("preservation_mets.xml")
         for resource in self.resources:
@@ -31,7 +34,7 @@ class DescriptorGenerator:
                 action="stored",
                 create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
-            filename = Path(f"descriptor/{resource.id}.{resource.type.lower()}.mets2.xml")
+            filename = Path(f"descriptor/{build_descriptor_filename(resource)}")
             with (self.package_path / filename).open("w") as f:
                 f.write(xmldata)
             self.entries.append(filename)
