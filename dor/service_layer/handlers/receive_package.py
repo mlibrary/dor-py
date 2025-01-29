@@ -8,8 +8,8 @@ def receive_package(event: PackageSubmitted, uow: AbstractUnitOfWork, translocat
 
     received_event = PackageReceived(
         package_identifier=event.package_identifier,
-        tracking_identifier='aintthatpeculiar',
+        tracking_identifier=event.tracking_identifier,
         workspace_identifier = workspace.identifier
     )
     
-    uow.add_event(received_event) 
+    uow.add_event(received_event)

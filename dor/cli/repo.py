@@ -22,6 +22,7 @@ from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
 from dor.service_layer.handlers.catalog_bin import catalog_bin
 from dor.service_layer.handlers.receive_package import receive_package
+from dor.service_layer.handlers.record_workflow_event import record_workflow_event
 from dor.service_layer.handlers.store_files import store_files
 from dor.service_layer.handlers.unpack_package import unpack_package
 from dor.service_layer.handlers.verify_package import verify_package
@@ -50,16 +51,31 @@ def bootstrap() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
     file_provider = FilesystemFileProvider()
 
     handlers: dict[Type[Event], list[Callable]] = {
-        PackageSubmitted: [lambda event: receive_package(event, uow, translocator)],
-        PackageReceived: [lambda event: verify_package(event, uow, BagAdapter, Workspace, file_provider)],
+        PackageSubmitted: [
+            lambda event: record_workflow_event(event, uow),
+            lambda event: receive_package(event, uow, translocator)
+        ],
+        PackageReceived: [
+            lambda event: record_workflow_event(event, uow),
+            lambda event: verify_package(event, uow, BagAdapter, Workspace, file_provider)
+        ],
         PackageVerified: [
+            lambda event: record_workflow_event(event, uow),
             lambda event: unpack_package(
                 event, uow, BagAdapter, PackageResourceProvider, Workspace, file_provider
             )
         ],
-        PackageUnpacked: [lambda event: store_files(event, uow, Workspace)],
-        PackageStored: [lambda event: catalog_bin(event, uow)],
-        BinCataloged: []
+        PackageUnpacked: [
+            lambda event: record_workflow_event(event, uow),
+            lambda event: store_files(event, uow, Workspace)
+        ],
+        PackageStored: [
+            lambda event: record_workflow_event(event, uow),
+            lambda event: catalog_bin(event, uow)
+        ],
+        BinCataloged: [
+            lambda event: record_workflow_event(event, uow)
+        ]
     }
     message_bus = MemoryMessageBus(handlers)
     return (message_bus, uow)
@@ -81,5 +97,8 @@ def store(
     package_identifier: str = typer.Option(help="Name of the package directory"),
 ):
     message_bus, uow = bootstrap()
-    event = PackageSubmitted(package_identifier=package_identifier)
+    event = PackageSubmitted(
+        package_identifier=package_identifier,
+        tracking_identifier=str(uuid.uuid4())
+    )
     message_bus.handle(event, uow)

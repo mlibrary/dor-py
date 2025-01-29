@@ -41,9 +41,9 @@ class WorkflowEvent(Base):
     __tablename__ = "workflow_event"
 
     identifier: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
-    package_identifier: Mapped[str] = mapped_column(String(30))
-    tracking_identifier: Mapped[str] = mapped_column(String(30))
-    event_type: Mapped[str] = mapped_column(String(30))
+    package_identifier: Mapped[str] = mapped_column(String(50))
+    tracking_identifier: Mapped[str] = mapped_column(String(50))
+    event_type: Mapped[str] = mapped_column(String(50))
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     message: Mapped[Optional[str]] = mapped_column(String(1000))
 

@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -21,11 +22,13 @@ from dor.domain.events import (
     PackageVerified,
     PackageUnpacked
 )
+from dor.domain.models import WorkflowEventType
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
 from dor.service_layer.handlers.catalog_bin import catalog_bin
 from dor.service_layer.handlers.receive_package import receive_package
+from dor.service_layer.handlers.record_workflow_event import record_workflow_event
 from dor.service_layer.handlers.store_files import store_files
 from dor.service_layer.handlers.unpack_package import unpack_package
 from dor.service_layer.handlers.verify_package import verify_package
@@ -76,14 +79,15 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
 
     handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [
+            lambda event: record_workflow_event(event, unit_of_work),
             lambda event: receive_package(event, unit_of_work, translocator)
         ],
         PackageReceived: [
-            lambda event: verify_package(
-                event, unit_of_work, BagAdapter, Workspace, FilesystemFileProvider()
-            )
+            lambda event: record_workflow_event(event, unit_of_work),
+            lambda event: verify_package(event, unit_of_work, BagAdapter, Workspace, FilesystemFileProvider())
         ],
         PackageVerified: [
+            lambda event: record_workflow_event(event, unit_of_work),
             lambda event: unpack_package(
                 event,
                 unit_of_work,
@@ -93,9 +97,15 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
                 FilesystemFileProvider(),
             )
         ],
-        PackageUnpacked: [lambda event: store_files(event, unit_of_work, Workspace)],
-        PackageStored: [lambda event: catalog_bin(event, unit_of_work)],
-        BinCataloged: [],
+        PackageUnpacked: [
+            lambda event: record_workflow_event(event, unit_of_work),
+            lambda event: store_files(event, unit_of_work, Workspace)],
+        PackageStored: [
+            lambda event: record_workflow_event(event, unit_of_work),
+            lambda event: catalog_bin(event, unit_of_work)],
+        BinCataloged: [
+            lambda event: record_workflow_event(event, unit_of_work),
+        ]
     }
     message_bus = MemoryMessageBus(handlers)
     return message_bus
@@ -116,18 +126,31 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork):
 
     unit_of_work.gateway.create_repository()
 
-@when(u'the Collection Manager places the packaged resource in the incoming location')
+@when(
+    u'the Collection Manager places the packaged resource in the incoming location',
+    target_fixture="tracking_identifier"
+)
 def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     submission_id = "xyzzy-0001-v1"
+    tracking_identifier = str(uuid.uuid4())
 
-    event = PackageSubmitted(package_identifier=submission_id)
+    event = PackageSubmitted(
+        package_identifier=submission_id,
+        tracking_identifier=tracking_identifier
+    )
     message_bus.handle(event, unit_of_work)
+    return tracking_identifier
 
 @then(u'the Collection Manager can see that it was preserved.')
-def _(unit_of_work: AbstractUnitOfWork):
+def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
     expected_identifier = "00000000-0000-0000-0000-000000000001"
     assert unit_of_work.gateway.has_object(expected_identifier)
 
     with unit_of_work:
         bin = unit_of_work.catalog.get(expected_identifier)
         assert bin is not None
+
+        workflow_events = unit_of_work.event_store.get_all_by_tracking_identifier(tracking_identifier)
+        assert len(workflow_events) != 0
+        workflow_events_by_time = sorted(workflow_events, key=lambda x: x.timestamp, reverse=True)
+        assert workflow_events_by_time[0].event_type == WorkflowEventType.BIN_CATALOGED
