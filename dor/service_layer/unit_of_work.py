@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from dor.adapters.catalog import Catalog, MemoryCatalog, SqlalchemyCatalog
+from dor.adapters.event_store import EventStore, MemoryEventStore, SqlalchemyEventStore
 from dor.adapters.sqlalchemy import _custom_json_serializer
 from dor.config import config
 from dor.domain.events import Event
@@ -12,6 +13,7 @@ from gateway.repository_gateway import RepositoryGateway
 
 class AbstractUnitOfWork(ABC):
     catalog: Catalog
+    event_store: EventStore
     gateway: RepositoryGateway
 
     @abstractmethod
@@ -43,6 +45,7 @@ class UnitOfWork(AbstractUnitOfWork):
         self.gateway = gateway
         self.events: list[Event] = []
         self.catalog = MemoryCatalog()
+        self.event_store = MemoryEventStore()
 
     def __enter__(self):
         pass
@@ -79,6 +82,7 @@ class SqlalchemyUnitOfWork(AbstractUnitOfWork):
     def __enter__(self):
         self.session = self.session_factory()
         self.catalog = SqlalchemyCatalog(self.session)
+        self.event_store = SqlalchemyEventStore(self.session)
 
     def __exit__(self, *args):
         self.rollback()

@@ -1,6 +1,6 @@
 import uuid
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any
 
 from pydantic import field_validator
@@ -47,3 +47,20 @@ class WorkflowEvent:
     event_type: WorkflowEventType
     timestamp: datetime
     message: str | None
+
+    @classmethod
+    def create(
+        cls,
+        package_identifier: str,
+        tracking_identifier: str,
+        event_type: WorkflowEventType,
+        message: str | None
+    ):
+        return cls(
+            identifier=uuid.uuid4(),
+            package_identifier=package_identifier,
+            tracking_identifier=tracking_identifier,
+            event_type=event_type,
+            timestamp=datetime.now(tz=UTC),
+            message=message
+        )

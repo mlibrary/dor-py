@@ -38,6 +38,7 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
     stored_event = PackageStored(
         identifier=event.identifier,
         tracking_identifier=event.tracking_identifier,
+        package_identifier=event.package_identifier,
         resources=event.resources
     )
     uow.add_event(stored_event)

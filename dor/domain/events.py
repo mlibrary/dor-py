@@ -11,48 +11,43 @@ class Event:
 
 
 @dataclass
-class PackageSubmitted(Event):
+class PackageEvent(Event):
     package_identifier: str
+    tracking_identifier: str
 
 
 @dataclass
-class PackageReceived(Event):
-    package_identifier: str
-    tracking_identifier: str
+class PackageSubmitted(PackageEvent):
+    pass
+
+@dataclass
+class PackageReceived(PackageEvent):
     workspace_identifier: str
 
 
 @dataclass
-class PackageVerified(Event):
-    package_identifier: str
-    tracking_identifier: str
+class PackageVerified(PackageEvent):
     workspace_identifier: str
 
 
 @dataclass
-class PackageNotVerified(Event):
-    package_identifier: str
-    tracking_identifier: str
+class PackageNotVerified(PackageEvent):
     message: str
 
 
 @dataclass
-class PackageUnpacked(Event):
+class PackageUnpacked(PackageEvent):
     identifier: str
     resources: list[PackageResource]
-    tracking_identifier: str
     version_info: VersionInfo
     workspace_identifier: str
-    package_identifier: str
 
 
 @dataclass
-class PackageStored(Event):
+class PackageStored(PackageEvent):
     identifier: str
-    tracking_identifier: str
     resources: list[PackageResource]
 
 @dataclass
-class BinCataloged(Event):
+class BinCataloged(PackageEvent):
     identifier: str
-    tracking_identifier: str

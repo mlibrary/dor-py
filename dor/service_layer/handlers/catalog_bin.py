@@ -28,5 +28,9 @@ def catalog_bin(event: PackageStored, uow: AbstractUnitOfWork) -> None:
         uow.catalog.add(bin)
         uow.commit()
 
-    uow.add_event(BinCataloged(identifier=event.identifier, tracking_identifier=event.tracking_identifier))
+    uow.add_event(BinCataloged(
+        identifier=event.identifier,
+        tracking_identifier=event.tracking_identifier,
+        package_identifier=event.package_identifier
+    ))
     
