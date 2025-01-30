@@ -99,10 +99,12 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
         ],
         PackageUnpacked: [
             lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: store_files(event, unit_of_work, Workspace)],
+            lambda event: store_files(event, unit_of_work, Workspace)
+        ],
         PackageStored: [
             lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: catalog_bin(event, unit_of_work)],
+            lambda event: catalog_bin(event, unit_of_work)
+        ],
         BinCataloged: [
             lambda event: record_workflow_event(event, unit_of_work),
         ]
@@ -152,5 +154,4 @@ def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
 
         workflow_events = unit_of_work.event_store.get_all_by_tracking_identifier(tracking_identifier)
         assert len(workflow_events) != 0
-        workflow_events_by_time = sorted(workflow_events, key=lambda x: x.timestamp, reverse=True)
-        assert workflow_events_by_time[0].event_type == WorkflowEventType.BIN_CATALOGED
+        assert workflow_events[0].event_type == WorkflowEventType.BIN_CATALOGED
