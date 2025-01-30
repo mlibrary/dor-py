@@ -152,6 +152,6 @@ def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
         bin = unit_of_work.catalog.get(expected_identifier)
         assert bin is not None
 
-        workflow_events = unit_of_work.event_store.get_all_by_tracking_identifier(tracking_identifier)
+        workflow_events = unit_of_work.event_store.get_all_for_tracking_identifier(tracking_identifier)
         assert len(workflow_events) != 0
         assert workflow_events[0].event_type == WorkflowEventType.BIN_CATALOGED

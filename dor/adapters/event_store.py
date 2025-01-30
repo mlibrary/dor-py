@@ -18,7 +18,7 @@ class EventStore(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_all_by_tracking_identifier(self, tracking_identifier: str) -> list[models.WorkflowEvent]:
+    def get_all_for_tracking_identifier(self, tracking_identifier: str) -> list[models.WorkflowEvent]:
         raise NotImplementedError
 
 
@@ -30,7 +30,7 @@ class MemoryEventStore(EventStore):
     def add(self, event: models.WorkflowEvent) -> None:
         self.events.append(event)
 
-    def get_all_by_tracking_identifier(self, tracking_identifier: str) -> list[models.WorkflowEvent]:
+    def get_all_for_tracking_identifier(self, tracking_identifier: str) -> list[models.WorkflowEvent]:
         workflow_events = [
             event for event in self.events
             if event.tracking_identifier == tracking_identifier
@@ -80,7 +80,7 @@ class SqlalchemyEventStore(EventStore):
         stored_event = self._convert_domain_to_orm(event)
         self.session.add(stored_event)
 
-    def get_all_by_tracking_identifier(self, tracking_identifier: str) -> list[models.WorkflowEvent]:
+    def get_all_for_tracking_identifier(self, tracking_identifier: str) -> list[models.WorkflowEvent]:
         statement = select(WorkflowEvent).where(
             WorkflowEvent.tracking_identifier == tracking_identifier
         ).order_by(WorkflowEvent.timestamp.desc())

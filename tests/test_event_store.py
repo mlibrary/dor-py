@@ -46,7 +46,7 @@ def test_memory_event_store_gets_events_by_tracking_identifier(workflow_events: 
     for workflow_event in workflow_events:
         event_store.add(workflow_event)
 
-    events = event_store.get_all_by_tracking_identifier("some-tracking-id")
+    events = event_store.get_all_for_tracking_identifier("some-tracking-id")
     assert events == [workflow_events[1], workflow_events[0]]
 
 
@@ -76,5 +76,5 @@ def test_sqlalchemy_event_store_gets_events_by_tracking_identifier(db_session, w
             event_store.add(workflow_event)
         db_session.commit()
 
-    events = event_store.get_all_by_tracking_identifier(workflow_event.tracking_identifier)
+    events = event_store.get_all_for_tracking_identifier(workflow_event.tracking_identifier)
     assert events == [workflow_events[1], workflow_events[0]]
