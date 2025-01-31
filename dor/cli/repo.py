@@ -43,12 +43,13 @@ def bootstrap() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
     session_factory = sessionmaker(bind=engine)
     uow = SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
 
+    file_provider = FilesystemFileProvider()
     translocator = Translocator(
         inbox_path=config.inbox_path,
         workspaces_path=config.workspaces_path,
-        minter = lambda: str(uuid.uuid4())
+        minter=lambda: str(uuid.uuid4()),
+        file_provider=file_provider
     )
-    file_provider = FilesystemFileProvider()
 
     handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [
