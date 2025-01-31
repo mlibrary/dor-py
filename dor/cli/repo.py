@@ -51,7 +51,7 @@ def bootstrap() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
 
     handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [lambda event: receive_package(event, uow, translocator)],
-        PackageReceived: [lambda event: verify_package(event, uow, BagAdapter, Workspace)],
+        PackageReceived: [lambda event: verify_package(event, uow, BagAdapter, Workspace, file_provider)],
         PackageVerified: [
             lambda event: unpack_package(
                 event, uow, BagAdapter, PackageResourceProvider, Workspace, file_provider
