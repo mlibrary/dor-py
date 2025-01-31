@@ -1,11 +1,10 @@
-import os
-import shutil
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Callable, Type
 
 import pytest
+
 from pytest_bdd import scenario, given, when, then
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -71,7 +70,8 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
     translocator = Translocator(
         inbox_path=path_data.inbox,
         workspaces_path=path_data.workspaces,
-        minter = lambda: value
+        minter = lambda: value,
+        file_provider=FilesystemFileProvider()
     )
 
     handlers: dict[Type[Event], list[Callable]] = {
@@ -79,7 +79,9 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
             lambda event: receive_package(event, unit_of_work, translocator)
         ],
         PackageReceived: [
-            lambda event: verify_package(event, unit_of_work, BagAdapter, Workspace)
+            lambda event: verify_package(
+                event, unit_of_work, BagAdapter, Workspace, FilesystemFileProvider()
+            )
         ],
         PackageVerified: [
             lambda event: unpack_package(
@@ -93,7 +95,7 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
         ],
         PackageUnpacked: [lambda event: store_files(event, unit_of_work, Workspace)],
         PackageStored: [lambda event: catalog_bin(event, unit_of_work)],
-        BinCataloged: []
+        BinCataloged: [],
     }
     message_bus = MemoryMessageBus(handlers)
     return message_bus
@@ -106,10 +108,11 @@ def test_store_resource():
 
 @given(u'a package containing the scanned pages, OCR, and metadata')
 def _(path_data: PathData, unit_of_work: AbstractUnitOfWork):
-    shutil.rmtree(path=path_data.scratch, ignore_errors = True)
-    os.mkdir(path_data.scratch)
-    os.mkdir(path_data.storage)
-    os.mkdir(path_data.workspaces)
+    file_provider = FilesystemFileProvider()
+    file_provider.delete_dir_and_contents(path=path_data.scratch)
+    file_provider.create_directory(path_data.scratch)
+    file_provider.create_directory(path_data.storage)
+    file_provider.create_directory(path_data.workspaces)
 
     unit_of_work.gateway.create_repository()
 

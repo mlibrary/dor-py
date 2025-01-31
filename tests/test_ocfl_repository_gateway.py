@@ -1,11 +1,10 @@
 import hashlib
 import json
-import os
-import shutil
 from pathlib import Path
 from typing import Any
 from unittest import TestCase
 
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.exceptions import (
@@ -42,10 +41,10 @@ class OcflRepositoryGatewayTest(TestCase):
         self.storage_path = Path("tests/test_storage")
         self.pres_storage = self.storage_path / "test_preservation_storage"
         self.extensions_path = self.pres_storage / "extensions" / "rocfl-staging"
-
+        self.file_provider = FilesystemFileProvider()
         if self.storage_path.exists():
-            shutil.rmtree(self.storage_path)
-        os.makedirs(self.pres_storage)
+            self.file_provider.delete_dir_and_contents(self.storage_path)
+        self.file_provider.create_directories(self.pres_storage)
 
         return super().setUp()
 

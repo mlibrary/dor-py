@@ -14,7 +14,7 @@ def unpack_package(
     file_provider: FileProvider,
 ) -> None:
     workspace = workspace_class(event.workspace_identifier)
-    bag_adapter = bag_adapter_class(workspace.package_directory())
+    bag_adapter = bag_adapter_class(workspace.package_directory(), file_provider)
 
     info = bag_adapter.dor_info
     workspace.root_identifier = info["Root-Identifier"]
