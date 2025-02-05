@@ -17,7 +17,7 @@ class VersionInfo():
 
 
 @dataclass
-class Bin:
+class Version:
     identifier: uuid.UUID
     alternate_identifiers: list[str]
     common_metadata: dict[str, Any]
@@ -36,7 +36,7 @@ class WorkflowEventType(Enum):
     PACKAGE_NOT_VERIFIED = "PackageNotVerified"
     PACKAGE_UNPACKED = "PackageUnpacked"
     PACKAGE_STORED = "PackageStored"
-    BIN_CATALOGED = "BinCataloged"
+    VERSION_CATALOGED = "VersionCataloged"
 
 
 @dataclass

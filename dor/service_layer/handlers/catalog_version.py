@@ -1,11 +1,11 @@
 import json
 from pathlib import Path
 
-from dor.domain.events import PackageStored, BinCataloged
-from dor.domain.models import Bin
+from dor.domain.events import PackageStored, VersionCataloged
+from dor.domain.models import Version
 from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
-def catalog_bin(event: PackageStored, uow: AbstractUnitOfWork) -> None:
+def catalog_version(event: PackageStored, uow: AbstractUnitOfWork) -> None:
     root_resource = [resource for resource in event.resources if resource.type == 'Monograph'][0]
     common_metadata_file = [
         metadata_file for metadata_file in root_resource.metadata_files if "common" in metadata_file.ref.locref
@@ -18,17 +18,17 @@ def catalog_bin(event: PackageStored, uow: AbstractUnitOfWork) -> None:
     literal_common_metadata_path = matching_object_file.literal_path
     common_metadata = json.loads(literal_common_metadata_path.read_text())
 
-    bin = Bin(
+    version = Version(
         identifier=event.identifier,
         alternate_identifiers=[root_resource.alternate_identifier.id],
         common_metadata=common_metadata,
         package_resources=event.resources
     )
     with uow:
-        uow.catalog.add(bin)
+        uow.catalog.add(version)
         uow.commit()
 
-    uow.add_event(BinCataloged(
+    uow.add_event(VersionCataloged(
         identifier=event.identifier,
         tracking_identifier=event.tracking_identifier,
         package_identifier=event.package_identifier
