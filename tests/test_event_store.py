@@ -27,7 +27,7 @@ def workflow_events(workflow_event) -> list[WorkflowEvent]:
             identifier=uuid.uuid4(),
             package_identifier="xyzzy-0001-v1",
             tracking_identifier="some-tracking-id",
-            event_type=WorkflowEventType.BIN_CATALOGED,
+            event_type=WorkflowEventType.VERSION_CATALOGED,
             timestamp=datetime.now(tz=UTC) + timedelta(seconds=20),
             message=None
         )

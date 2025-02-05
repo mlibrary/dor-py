@@ -14,8 +14,8 @@ from dor.adapters.sqlalchemy import Base
 from dor.domain import models
 
 
-class Bin(Base):
-    __tablename__ = "catalog_bin"
+class Version(Base):
+    __tablename__ = "catalog_version"
 
     identifier: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     alternate_identifiers: Mapped[list] = Column(MutableList.as_mutable(ARRAY(String)))
@@ -33,7 +33,7 @@ class Bin(Base):
 class Catalog(ABC):
 
     @abstractmethod
-    def add(self, bin: models.Bin):
+    def add(self, version: models.Version):
         raise NotImplementedError
 
     @abstractmethod
@@ -47,21 +47,21 @@ class Catalog(ABC):
 
 class MemoryCatalog(Catalog):
     def __init__(self):
-        self.bins = []
+        self.versions = []
         
-    def add(self, bin):
-        self.bins.append(bin)
+    def add(self, version):
+        self.versions.append(version)
         
     def get(self, identifier):
-        for bin in self.bins:
-            if bin.identifier == identifier:
-                return bin 
+        for version in self.versions:
+            if version.identifier == identifier:
+                return version
         return None
     
     def get_by_alternate_identifier(self, identifier):
-        for bin in self.bins:
-            if identifier in bin.alternate_identifiers:
-                return bin 
+        for version in self.versions:
+            if identifier in version.alternate_identifiers:
+                return version
         return None
 
 
@@ -70,32 +70,32 @@ class SqlalchemyCatalog(Catalog):
     def __init__(self, session):
         self.session = session
 
-    def add(self, bin: models.Bin):
-        stored_bin = Bin(
-            identifier=bin.identifier,
-            alternate_identifiers=bin.alternate_identifiers,
-            common_metadata=bin.common_metadata,
-            package_resources=bin.package_resources
+    def add(self, version: models.Version):
+        stored_version = Version(
+            identifier=version.identifier,
+            alternate_identifiers=version.alternate_identifiers,
+            common_metadata=version.common_metadata,
+            package_resources=version.package_resources
         )
-        self.session.add(stored_bin)
+        self.session.add(stored_version)
 
-    def get(self, identifier) -> models.Bin | None:
-        statement = select(Bin).where(Bin.identifier == identifier)
+    def get(self, identifier) -> models.Version | None:
+        statement = select(Version).where(Version.identifier == identifier)
         return self._fetch_one(statement)
 
-    def get_by_alternate_identifier(self, identifier: str) -> Bin | None:
-        statement = select(Bin).filter(Bin.alternate_identifiers.contains([identifier]))
+    def get_by_alternate_identifier(self, identifier: str) -> models.Version | None:
+        statement = select(Version).filter(Version.alternate_identifiers.contains([identifier]))
         return self._fetch_one(statement)
 
     def _fetch_one(self, statement):
         try:
             result = self.session.scalars(statement).one()
-            bin = models.Bin(
+            version = models.Version(
                 identifier=result.identifier,
                 alternate_identifiers=result.alternate_identifiers,
                 common_metadata=result.common_metadata,
                 package_resources=result.package_resources
             )
-            return bin
+            return version
         except sqlalchemy.exc.NoResultFound:
             return None

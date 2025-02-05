@@ -22,30 +22,30 @@ def session_factory():
     ))
 
 
-@pytest.mark.usefixtures("sample_bin")
-def test_uow_can_add_bin(session_factory, sample_bin):
+@pytest.mark.usefixtures("sample_version")
+def test_uow_can_add_version(session_factory, sample_version):
     gateway = FakeRepositoryGateway()
     uow = SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
     with uow:
-        uow.catalog.add(sample_bin)
+        uow.catalog.add(sample_version)
         uow.commit()
     
     session = session_factory()
     with session:
         catalog = SqlalchemyCatalog(session)
-        bin = catalog.get(sample_bin.identifier)
-    assert bin == sample_bin
+        version = catalog.get(sample_version.identifier)
+    assert version == sample_version
 
 
-@pytest.mark.usefixtures("sample_bin")
-def test_uow_does_not_add_bin_without_commit(session_factory, sample_bin):
+@pytest.mark.usefixtures("sample_version")
+def test_uow_does_not_add_version_without_commit(session_factory, sample_version):
     gateway = FakeRepositoryGateway()
     uow = SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
     with uow:
-        uow.catalog.add(sample_bin)
+        uow.catalog.add(sample_version)
     
     session = session_factory()
     with session:
         catalog = SqlalchemyCatalog(session)
-        bin = catalog.get(sample_bin.identifier)
-    assert bin is None
+        version = catalog.get(sample_version.identifier)
+    assert version is None

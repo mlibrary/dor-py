@@ -10,17 +10,17 @@ from dor.adapters.sqlalchemy import Base, _custom_json_serializer
 from dor.config import config
 from dor.domain.events import (
     Event,
-    BinCataloged,
     PackageReceived,
     PackageStored,
     PackageSubmitted,
     PackageUnpacked,
     PackageVerified,
+    VersionCataloged
 )
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
-from dor.service_layer.handlers.catalog_bin import catalog_bin
+from dor.service_layer.handlers.catalog_version import catalog_version
 from dor.service_layer.handlers.receive_package import receive_package
 from dor.service_layer.handlers.record_workflow_event import record_workflow_event
 from dor.service_layer.handlers.store_files import store_files
@@ -72,9 +72,9 @@ def bootstrap() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
         ],
         PackageStored: [
             lambda event: record_workflow_event(event, uow),
-            lambda event: catalog_bin(event, uow)
+            lambda event: catalog_version(event, uow)
         ],
-        BinCataloged: [
+        VersionCataloged: [
             lambda event: record_workflow_event(event, uow)
         ]
     }

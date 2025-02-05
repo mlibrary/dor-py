@@ -5,35 +5,35 @@ import pytest
 from pydantic_core import to_jsonable_python
 
 from dor.service_layer.catalog_service import summarize, get_file_sets
-from dor.domain.models import Bin
+from dor.domain.models import Version
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
 
-@pytest.mark.usefixtures("sample_bin")
-def test_catalog_generates_summary(sample_bin):
+@pytest.mark.usefixtures("sample_version")
+def test_catalog_generates_summary(sample_version):
     expected_summary = to_jsonable_python(dict(
-        identifier=sample_bin.identifier,
-        alternate_identifiers=sample_bin.alternate_identifiers,
-        common_metadata=sample_bin.common_metadata,
+        identifier=sample_version.identifier,
+        alternate_identifiers=sample_version.alternate_identifiers,
+        common_metadata=sample_version.common_metadata,
     ))
-    summary = summarize(sample_bin)
+    summary = summarize(sample_version)
     assert expected_summary == summary
 
-@pytest.mark.usefixtures("sample_bin")
-def test_catalog_lists_file_sets(sample_bin):
-    file_sets = get_file_sets(sample_bin)
+@pytest.mark.usefixtures("sample_version")
+def test_catalog_lists_file_sets(sample_version):
+    file_sets = get_file_sets(sample_version)
     expected_file_sets = [
         to_jsonable_python(resource) 
-        for resource in sample_bin.package_resources if resource.type == 'Asset'
+        for resource in sample_version.package_resources if resource.type == 'Asset'
     ]
 
     assert file_sets == expected_file_sets
 
 def test_catalog_has_empty_file_sets():
-    no_file_sets_bin = Bin(
-        identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
+    no_file_sets_version = Version(
+        identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"),
         alternate_identifiers=["xyzzy:00000001"], 
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
@@ -113,5 +113,5 @@ def test_catalog_has_empty_file_sets():
         ]
     )
 
-    file_sets = get_file_sets(no_file_sets_bin)
+    file_sets = get_file_sets(no_file_sets_version)
     assert file_sets == []
