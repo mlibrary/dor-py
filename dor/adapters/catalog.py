@@ -1,9 +1,10 @@
 import uuid
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 import sqlalchemy.exc
 from sqlalchemy import (
-    Column, String, select, Uuid
+    Column, DateTime, String, select, Uuid
 )
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import Mapped
@@ -19,12 +20,12 @@ class Version(Base):
 
     identifier: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     alternate_identifiers: Mapped[list] = Column(MutableList.as_mutable(ARRAY(String)))
+    version_number: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     common_metadata: Mapped[dict] = mapped_column(JSONB)
     package_resources: Mapped[dict] = mapped_column(JSONB)
 
-    # created_at: Mapped[datetime.datetime] = mapped_column(
-    #     DateTime(timezone=True), server_default=func.now()
-    # )
+
     # updated_at: Mapped[datetime.datetime] = mapped_column(
     #     DateTime(timezone=True), server_default=func.now()
     # )
@@ -74,6 +75,8 @@ class SqlalchemyCatalog(Catalog):
         stored_version = Version(
             identifier=version.identifier,
             alternate_identifiers=version.alternate_identifiers,
+            version_number=version.version_number,
+            created_at=version.created_at,
             common_metadata=version.common_metadata,
             package_resources=version.package_resources
         )
@@ -93,6 +96,8 @@ class SqlalchemyCatalog(Catalog):
             version = models.Version(
                 identifier=result.identifier,
                 alternate_identifiers=result.alternate_identifiers,
+                version_number=result.version_number,
+                created_at=result.created_at,
                 common_metadata=result.common_metadata,
                 package_resources=result.package_resources
             )

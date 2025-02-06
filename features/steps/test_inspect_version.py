@@ -49,6 +49,8 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
     version = Version(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
         alternate_identifiers=[alt_id],
+        version_number=1,
+        created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
             "title": "Discussion also Republican owner hot already itself.",
@@ -228,6 +230,8 @@ def _(version: Version, summary):
     expected_summary = dict(
         identifier="00000000-0000-0000-0000-000000000001", 
         alternate_identifiers=version.alternate_identifiers,
+        version_number=1,
+        created_at="2025-02-05T12:00:00Z",
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
             "title": "Discussion also Republican owner hot already itself.",

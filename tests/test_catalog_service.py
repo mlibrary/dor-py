@@ -15,6 +15,8 @@ from dor.providers.models import (
 def test_catalog_generates_summary(sample_version):
     expected_summary = to_jsonable_python(dict(
         identifier=sample_version.identifier,
+        version_number=sample_version.version_number,
+        created_at=sample_version.created_at,
         alternate_identifiers=sample_version.alternate_identifiers,
         common_metadata=sample_version.common_metadata,
     ))
@@ -34,6 +36,8 @@ def test_catalog_lists_file_sets(sample_version):
 def test_catalog_has_empty_file_sets():
     no_file_sets_version = Version(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+        version_number=1,
+        created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
         alternate_identifiers=["xyzzy:00000001"], 
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",

@@ -20,6 +20,8 @@ def test_catalog_api_returns_200_and_summary(
     expected_summary = to_jsonable_python(dict(
         identifier=sample_version.identifier,
         alternate_identifiers=sample_version.alternate_identifiers,
+        version_number=sample_version.version_number,
+        created_at=sample_version.created_at,
         common_metadata=sample_version.common_metadata,
     ))
     assert response.json() == expected_summary

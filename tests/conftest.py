@@ -51,7 +51,9 @@ def test_client(db_session) -> Generator[TestClient, None, None]:
 def sample_version() -> Version:
     return Version(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
-        alternate_identifiers=["xyzzy:00000001"], 
+        alternate_identifiers=["xyzzy:00000001"],
+        version_number=1,
+        created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
             "title": "Discussion also Republican owner hot already itself.",

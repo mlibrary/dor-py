@@ -20,6 +20,8 @@ class VersionInfo():
 class Version:
     identifier: uuid.UUID
     alternate_identifiers: list[str]
+    version_number: int
+    created_at: datetime
     common_metadata: dict[str, Any]
     package_resources: list[PackageResource]
 
