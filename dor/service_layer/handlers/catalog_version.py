@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, UTC
 from pathlib import Path
 
 from dor.domain.events import PackageStored, VersionCataloged
@@ -21,6 +22,8 @@ def catalog_version(event: PackageStored, uow: AbstractUnitOfWork) -> None:
     version = Version(
         identifier=event.identifier,
         alternate_identifiers=[root_resource.alternate_identifier.id],
+        version_number=1,
+        created_at=datetime.now(tz=UTC),
         common_metadata=common_metadata,
         package_resources=event.resources
     )

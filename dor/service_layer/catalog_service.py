@@ -8,6 +8,8 @@ def summarize(version: Version):
     return to_jsonable_python(dict(
         identifier=version.identifier,
         alternate_identifiers=version.alternate_identifiers,
+        version_number=version.version_number,
+        created_at=version.created_at,
         common_metadata=version.common_metadata
     ))
 
