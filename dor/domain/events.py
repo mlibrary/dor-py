@@ -49,5 +49,5 @@ class PackageStored(PackageEvent):
     resources: list[PackageResource]
 
 @dataclass
-class VersionCataloged(PackageEvent):
+class RevisionCataloged(PackageEvent):
     identifier: str

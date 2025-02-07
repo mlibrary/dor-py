@@ -15,12 +15,12 @@ from dor.domain.events import (
     PackageSubmitted,
     PackageUnpacked,
     PackageVerified,
-    VersionCataloged
+    RevisionCataloged
 )
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
-from dor.service_layer.handlers.catalog_version import catalog_version
+from dor.service_layer.handlers.catalog_revision import catalog_revision
 from dor.service_layer.handlers.receive_package import receive_package
 from dor.service_layer.handlers.record_workflow_event import record_workflow_event
 from dor.service_layer.handlers.store_files import store_files
@@ -72,9 +72,9 @@ def bootstrap() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
         ],
         PackageStored: [
             lambda event: record_workflow_event(event, uow),
-            lambda event: catalog_version(event, uow)
+            lambda event: catalog_revision(event, uow)
         ],
-        VersionCataloged: [
+        RevisionCataloged: [
             lambda event: record_workflow_event(event, uow)
         ]
     }

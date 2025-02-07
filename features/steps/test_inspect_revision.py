@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 
 from dor.adapters.sqlalchemy import Base, _custom_json_serializer
 from dor.config import config
-from dor.domain.models import Version
+from dor.domain.models import Revision
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
@@ -19,14 +19,14 @@ from dor.service_layer import catalog_service
 from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
 from gateway.fake_repository_gateway import FakeRepositoryGateway
 
-scenario = partial(scenario, '../inspect_version.feature')
+scenario = partial(scenario, '../inspect_revision.feature')
 
-@scenario('Version summary')
-def test_version_summary():
+@scenario('Revision summary')
+def test_revision_summary():
     pass
 
-@scenario('Version file sets')
-def test_version_file_sets():
+@scenario('Revision file sets')
+def test_revision_file_sets():
     pass
 
 @pytest.fixture
@@ -43,13 +43,13 @@ def unit_of_work() -> AbstractUnitOfWork:
 
 @given(
     parsers.parse(u'a preserved monograph with an alternate identifier of "{alt_id}"'),
-    target_fixture="version"
+    target_fixture="revision"
 )
 def _(alt_id, unit_of_work: AbstractUnitOfWork):
-    version = Version(
+    revision = Revision(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
         alternate_identifiers=[alt_id],
-        version_number=1,
+        revision_number=1,
         created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
@@ -210,27 +210,27 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
     )
 
     with unit_of_work:
-        unit_of_work.catalog.add(version)
+        unit_of_work.catalog.add(revision)
         unit_of_work.commit()
 
-    return version
+    return revision
 
 @when(
-    parsers.parse(u'the Collection Manager looks up the version by "{alt_id}"'),
+    parsers.parse(u'the Collection Manager looks up the revision by "{alt_id}"'),
     target_fixture="summary"
 )
 def _(alt_id, unit_of_work: AbstractUnitOfWork):
     with unit_of_work:
-        version = unit_of_work.catalog.get_by_alternate_identifier(alt_id)
-    summary = catalog_service.summarize(version)
+        revision = unit_of_work.catalog.get_by_alternate_identifier(alt_id)
+    summary = catalog_service.summarize(revision)
     return summary
 
-@then(u'the Collection Manager sees the summary of the version')
-def _(version: Version, summary):
+@then(u'the Collection Manager sees the summary of the revision.')
+def _(revision: Revision, summary):
     expected_summary = dict(
         identifier="00000000-0000-0000-0000-000000000001", 
-        alternate_identifiers=version.alternate_identifiers,
-        version_number=1,
+        alternate_identifiers=revision.alternate_identifiers,
+        revision_number=1,
         created_at="2025-02-05T12:00:00Z",
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
@@ -246,20 +246,20 @@ def _(version: Version, summary):
     assert summary == expected_summary
 
 @when(
-    parsers.parse(u'the Collection Manager lists the contents of the version for "{alt_id}"'),
+    parsers.parse(u'the Collection Manager lists the contents of the revision for "{alt_id}"'),
     target_fixture="file_sets"
 )
 def _(alt_id, unit_of_work):
     with unit_of_work:
-        version = unit_of_work.catalog.get_by_alternate_identifier(alt_id)
-    file_sets = catalog_service.get_file_sets(version)
+        revision = unit_of_work.catalog.get_by_alternate_identifier(alt_id)
+    file_sets = catalog_service.get_file_sets(revision)
     return file_sets
 
 @then(u'the Collection Manager sees the file sets.')
-def _(version: Version, file_sets):
+def _(revision: Revision, file_sets):
     expected_file_sets = [
         to_jsonable_python(resource) 
-        for resource in version.package_resources if resource.type == 'Asset'
+        for resource in revision.package_resources if resource.type == 'Asset'
     ]
     assert file_sets == expected_file_sets
 

@@ -5,38 +5,38 @@ import pytest
 from pydantic_core import to_jsonable_python
 
 from dor.service_layer.catalog_service import summarize, get_file_sets
-from dor.domain.models import Version
+from dor.domain.models import Revision
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
 
-@pytest.mark.usefixtures("sample_version")
-def test_catalog_generates_summary(sample_version):
+@pytest.mark.usefixtures("sample_revision")
+def test_catalog_generates_summary(sample_revision):
     expected_summary = to_jsonable_python(dict(
-        identifier=sample_version.identifier,
-        version_number=sample_version.version_number,
-        created_at=sample_version.created_at,
-        alternate_identifiers=sample_version.alternate_identifiers,
-        common_metadata=sample_version.common_metadata,
+        identifier=sample_revision.identifier,
+        revision_number=sample_revision.revision_number,
+        created_at=sample_revision.created_at,
+        alternate_identifiers=sample_revision.alternate_identifiers,
+        common_metadata=sample_revision.common_metadata,
     ))
-    summary = summarize(sample_version)
+    summary = summarize(sample_revision)
     assert expected_summary == summary
 
-@pytest.mark.usefixtures("sample_version")
-def test_catalog_lists_file_sets(sample_version):
-    file_sets = get_file_sets(sample_version)
+@pytest.mark.usefixtures("sample_revision")
+def test_catalog_lists_file_sets(sample_revision):
+    file_sets = get_file_sets(sample_revision)
     expected_file_sets = [
         to_jsonable_python(resource) 
-        for resource in sample_version.package_resources if resource.type == 'Asset'
+        for resource in sample_revision.package_resources if resource.type == 'Asset'
     ]
 
     assert file_sets == expected_file_sets
 
 def test_catalog_has_empty_file_sets():
-    no_file_sets_version = Version(
+    no_file_sets_revision = Revision(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"),
-        version_number=1,
+        revision_number=1,
         created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
         alternate_identifiers=["xyzzy:00000001"], 
         common_metadata={
@@ -117,5 +117,5 @@ def test_catalog_has_empty_file_sets():
         ]
     )
 
-    file_sets = get_file_sets(no_file_sets_version)
+    file_sets = get_file_sets(no_file_sets_revision)
     assert file_sets == []
