@@ -2,42 +2,42 @@ import pytest
 from pydantic_core import to_jsonable_python
 
 from dor.adapters.catalog import SqlalchemyCatalog
-from dor.domain.models import Version
+from dor.domain.models import Revision
 
 
-@pytest.mark.usefixtures("sample_version", "db_session", "test_client")
+@pytest.mark.usefixtures("sample_revision", "db_session", "test_client")
 def test_catalog_api_returns_200_and_summary(
-    sample_version: Version, db_session, test_client
+    sample_revision: Revision, db_session, test_client
 ) -> None:
     catalog = SqlalchemyCatalog(db_session)
     with db_session.begin():
-        catalog.add(sample_version)
+        catalog.add(sample_revision)
         db_session.commit()
 
-    response = test_client.get(f"/api/v1/catalog/versions/{sample_version.identifier}/")
+    response = test_client.get(f"/api/v1/catalog/revisions/{sample_revision.identifier}/")
 
     assert response.status_code == 200
     expected_summary = to_jsonable_python(dict(
-        identifier=sample_version.identifier,
-        alternate_identifiers=sample_version.alternate_identifiers,
-        version_number=sample_version.version_number,
-        created_at=sample_version.created_at,
-        common_metadata=sample_version.common_metadata,
+        identifier=sample_revision.identifier,
+        alternate_identifiers=sample_revision.alternate_identifiers,
+        revision_number=sample_revision.revision_number,
+        created_at=sample_revision.created_at,
+        common_metadata=sample_revision.common_metadata,
     ))
     assert response.json() == expected_summary
 
 
-@pytest.mark.usefixtures("sample_version", "db_session", "test_client")
+@pytest.mark.usefixtures("sample_revision", "db_session", "test_client")
 def test_catalog_api_returns_200_and_file_sets(
-    sample_version: Version, db_session, test_client
+    sample_revision: Revision, db_session, test_client
 ) -> None:
     catalog = SqlalchemyCatalog(db_session)
     with db_session.begin():
-        catalog.add(sample_version)
+        catalog.add(sample_revision)
         db_session.commit()
 
-    response = test_client.get(f"/api/v1/catalog/versions/{sample_version.identifier}/filesets")
+    response = test_client.get(f"/api/v1/catalog/revisions/{sample_revision.identifier}/filesets")
 
     assert response.status_code == 200
-    expected_summary = to_jsonable_python([sample_version.package_resources[1]])
+    expected_summary = to_jsonable_python([sample_revision.package_resources[1]])
     assert response.json() == expected_summary

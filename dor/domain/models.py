@@ -17,10 +17,10 @@ class VersionInfo():
 
 
 @dataclass
-class Version:
+class Revision:
     identifier: uuid.UUID
     alternate_identifiers: list[str]
-    version_number: int
+    revision_number: int
     created_at: datetime
     common_metadata: dict[str, Any]
     package_resources: list[PackageResource]
@@ -38,7 +38,7 @@ class WorkflowEventType(Enum):
     PACKAGE_NOT_VERIFIED = "PackageNotVerified"
     PACKAGE_UNPACKED = "PackageUnpacked"
     PACKAGE_STORED = "PackageStored"
-    VERSION_CATALOGED = "VersionCataloged"
+    REVISION_CATALOGED = "RevisionCataloged"
 
 
 @dataclass

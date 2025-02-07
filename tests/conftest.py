@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from dor.adapters.sqlalchemy import Base, _custom_json_serializer
 from dor.config import config
-from dor.domain.models import Version
+from dor.domain.models import Revision
 from dor.entrypoints.api.dependencies import get_db_session
 from dor.entrypoints.api.main import app
 from dor.providers.models import (
@@ -48,11 +48,11 @@ def test_client(db_session) -> Generator[TestClient, None, None]:
 
 
 @pytest.fixture
-def sample_version() -> Version:
-    return Version(
+def sample_revision() -> Revision:
+    return Revision(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
         alternate_identifiers=["xyzzy:00000001"],
-        version_number=1,
+        revision_number=1,
         created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",

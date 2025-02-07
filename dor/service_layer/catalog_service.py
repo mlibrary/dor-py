@@ -1,20 +1,19 @@
-from typing import Any
 from pydantic_core import to_jsonable_python
 
-from dor.domain.models import Version
+from dor.domain.models import Revision
 
 
-def summarize(version: Version):
+def summarize(revision: Revision):
     return to_jsonable_python(dict(
-        identifier=version.identifier,
-        alternate_identifiers=version.alternate_identifiers,
-        version_number=version.version_number,
-        created_at=version.created_at,
-        common_metadata=version.common_metadata
+        identifier=revision.identifier,
+        alternate_identifiers=revision.alternate_identifiers,
+        revision_number=revision.revision_number,
+        created_at=revision.created_at,
+        common_metadata=revision.common_metadata
     ))
 
-def get_file_sets(version: Version):
+def get_file_sets(revision: Revision):
     return [
         to_jsonable_python(resource) 
-        for resource in version.package_resources if resource.type == 'Asset'
+        for resource in revision.package_resources if resource.type == 'Asset'
     ]

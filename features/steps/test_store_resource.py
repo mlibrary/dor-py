@@ -20,13 +20,13 @@ from dor.domain.events import (
     PackageSubmitted,
     PackageVerified,
     PackageUnpacked,
-    VersionCataloged
+    RevisionCataloged
 )
 from dor.domain.models import WorkflowEventType
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
-from dor.service_layer.handlers.catalog_version import catalog_version
+from dor.service_layer.handlers.catalog_revision import catalog_revision
 from dor.service_layer.handlers.receive_package import receive_package
 from dor.service_layer.handlers.record_workflow_event import record_workflow_event
 from dor.service_layer.handlers.store_files import store_files
@@ -103,9 +103,9 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
         ],
         PackageStored: [
             lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: catalog_version(event, unit_of_work)
+            lambda event: catalog_revision(event, unit_of_work)
         ],
-        VersionCataloged: [
+        RevisionCataloged: [
             lambda event: record_workflow_event(event, unit_of_work),
         ]
     }
@@ -149,9 +149,9 @@ def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
     assert unit_of_work.gateway.has_object(expected_identifier)
 
     with unit_of_work:
-        version = unit_of_work.catalog.get(expected_identifier)
-        assert version is not None
+        revision = unit_of_work.catalog.get(expected_identifier)
+        assert revision is not None
 
         workflow_events = unit_of_work.event_store.get_all_for_tracking_identifier(tracking_identifier)
         assert len(workflow_events) != 0
-        assert workflow_events[0].event_type == WorkflowEventType.VERSION_CATALOGED
+        assert workflow_events[0].event_type == WorkflowEventType.REVISION_CATALOGED
