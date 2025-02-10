@@ -4,7 +4,7 @@ from datetime import datetime
 
 import sqlalchemy.exc
 from sqlalchemy import (
-    Column, DateTime, String, select, Uuid
+    Column, DateTime, Integer, select, String, Uuid
 )
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import Mapped
@@ -20,7 +20,7 @@ class Revision(Base):
 
     identifier: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     alternate_identifiers: Mapped[list] = Column(MutableList.as_mutable(ARRAY(String)))
-    revision_number: Mapped[int]
+    revision_number: Mapped[int] = mapped_column(Integer, primary_key=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     common_metadata: Mapped[dict] = mapped_column(JSONB)
     package_resources: Mapped[dict] = mapped_column(JSONB)
