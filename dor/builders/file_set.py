@@ -89,7 +89,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="TECHNICAL",
             mdtype="NISOIMG",
-            locref=f"../metadata/{image_filename}.mix.xml",
+            locref=f"metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
@@ -102,7 +102,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         id=generate_md5(image_filename),
         use=str(FileUses.source.value),
         mdid=mdsec_items[-1].id,
-        locref=f"../data/{image_filename}",
+        locref=f"data/{image_filename}",
         mimetype="image/jpeg",
         checksum=calculate_checksum(image_pathname),
     )
@@ -125,7 +125,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="TECHNICAL",
             mdtype="NISOIMG",
-            locref=f"../metadata/{image_filename}.mix.xml",
+            locref=f"metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
@@ -135,7 +135,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         group_id=source_file_identifier,
         use=str(FileUses.access.value),
         mdid=mdsec_items[-1].id,
-        locref=f"../data/{image_filename}",
+        locref=f"data/{image_filename}",
         mimetype="image/jpeg",
         checksum=calculate_checksum(image_pathname)
     )
@@ -146,7 +146,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"../metadata/{image_filename}.premis.event.xml",
+            locref=f"metadata/{image_filename}.premis.event.xml",
             mimetype="text/xml"
         )
     )
@@ -170,7 +170,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="TECHNICAL",
             mdtype="TEXTMD",
-            locref=f"../metadata/{text_filename}.textmd.xml",
+            locref=f"metadata/{text_filename}.textmd.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
@@ -180,7 +180,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         group_id=source_file_identifier,
         use=str(FileUses.source.value),
         mdid=mdsec_items[-1].id,
-        locref=f"../data/{text_filename}",
+        locref=f"data/{text_filename}",
         mimetype="text/plain",
         checksum=calculate_checksum(text_pathname),
     )
@@ -191,7 +191,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"../metadata/{image_filename}.premis.event.xml",
+            locref=f"metadata/{image_filename}.premis.event.xml",
             mimetype="text/xml"
         )
     )

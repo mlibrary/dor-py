@@ -89,7 +89,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
         Md(
             use="DESCRIPTIVE/COMMON",
             mdtype="DOR:SCHEMA",
-            locref=f"../metadata/{resource_identifier}.common.json",
+            locref=f"metadata/{resource_identifier}.common.json",
             checksum=calculate_checksum(common_pathname),
             mimetype="application/json",
         )
@@ -99,7 +99,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
         Md(
             use="DESCRIPTIVE",
             mdtype="DOR:SCHEMA",
-            locref=f"../metadata/{resource_identifier}.metadata.json",
+            locref=f"metadata/{resource_identifier}.metadata.json",
             checksum=calculate_checksum(metadata_pathname),
             mimetype="application/json",
         )
@@ -116,7 +116,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
         Md(
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"../metadata/{resource_identifier}.premis.object.xml",
+            locref=f"metadata/{resource_identifier}.premis.object.xml",
             mimetype="text/xml"
         )
     )
@@ -131,7 +131,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
         Md(
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"../metadata/{resource_identifier}.premis.event.xml",
+            locref=f"metadata/{resource_identifier}.premis.event.xml",
             mimetype="text/xml"
         )
     )
