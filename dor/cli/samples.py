@@ -5,7 +5,7 @@ import bagit
 from dor.settings import S, ActionChoices
 
 from dor.builders.parts import generate_uuid, Identifier
-from dor.builders.item import build_item
+from dor.builders.resource import build_resource
 
 import sys
 import datetime
@@ -60,6 +60,7 @@ def generate(
     start: int = typer.Option(default=1, help="seed number for the root identifier"),
     versions: int = typer.Option(default=1, help="number of versions to generate"),
     output_pathname: str = pathlib.Path(__file__).resolve().parent.parent.parent.joinpath("output"),
+    seed: int = typer.Option(default=-1, help="Faker seed value"),
 ):
 
     """
@@ -76,19 +77,20 @@ def generate(
         # images=images,
         # texts=texts,
         output_pathname=output_pathname,
+        seed=seed,
     )
 
     if deposit_group is None:
         deposit_group = generate_uuid()
     deposit_group_date = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    item_identifier = Identifier(start=start, collid=collid)
+    resource_identifier = Identifier(start=start, collid=collid)
     for version in range(1, versions + 1):
         package_pathname = S.output_pathname.joinpath(
-            f"{S.collid}-{item_identifier}-v{version}"
+            f"{S.collid}-{resource_identifier}-v{version}"
         )
         package_pathname.mkdir()
-        identifiers = build_item(package_pathname, item_identifier, version=version)
+        identifiers = build_resource(package_pathname, resource_identifier, version=version)
         bag = bagit.make_bag(package_pathname)
 
         # one time ugly
@@ -96,7 +98,7 @@ def generate(
             ('Action', S.action.value),
             ('Deposit-Group-Identifier', deposit_group),
             ('Deposit-Group-Date', deposit_group_date),
-            ('Root-Identifier', str(item_identifier)),
+            ('Root-Identifier', str(resource_identifier)),
             ('Identifier', identifiers),
         ])
         bagit._make_tag_file(package_pathname / "dor-info.txt", dor_info)
