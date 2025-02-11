@@ -48,9 +48,15 @@ def build_plaintext(use, seq, version):
     return "\n\n".join(buffer)
 
 
-def build_file_set(item_identifier, seq, object_pathname, version):
+def build_file_set(item_identifier, seq, package_pathname, version):
     local_identifier = generate_uuid(base=16*16*16*item_identifier.start+seq)
     identifier = local_identifier
+
+    file_set_pathname = package_pathname.joinpath(str(identifier))
+    file_set_pathname.mkdir()
+    for d in ["data", "descriptor", "metadata"]:
+        d_pathname = file_set_pathname.joinpath(d)
+        d_pathname.mkdir()
 
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
@@ -72,8 +78,8 @@ def build_file_set(item_identifier, seq, object_pathname, version):
     image = build_image(use=FileUses.source, seq=seq, version=version)
     image_filename = f"{padded_seq}.source.jpg"
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    image_pathname = object_pathname.joinpath("data", image_filename)
-    metadata_pathname = object_pathname.joinpath(
+    image_pathname = file_set_pathname.joinpath("data", image_filename)
+    metadata_pathname = file_set_pathname.joinpath(
         "metadata", f"{image_filename}.mix.xml"
     )
     image.save(image_pathname)
@@ -89,7 +95,7 @@ def build_file_set(item_identifier, seq, object_pathname, version):
     )
 
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    object_pathname.joinpath("metadata", f"{image_filename}.mix.xml").open("w").write(
+    file_set_pathname.joinpath("metadata", f"{image_filename}.mix.xml").open("w").write(
         mix_template.render(**metadata)
     )
     file = File(
@@ -108,8 +114,8 @@ def build_file_set(item_identifier, seq, object_pathname, version):
     image_filename = f"{padded_seq}.access.jpg"
 
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    image_pathname = object_pathname.joinpath("data", image_filename)
-    metadata_pathname = object_pathname.joinpath("metadata", f"{image_filename}.mix.xml")
+    image_pathname = file_set_pathname.joinpath("data", image_filename)
+    metadata_pathname = file_set_pathname.joinpath("metadata", f"{image_filename}.mix.xml")
     image.save(image_pathname)
     metadata_pathname.open("w").write(
         mix_template.render(**metadata)
@@ -144,7 +150,7 @@ def build_file_set(item_identifier, seq, object_pathname, version):
             mimetype="text/xml"
         )
     )
-    object_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
+    file_set_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
         premis_event_template.render(
             event=premis_event
         )
@@ -152,8 +158,8 @@ def build_file_set(item_identifier, seq, object_pathname, version):
 
     plaintext = build_plaintext(use=FileUses.source, seq=seq, version=version)
     text_filename = f"{padded_seq}.plaintext.txt"
-    text_pathname = object_pathname.joinpath("data", text_filename)
-    metadata_pathname = object_pathname.joinpath("metadata", f"{text_filename}.textmd.xml")
+    text_pathname = file_set_pathname.joinpath("data", text_filename)
+    metadata_pathname = file_set_pathname.joinpath("metadata", f"{text_filename}.textmd.xml")
 
     text_pathname.open("w").write(plaintext)
     metadata_pathname.open("w").write(
@@ -189,13 +195,13 @@ def build_file_set(item_identifier, seq, object_pathname, version):
             mimetype="text/xml"
         )
     )
-    object_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
+    file_set_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
         premis_event_template.render(
             event=premis_event
         )
     )
 
-    object_pathname.joinpath("descriptor", local_identifier + ".asset.mets2.xml").open("w").write(
+    file_set_pathname.joinpath("descriptor", local_identifier + ".asset.mets2.xml").open("w").write(
         file_set_template.render(
             object_identifier=identifier,
             alternate_identifier=f"{item_identifier.alternate_identifier}:{padded_seq}",

@@ -33,7 +33,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
             sequences, random.randint(1, min(len(sequences) - 1, 2)))
 
     for seq in sequences:
-        identifier = build_file_set(resource_identifier, seq, resource_pathname, version)
+        identifier = build_file_set(resource_identifier, seq, package_pathname, version)
         file_set_identifiers.append(identifier)
 
     if version > 1:
@@ -56,23 +56,6 @@ def build_resource(package_pathname, resource_identifier, version=1):
     fake["en_US"].add_provider(ModelOrganism)
 
     mdsec_items = []
-
-    collections_pathname = resource_pathname.joinpath(
-        "metadata", resource_identifier + ".collections.xml"
-    )
-    # other possible formats:
-    # <link rel="dcam:memberOf" href="urn:dlxs:xyzzy" />
-    collections_pathname.open("w").write(
-        f'''<dcam:memberOf xmlns:dcam="http://purl.org/dc/dcam/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:resource="urn:dlxs:{S.collid}" />'''
-    )
-    mdsec_items.append(
-        Md(
-            use="COLLECTIONS",
-            mdtype="DC",
-            mimetype="text/xml",
-            locref=f"../metadata/{resource_identifier}.collections.xml"
-        )
-    )
 
     metadata = {}
     metadata["@schema"] = f"urn:umich.edu:dor:schema:{S.collid}"
@@ -125,7 +108,8 @@ def build_resource(package_pathname, resource_identifier, version=1):
     resource_pathname.joinpath("metadata", resource_identifier + ".premis.object.xml").open("w").write(
         premis_object_template.render(
             alternate_identifier=alternate_identifier,
-            scans_count=len(file_set_identifiers)
+            scans_count=len(file_set_identifiers),
+            collid=S.collid,
         )
     )
     mdsec_items.append(
@@ -137,7 +121,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
         )
     )
 
-    premis_event =build_event(event_type="ingest", linking_agent_type="collection manager")
+    premis_event = build_event(event_type="ingest", linking_agent_type="collection manager")
     resource_pathname.joinpath("metadata", resource_identifier + ".premis.event.xml").open("w").write(
         premis_event_template.render(
             event=premis_event
