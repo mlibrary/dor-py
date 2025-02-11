@@ -63,13 +63,23 @@ class Identifier:
 
     def __str__(self):
         return str(self.uuid)
-    
+
     def __add__(self, other):
         return str(self) + other
-    
+
     @property
     def alternate_identifier(self):
         return f"{self.collid}:{self.uuid.int:08d}"
+
+
+class IdGenerator:
+    def __init__(self, identifier):
+        self.identifier = identifier
+        self.counter = 0
+
+    def __call__(self):
+        self.counter += 1
+        return generate_uuid(base=16 * 16 * self.identifier.start + self.counter)
 
 
 def calculate_checksum(pathname):

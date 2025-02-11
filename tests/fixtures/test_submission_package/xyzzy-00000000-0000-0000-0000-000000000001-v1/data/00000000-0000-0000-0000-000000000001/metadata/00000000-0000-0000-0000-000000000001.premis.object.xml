@@ -3,28 +3,24 @@
   <PREMIS:object xsi:type="PREMIS:representation">
     <PREMIS:objectIdentifier>
       <PREMIS:objectIdentifierType>DLXS</PREMIS:objectIdentifierType>
-      <PREMIS:objectIdentifierValue>{{ alternate_identifier }}</PREMIS:objectIdentifierValue>
+      <PREMIS:objectIdentifierValue>xyzzy:00000001</PREMIS:objectIdentifierValue>
     </PREMIS:objectIdentifier>
     <PREMIS:significantProperties>
       <PREMIS:significantPropertiesType>scans count</PREMIS:significantPropertiesType>
-      <PREMIS:significantPropertiesValue>{{ scans_count }}</PREMIS:significantPropertiesValue>
+      <PREMIS:significantPropertiesValue>2</PREMIS:significantPropertiesValue>
     </PREMIS:significantProperties>
-    {%- if seed %}
     <PREMIS:significantProperties>
       <PREMIS:significantPropertiesType>seed</PREMIS:significantPropertiesType>
-      <PREMIS:significantPropertiesValue>{{ seed }}</PREMIS:significantPropertiesValue>
+      <PREMIS:significantPropertiesValue>101</PREMIS:significantPropertiesValue>
     </PREMIS:significantProperties>
-    {%- endif %}
-    {%- if collid %}
     <PREMIS:relationship>
         <PREMIS:relationshipType>structural</PREMIS:relationshipType>
         <PREMIS:relationshipSubType>isPartOf</PREMIS:relationshipSubType>
         <PREMIS:relatedObjectIdentifier>
           <PREMIS:relatedObjectIdentifierType>local</PREMIS:relatedObjectIdentifierType>
-          <PREMIS:relatedObjectIdentifierValue>{{ collid }}</PREMIS:relatedObjectIdentifierValue>
+          <PREMIS:relatedObjectIdentifierValue>xyzzy</PREMIS:relatedObjectIdentifierValue>
         </PREMIS:relatedObjectIdentifier>
     </PREMIS:relationship>
-    {%- endif %}
     <PREMIS:linkingRightsStatementIdentifier>
       <PREMIS:linkingRightsStatementIdentifierType>local</PREMIS:linkingRightsStatementIdentifierType>
       <PREMIS:linkingRightsStatementIdentifierValue>https://creativecommons.org/publicdomain/zero/1.0/</PREMIS:linkingRightsStatementIdentifierValue>

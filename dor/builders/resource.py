@@ -7,9 +7,10 @@ import json
 import random
 
 from dor.settings import S, template_env
-from .parts import Md, MdGrp, File, FileGrp, calculate_checksum, make_paths
+from .parts import Md, MdGrp, File, FileGrp, IdGenerator, calculate_checksum, make_paths, generate_uuid
 from .file_set import build_file_set
 from .premis import build_event
+
 
 def build_resource(package_pathname, resource_identifier, version=1):
     resource_pathname = make_paths(package_pathname.joinpath(str(resource_identifier)))
@@ -19,6 +20,8 @@ def build_resource(package_pathname, resource_identifier, version=1):
     resource_template = template_env.get_template("mets_resource.xml")
     premis_event_template = template_env.get_template("premis_event.xml")
     premis_object_template = template_env.get_template("premis_object.xml")
+
+    generate_md_identifier = IdGenerator(resource_identifier)
 
     file_set_identifiers = []
     num_scans = random.randint(1, 10) if S.num_scans < 0 else S.num_scans
@@ -82,6 +85,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
 
     mdsec_items.append(
         Md(
+            id=generate_md_identifier(),
             use="DESCRIPTIVE/COMMON",
             mdtype="DOR:SCHEMA",
             locref=f"{resource_identifier}/metadata/{resource_identifier}.common.json",
@@ -92,6 +96,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
 
     mdsec_items.append(
         Md(
+            id=generate_md_identifier(),
             use="DESCRIPTIVE",
             mdtype="DOR:SCHEMA",
             locref=f"{resource_identifier}/metadata/{resource_identifier}.metadata.json",
@@ -112,10 +117,11 @@ def build_resource(package_pathname, resource_identifier, version=1):
     )
     mdsec_items.append(
         Md(
+            id=generate_md_identifier(),
             use="PROVENANCE",
             mdtype="PREMIS",
             locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.object.xml",
-            mimetype="text/xml"
+            mimetype="text/xml",
         )
     )
 
@@ -127,10 +133,11 @@ def build_resource(package_pathname, resource_identifier, version=1):
     )
     mdsec_items.append(
         Md(
+            id=generate_md_identifier(),
             use="PROVENANCE",
             mdtype="PREMIS",
             locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.event.xml",
-            mimetype="text/xml"
+            mimetype="text/xml",
         )
     )
 

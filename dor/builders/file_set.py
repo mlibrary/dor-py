@@ -6,7 +6,7 @@ import hashlib
 
 from dor.settings import S, text_font, template_env
 
-from .parts import FileUses, Md, MdGrp, File, FileGrp, calculate_checksum, generate_md5, generate_uuid, make_paths
+from .parts import FileUses, Identifier, Md, File, FileGrp, IdGenerator, calculate_checksum, generate_md5, generate_uuid, make_paths
 from .premis import build_event
 
 IMAGE_WIDTH = 680
@@ -54,6 +54,10 @@ def build_file_set(item_identifier, seq, package_pathname, version):
 
     file_set_pathname = make_paths(package_pathname.joinpath(str(identifier)))
 
+    id_generator = IdGenerator(
+        Identifier(start=16 * 16 * 16 * item_identifier.start + seq, collid=item_identifier.collid)
+    )
+
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
     file_set_template = template_env.get_template("mets_file_set.xml")
@@ -83,6 +87,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
 
     mdsec_items.append(
         Md(
+            id=id_generator(),
             use="TECHNICAL",
             mdtype="NISOIMG",
             locref=f"{identifier}/metadata/{image_filename}.mix.xml",
@@ -119,6 +124,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
 
     mdsec_items.append(
         Md(
+            id=id_generator(),
             use="TECHNICAL",
             mdtype="NISOIMG",
             locref=f"{identifier}/metadata/{image_filename}.mix.xml",
@@ -140,10 +146,11 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     premis_event = build_event(event_type='generate access derivative', linking_agent_type='image processing')
     mdsec_items.append(
         Md(
+            id=id_generator(),
             use="PROVENANCE",
             mdtype="PREMIS",
             locref=f"{identifier}/metadata/{image_filename}.premis.event.xml",
-            mimetype="text/xml"
+            mimetype="text/xml",
         )
     )
     file_set_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
@@ -164,6 +171,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
 
     mdsec_items.append(
         Md(
+            id=id_generator(),
             use="TECHNICAL",
             mdtype="TEXTMD",
             locref=f"{identifier}/metadata/{text_filename}.textmd.xml",
@@ -185,19 +193,20 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     premis_event = build_event(event_type='extract text', linking_agent_type='ocr processing')
     mdsec_items.append(
         Md(
+            id=id_generator(),
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"{identifier}/metadata/{image_filename}.premis.event.xml",
-            mimetype="text/xml"
+            locref=f"{identifier}/metadata/{text_filename}.premis.event.xml",
+            mimetype="text/xml",
         )
     )
-    file_set_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
+    file_set_pathname.joinpath("metadata", text_filename + ".premis.event.xml").open("w").write(
         premis_event_template.render(
             event=premis_event
         )
     )
 
-    file_set_pathname.joinpath("descriptor", local_identifier + ".asset.mets2.xml").open("w").write(
+    file_set_pathname.joinpath("descriptor", local_identifier + ".file_set.mets2.xml").open("w").write(
         file_set_template.render(
             object_identifier=identifier,
             alternate_identifier=f"{item_identifier.alternate_identifier}:{padded_seq}",
