@@ -24,7 +24,7 @@
       <METS:div>
         {% for file_set_identifier in file_set_identifiers %}
         <METS:div ORDERLABEL="{{ loop.index }}" TYPE="page" ORDER="{{ loop.index }}" LABEL="Page {{ loop.index }}" ID="urn:dor:{{ file_set_identifier }}">
-          <METS:mptr LOCTYPE="URL" LOCREF="{{ file_set_identifier }}.mets2.xml" />
+          <METS:mptr LOCTYPE="URL" LOCREF="{{ file_set_identifier }}/descriptor/{{ file_set_identifier }}.mets2.xml" />
         </METS:div>
         {% endfor %}  
       </METS:div>

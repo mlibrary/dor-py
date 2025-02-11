@@ -7,19 +7,14 @@ import json
 import random
 
 from dor.settings import S, template_env
-from .parts import Md, MdGrp, File, FileGrp, calculate_checksum, generate_ulid
+from .parts import Md, MdGrp, File, FileGrp, calculate_checksum, make_paths
 from .file_set import build_file_set
 from .premis import build_event
 
 def build_resource(package_pathname, resource_identifier, version=1):
-    resource_pathname = package_pathname.joinpath(str(resource_identifier))
-    resource_pathname.mkdir()
+    resource_pathname = make_paths(package_pathname.joinpath(str(resource_identifier)))
 
     alternate_identifier = resource_identifier.alternate_identifier
-
-    for d in ["data", "descriptor", "metadata"]:
-        d_pathname = resource_pathname.joinpath(d)
-        d_pathname.mkdir()
 
     resource_template = template_env.get_template("mets_resource.xml")
     premis_event_template = template_env.get_template("premis_event.xml")
@@ -89,7 +84,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
         Md(
             use="DESCRIPTIVE/COMMON",
             mdtype="DOR:SCHEMA",
-            locref=f"metadata/{resource_identifier}.common.json",
+            locref=f"{resource_identifier}/metadata/{resource_identifier}.common.json",
             checksum=calculate_checksum(common_pathname),
             mimetype="application/json",
         )
@@ -99,24 +94,27 @@ def build_resource(package_pathname, resource_identifier, version=1):
         Md(
             use="DESCRIPTIVE",
             mdtype="DOR:SCHEMA",
-            locref=f"metadata/{resource_identifier}.metadata.json",
+            locref=f"{resource_identifier}/metadata/{resource_identifier}.metadata.json",
             checksum=calculate_checksum(metadata_pathname),
             mimetype="application/json",
         )
     )
 
-    resource_pathname.joinpath("metadata", resource_identifier + ".premis.object.xml").open("w").write(
+    resource_pathname.joinpath(
+        "metadata", resource_identifier + ".premis.object.xml"
+    ).open("w").write(
         premis_object_template.render(
             alternate_identifier=alternate_identifier,
             scans_count=len(file_set_identifiers),
             collid=S.collid,
+            seed=S.seed if S.seed > -1 else False,
         )
     )
     mdsec_items.append(
         Md(
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"metadata/{resource_identifier}.premis.object.xml",
+            locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.object.xml",
             mimetype="text/xml"
         )
     )
@@ -131,7 +129,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
         Md(
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"metadata/{resource_identifier}.premis.event.xml",
+            locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.event.xml",
             mimetype="text/xml"
         )
     )

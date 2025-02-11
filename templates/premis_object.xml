@@ -9,7 +9,13 @@
       <PREMIS:significantPropertiesType>scans count</PREMIS:significantPropertiesType>
       <PREMIS:significantPropertiesValue>{{ scans_count }}</PREMIS:significantPropertiesValue>
     </PREMIS:significantProperties>
-    {% if collid %}
+    {%- if seed %}
+    <PREMIS:significantProperties>
+      <PREMIS:significantPropertiesType>seed</PREMIS:significantPropertiesType>
+      <PREMIS:significantPropertiesValue>{{ seed }}</PREMIS:significantPropertiesValue>
+    </PREMIS:significantProperties>
+    {%- endif %}
+    {%- if collid %}
     <PREMIS:relationship>
         <PREMIS:relationshipType>structural</PREMIS:relationshipType>
         <PREMIS:relationshipSubType>isPartOf</PREMIS:relationshipSubType>
@@ -18,6 +24,6 @@
           <PREMIS:relatedObjectIdentifierValue>{{ collid }}</PREMIS:relatedObjectIdentifierValue>
         </PREMIS:relatedObjectIdentifier>
     </PREMIS:relationship>
-    {% endif %}
+    {%- endif %}
   </PREMIS:object>
 </PREMIS:premis>

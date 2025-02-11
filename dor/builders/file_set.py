@@ -6,7 +6,7 @@ import hashlib
 
 from dor.settings import S, text_font, template_env
 
-from .parts import FileUses, Md, MdGrp, File, FileGrp, calculate_checksum, generate_md5, generate_uuid
+from .parts import FileUses, Md, MdGrp, File, FileGrp, calculate_checksum, generate_md5, generate_uuid, make_paths
 from .premis import build_event
 
 IMAGE_WIDTH = 680
@@ -52,11 +52,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     local_identifier = generate_uuid(base=16*16*16*item_identifier.start+seq)
     identifier = local_identifier
 
-    file_set_pathname = package_pathname.joinpath(str(identifier))
-    file_set_pathname.mkdir()
-    for d in ["data", "descriptor", "metadata"]:
-        d_pathname = file_set_pathname.joinpath(d)
-        d_pathname.mkdir()
+    file_set_pathname = make_paths(package_pathname.joinpath(str(identifier)))
 
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
@@ -89,7 +85,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="TECHNICAL",
             mdtype="NISOIMG",
-            locref=f"metadata/{image_filename}.mix.xml",
+            locref=f"{identifier}/metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
@@ -102,7 +98,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         id=generate_md5(image_filename),
         use=str(FileUses.source.value),
         mdid=mdsec_items[-1].id,
-        locref=f"data/{image_filename}",
+        locref=f"{identifier}/data/{image_filename}",
         mimetype="image/jpeg",
         checksum=calculate_checksum(image_pathname),
     )
@@ -125,7 +121,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="TECHNICAL",
             mdtype="NISOIMG",
-            locref=f"metadata/{image_filename}.mix.xml",
+            locref=f"{identifier}/metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
@@ -135,7 +131,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         group_id=source_file_identifier,
         use=str(FileUses.access.value),
         mdid=mdsec_items[-1].id,
-        locref=f"data/{image_filename}",
+        locref=f"{identifier}/data/{image_filename}",
         mimetype="image/jpeg",
         checksum=calculate_checksum(image_pathname)
     )
@@ -146,7 +142,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"metadata/{image_filename}.premis.event.xml",
+            locref=f"{identifier}/metadata/{image_filename}.premis.event.xml",
             mimetype="text/xml"
         )
     )
@@ -170,7 +166,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="TECHNICAL",
             mdtype="TEXTMD",
-            locref=f"metadata/{text_filename}.textmd.xml",
+            locref=f"{identifier}/metadata/{text_filename}.textmd.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
@@ -180,7 +176,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         group_id=source_file_identifier,
         use=str(FileUses.source.value),
         mdid=mdsec_items[-1].id,
-        locref=f"data/{text_filename}",
+        locref=f"{identifier}/data/{text_filename}",
         mimetype="text/plain",
         checksum=calculate_checksum(text_pathname),
     )
@@ -191,7 +187,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         Md(
             use="PROVENANCE",
             mdtype="PREMIS",
-            locref=f"metadata/{image_filename}.premis.event.xml",
+            locref=f"{identifier}/metadata/{image_filename}.premis.event.xml",
             mimetype="text/xml"
         )
     )

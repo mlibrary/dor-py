@@ -87,3 +87,10 @@ def generate_ulid():
 
 def generate_md5(s):
     return hashlib.md5(s.encode('utf-8')).hexdigest()
+
+def make_paths(pathname):
+    pathname.mkdir()
+    for d in ["data", "descriptor", "metadata"]:
+        d_pathname = pathname.joinpath(d)
+        d_pathname.mkdir()
+    return pathname
