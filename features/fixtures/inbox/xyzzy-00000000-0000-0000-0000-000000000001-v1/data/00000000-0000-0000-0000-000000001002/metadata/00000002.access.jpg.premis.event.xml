@@ -1,0 +1,17 @@
+<PREMIS:premis xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:PREMIS="http://www.loc.gov/premis/v3" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd" version="3.0">
+  <PREMIS:event>
+    <PREMIS:eventIdentifier>
+      <PREMIS:eventIdentifierType>UUID</PREMIS:eventIdentifierType>
+      <PREMIS:eventIdentifierValue>c83eef75-6139-4e32-a4a3-e1a66b49b747</PREMIS:eventIdentifierValue>
+    </PREMIS:eventIdentifier>
+    <PREMIS:eventType>extract text</PREMIS:eventType>
+    <PREMIS:eventDateTime>1990-03-01T06:38:58Z</PREMIS:eventDateTime>
+    <PREMIS:eventDetailInformation>
+      <PREMIS:eventDetail>Lose hour relate matter tough toward fight.</PREMIS:eventDetail>
+    </PREMIS:eventDetailInformation>
+    <PREMIS:linkingAgentIdentifier>
+      <PREMIS:linkingAgentIdentifierType>ocr processing</PREMIS:linkingAgentIdentifierType>
+      <PREMIS:linkingAgentIdentifierValue>hcampos@example.net</PREMIS:linkingAgentIdentifierValue>
+    </PREMIS:linkingAgentIdentifier>
+  </PREMIS:event>
+</PREMIS:premis>
