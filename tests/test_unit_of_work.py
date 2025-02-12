@@ -33,7 +33,7 @@ def test_uow_can_add_revision(session_factory, sample_revision):
     session = session_factory()
     with session:
         catalog = SqlalchemyCatalog(session)
-        revision = catalog.get(sample_revision.identifier)
+        revision = catalog.get(str(sample_revision.identifier))
     assert revision == sample_revision
 
 
@@ -47,5 +47,5 @@ def test_uow_does_not_add_revision_without_commit(session_factory, sample_revisi
     session = session_factory()
     with session:
         catalog = SqlalchemyCatalog(session)
-        revision = catalog.get(sample_revision.identifier)
+        revision = catalog.get(str(sample_revision.identifier))
     assert revision is None

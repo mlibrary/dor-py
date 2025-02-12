@@ -19,7 +19,7 @@ def get_revision_summary(identifier: str, session = Depends(get_db_session)) -> 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content="Identifier is not a valid UUID.")
 
     catalog = SqlalchemyCatalog(session)
-    revision = catalog.get(uuid_identifier)
+    revision = catalog.get(str(uuid_identifier))
     if revision:
         summary = catalog_service.summarize(revision)
         return JSONResponse(status_code=status.HTTP_200_OK, content=summary)
@@ -35,7 +35,7 @@ def get_revision_filesets(identifier: str, session = Depends(get_db_session)) ->
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content="Identifier is not a valid UUID.")
 
     catalog = SqlalchemyCatalog(session)
-    revision = catalog.get(uuid_identifier)
+    revision = catalog.get(str(uuid_identifier))
     if revision:
         filesets = catalog_service.get_file_sets(revision)
         return JSONResponse(status_code=status.HTTP_200_OK, content=filesets)
