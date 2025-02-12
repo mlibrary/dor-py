@@ -36,7 +36,7 @@ class DescriptorGenerator:
             )
             filename = Path(f"{resource.id}/descriptor/{build_descriptor_filename(resource)}")
             output_filename = self.package_path / filename
-            output_filename.parent.mkdir(parents=True)
+            output_filename.parent.mkdir(parents=True, exist_ok=True)
             with (output_filename).open("w") as f:
                 f.write(xmldata)
             self.entries.append(filename)
