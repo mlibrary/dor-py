@@ -123,7 +123,7 @@ class SqlalchemyCatalog(Catalog):
             )
         self.session.add_all([stored_revision, stored_current_revision])
 
-    def get(self, identifier) -> models.Revision | None:
+    def get(self, identifier: str) -> models.Revision | None:
         statement = select(CurrentRevision).where(CurrentRevision.identifier == identifier)
         return self._fetch_one(statement)
 
