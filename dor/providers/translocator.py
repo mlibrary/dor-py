@@ -17,7 +17,7 @@ class FakeWorkspace:
     def object_data_directory(self) -> Path:
         if self.root_identifier is None:
             raise Exception()
-        return self.package_directory() / "data" / self.root_identifier
+        return self.package_directory() / "data" # / self.root_identifier
 
     def get_bundle(self, entries: list[Path]) -> Bundle:
         return Bundle(
@@ -36,7 +36,7 @@ class Workspace:
     def object_data_directory(self) -> Path:
         if self.root_identifier is None:
             raise Exception()
-        return self.package_directory() / "data" / self.root_identifier
+        return self.package_directory() / "data" # / self.root_identifier
 
     def get_bundle(self, entries: list[Path]) -> Bundle:
         return Bundle(

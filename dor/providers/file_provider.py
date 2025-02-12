@@ -20,6 +20,10 @@ class FileProvider(ABC):
         pass
 
     @abstractmethod
+    def get_replaced_path(self, base_path: Path, path_to_apply: str) -> Path:
+        pass
+
+    @abstractmethod
     def clone_directory_structure(self, source_path: Path, destination_path: Path):
         pass
 

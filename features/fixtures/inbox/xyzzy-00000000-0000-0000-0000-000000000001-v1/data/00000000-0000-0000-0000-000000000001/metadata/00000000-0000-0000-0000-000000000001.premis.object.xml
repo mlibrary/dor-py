@@ -1,4 +1,4 @@
-<PREMIS:premis version="3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:PREMIS="http://www.loc.gov/premis/v3" xsi:type="PREMIS:file"
+<PREMIS:premis version="3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:PREMIS="http://www.loc.gov/premis/v3"
   xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
   <PREMIS:object xsi:type="PREMIS:representation">
     <PREMIS:objectIdentifier>
@@ -21,5 +21,9 @@
           <PREMIS:relatedObjectIdentifierValue>xyzzy</PREMIS:relatedObjectIdentifierValue>
         </PREMIS:relatedObjectIdentifier>
     </PREMIS:relationship>
+    <PREMIS:linkingRightsStatementIdentifier>
+      <PREMIS:linkingRightsStatementIdentifierType>local</PREMIS:linkingRightsStatementIdentifierType>
+      <PREMIS:linkingRightsStatementIdentifierValue>https://creativecommons.org/publicdomain/zero/1.0/</PREMIS:linkingRightsStatementIdentifierValue>
+    </PREMIS:linkingRightsStatementIdentifier>
   </PREMIS:object>
 </PREMIS:premis>
