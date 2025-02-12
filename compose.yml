@@ -15,7 +15,6 @@ services:
       - .env
     volumes:
       - .:/app
-      - app-data:/data
     tty: true
     stdin_open: true
   api:
@@ -51,4 +50,3 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
 volumes:
   db-data:
-  app-data:
