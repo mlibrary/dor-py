@@ -26,6 +26,15 @@ RUN useradd -m -d /app -u ${UID} -g ${GID} -o -s /bin/bash app
 RUN mkdir /data
 RUN chown ${UID}:${GID} /data
 
+RUN mkdir /data/inbox
+RUN chown ${UID}:${GID} /data/inbox
+
+RUN mkdir /data/storage
+RUN chown ${UID}:${GID} /data/storage
+
+RUN mkdir /data/workspaces
+RUN chown ${UID}:${GID} /data/workspaces
+
 RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   python3-dev \ 
   build-essential \ 

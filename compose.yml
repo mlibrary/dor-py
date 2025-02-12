@@ -16,6 +16,9 @@ services:
       - .env
     volumes:
       - .:/app
+      - app-inbox:/data/inbox
+      - app-storage:/data/storage
+      - app-workspaces:/data/workspaces
     tty: true
     stdin_open: true
   api:
@@ -61,3 +64,10 @@ services:
     command: /bin/sh -c "/pb/pocketbase serve --http=0.0.0.0:8080 & /bin/sh /pb/pb_user_setup.sh && tail -f /dev/null"
 volumes:
   db-data:
+  app-inbox:
+    driver_opts:
+      type: none
+      device: ${PWD}/inbox
+      o: bind
+  app-storage:
+  app-workspaces:
