@@ -133,7 +133,7 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork):
     target_fixture="tracking_identifier"
 )
 def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
-    submission_id = "xyzzy-0001-v1"
+    submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
     tracking_identifier = str(uuid.uuid4())
 
     event = PackageSubmitted(
