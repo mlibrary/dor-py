@@ -39,13 +39,26 @@ def test_memory_catalog_gets_by_alternate_identifier(sample_revision) -> None:
     assert revision == sample_revision
 
 @pytest.mark.usefixtures("sample_revision", "sample_revision_two")
-def test_memory_catalog_returns_latest_for_alternate_identifier(sample_revision, sample_revision_two) -> None:
+def test_memory_catalog_returns_latest_for_alternate_identifier(
+    sample_revision, sample_revision_two
+) -> None:
     catalog = MemoryCatalog()
     catalog.add(sample_revision)
     catalog.add(sample_revision_two)
 
     revision = catalog.get_by_alternate_identifier("xyzzy:00000001")
     assert revision == sample_revision_two
+
+@pytest.mark.usefixtures("sample_revision", "sample_revision_two")
+def test_memory_catalog_gets_revisions(
+    sample_revision, sample_revision_two
+) -> None:
+    catalog = MemoryCatalog()
+    catalog.add(sample_revision)
+    catalog.add(sample_revision_two)
+
+    revisions = catalog.get_revisions("00000000-0000-0000-0000-000000000001")
+    assert revisions == [sample_revision, sample_revision_two]
 
 
 # SqlalchemyCatalog
@@ -174,3 +187,26 @@ def test_catalog_returns_none_when_no_alternate_identifier_matches(db_session, s
 
     revision = catalog.get_by_alternate_identifier("xyzzy:00000001.404")
     assert revision is None
+
+@pytest.mark.usefixtures("db_session", "sample_revision", "sample_revision_two")
+def test_catalog_gets_revisions(
+    db_session, sample_revision, sample_revision_two
+) -> None:
+    catalog = SqlalchemyCatalog(db_session)
+    with db_session.begin():
+        catalog.add(sample_revision)
+        db_session.commit()
+
+    with db_session.begin():
+        catalog.add(sample_revision_two)
+        db_session.commit()
+
+    revisions = catalog.get_revisions("00000000-0000-0000-0000-000000000001")
+    assert revisions == [sample_revision, sample_revision_two]
+
+@pytest.mark.usefixtures("db_session")
+def test_catalog_returns_empty_array_when_no_revisions_exist(db_session) -> None:
+    catalog = SqlalchemyCatalog(db_session)
+
+    revisions = catalog.get_revisions("40400000-0000-0000-0000-000000000001")
+    assert revisions == []

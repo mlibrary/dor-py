@@ -44,11 +44,15 @@ class Catalog(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get(self, identifier: str):
+    def get(self, identifier: str) -> models.Revision | None:
         raise NotImplementedError
 
     @abstractmethod
-    def get_by_alternate_identifier(self, identifier: str):
+    def get_by_alternate_identifier(self, identifier: str) -> models.Revision | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_revisions(self, identifier: str) -> list[models.Revision]:
         raise NotImplementedError
 
 
@@ -56,10 +60,10 @@ class MemoryCatalog(Catalog):
     def __init__(self):
         self.revisions = []
         
-    def add(self, revision):
+    def add(self, revision: models.Revision) -> None:
         self.revisions.append(revision)
         
-    def get(self, identifier: str):
+    def get(self, identifier: str) -> models.Revision | None:
         latest_revision = None
         for revision in self.revisions:
             if (
@@ -69,7 +73,7 @@ class MemoryCatalog(Catalog):
                 latest_revision = revision
         return latest_revision
     
-    def get_by_alternate_identifier(self, identifier: str):
+    def get_by_alternate_identifier(self, identifier: str) -> models.Revision | None:
         latest_revision = None
         for revision in self.revisions:
             if (
@@ -78,6 +82,9 @@ class MemoryCatalog(Catalog):
             ):
                 latest_revision = revision
         return latest_revision
+
+    def get_revisions(self, identifier: str) -> list[models.Revision]:
+        return [revision for revision in self.revisions if str(revision.identifier) == identifier]
 
 
 class SqlalchemyCatalog(Catalog):
@@ -138,3 +145,19 @@ class SqlalchemyCatalog(Catalog):
             return revision
         except sqlalchemy.exc.NoResultFound:
             return None
+
+    def get_revisions(self, identifier: str) -> list[models.Revision]:
+        statement = select(Revision).where(Revision.identifier == identifier)
+        results = self.session.scalars(statement).all()
+
+        revisions = []
+        for result in results:
+            revisions.append(models.Revision(
+                identifier=result.identifier,
+                alternate_identifiers=result.alternate_identifiers,
+                revision_number=result.revision_number,
+                created_at=result.created_at,
+                common_metadata=result.common_metadata,
+                package_resources=result.package_resources
+            ))
+        return revisions
