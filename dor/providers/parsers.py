@@ -45,7 +45,17 @@ class DescriptorFileParser:
         )
 
     def get_preservation_events(self) -> list[PreservationEvent]:
-        return [self.get_event(elem) for elem in self.tree.findall(".//PREMIS:event")]
+        events = []
+        for elem in self.tree.findall(".//METS:md[@USE='PROVENANCE']/METS:mdRef"):
+            premis_locref = elem.get('LOCREF')
+            premis_path = self.file_provider.get_replaced_path(self.descriptor_path, premis_locref)
+            premis_tree = ElementAdapter.from_string(premis_path.read_text(), self.namespaces)
+            try:
+                event_elem = premis_tree.find(".//PREMIS:event")
+                events.append(self.get_event(event_elem))
+            except:
+                pass
+        return events
 
     def get_event(self, elem: ElementAdapter) -> PreservationEvent:
         event_identifier = elem.find(".//PREMIS:eventIdentifierValue").text
