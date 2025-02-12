@@ -40,7 +40,7 @@ class CurrentRevision(Base):
 class Catalog(ABC):
 
     @abstractmethod
-    def add(self, revision: models.Revision):
+    def add(self, revision: models.Revision) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -68,7 +68,7 @@ class MemoryCatalog(Catalog):
         for revision in self.revisions:
             if (
                 str(revision.identifier) == identifier and \
-                (latest_revision is None or latest_revision.revision_number < revision.revision_number)
+                (latest_revision is None or revision.revision_number > latest_revision.revision_number)
             ):
                 latest_revision = revision
         return latest_revision
@@ -78,7 +78,7 @@ class MemoryCatalog(Catalog):
         for revision in self.revisions:
             if (
                 identifier in revision.alternate_identifiers and \
-                (latest_revision is None or latest_revision.revision_number < revision.revision_number)
+                (latest_revision is None or revision.revision_number > latest_revision.revision_number)
             ):
                 latest_revision = revision
         return latest_revision
@@ -92,7 +92,7 @@ class SqlalchemyCatalog(Catalog):
     def __init__(self, session):
         self.session = session
 
-    def add(self, revision: models.Revision):
+    def add(self, revision: models.Revision) -> None:
         # Create new Revision record
         stored_revision = Revision(
             identifier=revision.identifier,
@@ -103,7 +103,7 @@ class SqlalchemyCatalog(Catalog):
             package_resources=revision.package_resources
         )
 
-        # Update or insert new CurrentRevision record
+        # Update or create new CurrentRevision record
         statement = select(CurrentRevision).where(CurrentRevision.identifier == revision.identifier)
         try:
             stored_current_revision = self.session.scalars(statement).one()
