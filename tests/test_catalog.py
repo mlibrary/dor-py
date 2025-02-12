@@ -3,6 +3,7 @@ import sqlalchemy
 
 from dor.adapters.catalog import MemoryCatalog, SqlalchemyCatalog
 
+
 # MemoryCatalog
 
 @pytest.mark.usefixtures("sample_revision")
@@ -79,7 +80,7 @@ def test_catalog_adds_revision(db_session, sample_revision) -> None:
     )
     assert len(rows) == 1
     assert str(rows[0].identifier) == "00000000-0000-0000-0000-000000000001"
-    assert str(rows[0].revision_number == 1)
+    assert rows[0].revision_number == 1
 
     rows = list(
         db_session.execute(sqlalchemy.text("""
@@ -90,7 +91,7 @@ def test_catalog_adds_revision(db_session, sample_revision) -> None:
     )
     assert len(rows) == 1
     assert str(rows[0].identifier) == "00000000-0000-0000-0000-000000000001"
-    assert str(rows[0].revision_number == 1)
+    assert rows[0].revision_number == 1
 
 @pytest.mark.usefixtures("db_session", "sample_revision", "sample_revision_two")
 def test_catalog_accumulates_revision_and_updates_current_revision(
@@ -123,8 +124,8 @@ def test_catalog_accumulates_revision_and_updates_current_revision(
     )
     assert len(rows) == 1
     assert str(rows[0].identifier) == "00000000-0000-0000-0000-000000000001"
-    assert str(rows[0].revision_number == 2)
-    assert str(rows[0].common_metadata == sample_revision_two.common_metadata)
+    assert rows[0].revision_number == 2
+    assert rows[0].common_metadata == sample_revision_two.common_metadata
 
 @pytest.mark.usefixtures("db_session", "sample_revision")
 def test_catalog_gets_revision(db_session, sample_revision) -> None:
