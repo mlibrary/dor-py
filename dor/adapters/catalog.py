@@ -25,9 +25,16 @@ class Revision(Base):
     common_metadata: Mapped[dict] = mapped_column(JSONB)
     package_resources: Mapped[dict] = mapped_column(JSONB)
 
-    # updated_at: Mapped[datetime.datetime] = mapped_column(
-    #     DateTime(timezone=True), server_default=func.now()
-    # )
+
+class CurrentRevision(Base):
+    __tablename__ = "catalog_current_revision"
+
+    identifier: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
+    alternate_identifiers: Mapped[list] = Column(MutableList.as_mutable(ARRAY(String)))
+    revision_number: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    common_metadata: Mapped[dict] = mapped_column(JSONB)
+    package_resources: Mapped[dict] = mapped_column(JSONB)
 
 
 class Catalog(ABC):
@@ -52,17 +59,25 @@ class MemoryCatalog(Catalog):
     def add(self, revision):
         self.revisions.append(revision)
         
-    def get(self, identifier):
+    def get(self, identifier: str):
+        latest_revision = None
         for revision in self.revisions:
-            if revision.identifier == identifier:
-                return revision
-        return None
+            if (
+                str(revision.identifier) == identifier and \
+                (latest_revision is None or latest_revision.revision_number < revision.revision_number)
+            ):
+                latest_revision = revision
+        return latest_revision
     
-    def get_by_alternate_identifier(self, identifier):
+    def get_by_alternate_identifier(self, identifier: str):
+        latest_revision = None
         for revision in self.revisions:
-            if identifier in revision.alternate_identifiers:
-                return revision
-        return None
+            if (
+                identifier in revision.alternate_identifiers and \
+                (latest_revision is None or latest_revision.revision_number < revision.revision_number)
+            ):
+                latest_revision = revision
+        return latest_revision
 
 
 class SqlalchemyCatalog(Catalog):
@@ -71,6 +86,7 @@ class SqlalchemyCatalog(Catalog):
         self.session = session
 
     def add(self, revision: models.Revision):
+        # Create new Revision record
         stored_revision = Revision(
             identifier=revision.identifier,
             alternate_identifiers=revision.alternate_identifiers,
@@ -79,14 +95,33 @@ class SqlalchemyCatalog(Catalog):
             common_metadata=revision.common_metadata,
             package_resources=revision.package_resources
         )
-        self.session.add(stored_revision)
+
+        # Update or insert new CurrentRevision record
+        statement = select(CurrentRevision).where(CurrentRevision.identifier == revision.identifier)
+        try:
+            stored_current_revision = self.session.scalars(statement).one()
+            stored_current_revision.alternate_identifiers = revision.alternate_identifiers
+            stored_current_revision.revision_number = revision.revision_number
+            stored_current_revision.created_at = revision.created_at
+            stored_current_revision.common_metadata = revision.common_metadata
+            stored_current_revision.package_resources = revision.package_resources
+        except sqlalchemy.exc.NoResultFound:
+            stored_current_revision = CurrentRevision(
+                identifier=revision.identifier,
+                alternate_identifiers=revision.alternate_identifiers,
+                revision_number=revision.revision_number,
+                created_at=revision.created_at,
+                common_metadata=revision.common_metadata,
+                package_resources=revision.package_resources
+            )
+        self.session.add_all([stored_revision, stored_current_revision])
 
     def get(self, identifier) -> models.Revision | None:
-        statement = select(Revision).where(Revision.identifier == identifier)
+        statement = select(CurrentRevision).where(CurrentRevision.identifier == identifier)
         return self._fetch_one(statement)
 
     def get_by_alternate_identifier(self, identifier: str) -> models.Revision | None:
-        statement = select(Revision).filter(Revision.alternate_identifiers.contains([identifier]))
+        statement = select(CurrentRevision).filter(CurrentRevision.alternate_identifiers.contains([identifier]))
         return self._fetch_one(statement)
 
     def _fetch_one(self, statement):
