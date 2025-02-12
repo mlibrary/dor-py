@@ -152,7 +152,18 @@ class DescriptorFileParserTest(TestCase):
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
             type="Monograph",
             alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
-            events=[],
+            events=[
+                PreservationEvent(
+                    identifier="23b04e8b-f7fd-4331-a3bb-0157f9a057d6",
+                    type="ingest",
+                    datetime=datetime(1974, 6, 24, 1, 8, 39, tzinfo=UTC),
+                    detail="This front attack nature.",
+                    agent=Agent(
+                        address="steven34@example.net",
+                        role="collection manager",
+                    ),
+                )
+            ],
             metadata_files=[
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000000101",
@@ -225,7 +236,28 @@ class DescriptorFileParserTest(TestCase):
             alternate_identifier=AlternateIdentifier(
                 id="xyzzy:00000001:00000001", type="DLXS"
             ),
-            events=[],
+            events=[
+                PreservationEvent(
+                    identifier="f9fa8a15-7be0-4ad5-8682-4423793c9f1d",
+                    type="generate access derivative",
+                    datetime=datetime(1973, 5, 23, 21, 42, 15, tzinfo=UTC),
+                    detail="Care instead also much.",
+                    agent=Agent(
+                        address="sweaver@example.com",
+                        role="image processing",
+                    ),
+                ),
+                PreservationEvent(
+                    identifier="006c79ed-f63e-466f-b1fb-171cc229b901",
+                    type="extract text",
+                    datetime=datetime(1998, 8, 29, 13, 3, 58, tzinfo=UTC),
+                    detail="Human debate million theory capital.",
+                    agent=Agent(
+                        address="moorenicholas@example.com",
+                        role="ocr processing",
+                    ),
+                ),
+            ],
             metadata_files=[
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100101",
