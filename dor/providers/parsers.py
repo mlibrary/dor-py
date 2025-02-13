@@ -89,15 +89,13 @@ class DescriptorFileParser:
         use = elem.get("USE")
         md_ref_element = elem.find("METS:mdRef")
         locref = md_ref_element.get("LOCREF")
-        if not locref.startswith("https"):
-            locref = Path(locref)
         mdtype = md_ref_element.get_optional("MDTYPE")
         mimetype = md_ref_element.get_optional("MIMETYPE")
 
         return FileMetadata(
             id=id_,
             use=use,
-            ref=FileReference(locref=str(locref), mdtype=mdtype, mimetype=mimetype),
+            ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
         )
 
     def get_filesec_file_metadatum(self, elem: ElementAdapter):
@@ -109,15 +107,13 @@ class DescriptorFileParser:
         mdtype = None
         flocat_element = elem.find("METS:FLocat")
         locref = flocat_element.get("LOCREF")
-        if not locref.startswith("https"):
-            locref = Path(locref)
 
         return FileMetadata(
             id=id_,
             use=use,
             mdid=mdid,
             groupid=groupid,
-            ref=FileReference(locref=str(locref), mdtype=mdtype, mimetype=mimetype),
+            ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
         )
 
     def get_struct_maps(self) -> list[StructMap]:
