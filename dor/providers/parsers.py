@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 
 from dor.providers.file_provider import FileProvider
-from utils.element_adapter import ElementAdapter
+from utils.element_adapter import ElementAdapter, DataNotFoundError
 from .models import (
     Agent,
     AlternateIdentifier,
@@ -53,7 +53,7 @@ class DescriptorFileParser:
             try:
                 event_elem = premis_tree.find(".//PREMIS:event")
                 events.append(self.get_event(event_elem))
-            except:
+            except DataNotFoundError:
                 pass
         return events
 
@@ -91,9 +91,6 @@ class DescriptorFileParser:
         locref = md_ref_element.get("LOCREF")
         if not locref.startswith("https"):
             locref = Path(locref)
-            # locref = self.file_provider.apply_relative_path(
-            #     self.descriptor_path, locref
-            # )
         mdtype = md_ref_element.get_optional("MDTYPE")
         mimetype = md_ref_element.get_optional("MIMETYPE")
 
@@ -114,9 +111,6 @@ class DescriptorFileParser:
         locref = flocat_element.get("LOCREF")
         if not locref.startswith("https"):
             locref = Path(locref)
-            # locref = self.file_provider.apply_relative_path(
-            #     self.descriptor_path, locref
-            # )
 
         return FileMetadata(
             id=id_,
