@@ -60,21 +60,22 @@ class DescriptorFileParserTest(TestCase):
 
         self.assertEqual(parser.get_alternate_identifier(), expected_identifier)
 
-    # def test_parser_can_get_preservation_events(self):
-    #     expected_events = [
-    #         PreservationEvent(
-    #             identifier="abdcb901-721a-4be0-a981-14f514236633",
-    #             type="ingest",
-    #             datetime=datetime(2016, 11, 29, 13, 51, 14, tzinfo=UTC),
-    #             detail="Middle president push visit information feel most.",
-    #             agent=Agent(
-    #                 address="christopherpayne@example.org", role="collection manager"
-    #             ),
-    #         )
-    #     ]
+    def test_parser_can_get_preservation_events(self):
+        expected_events = [
+            PreservationEvent(
+                identifier="23b04e8b-f7fd-4331-a3bb-0157f9a057d6",
+                type="ingest",
+                datetime=datetime(1974, 6, 24, 1, 8, 39, tzinfo=UTC),
+                detail="This front attack nature.",
+                agent=Agent(
+                    address="steven34@example.net",
+                    role="collection manager",
+                ),
+            )
+        ]
 
-    #     parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
-    #     self.assertEqual(parser.get_preservation_events(), expected_events)
+        parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
+        self.assertEqual(parser.get_preservation_events(), expected_events)
 
     def test_parser_can_get_metadata_files(self):
 
