@@ -3,18 +3,45 @@ import uuid
 from pathlib import Path
 
 from dor.providers.file_provider import FileProvider
-from utils.element_adapter import ElementAdapter, DataNotFoundError
+from utils.element_adapter import ElementAdapter
 from .models import (
     Agent,
     AlternateIdentifier,
     FileMetadata,
     FileReference,
-    PackageResource,
     PreservationEvent,
     StructMap,
     StructMapItem,
     StructMapType,
 )
+
+
+class PreservationEventFileParser:
+    namespaces: dict[str, str] = {
+        "PREMIS": "http://www.loc.gov/premis/v3",
+    }
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def get_event(self) -> PreservationEvent:
+        premis_tree = ElementAdapter.from_string(self.path.read_text(), self.namespaces)
+
+        event_elem = premis_tree.find(".//PREMIS:event")
+
+        event_identifier = event_elem.find(".//PREMIS:eventIdentifierValue").text
+        event_type = event_elem.find(".//PREMIS:eventType").text
+        event_datetime = event_elem.find(".//PREMIS:eventDateTime").text
+        event_detail = event_elem.find(".//PREMIS:eventDetail").text
+        agent_role = event_elem.find(".//PREMIS:linkingAgentIdentifierType").text
+        agent_address = event_elem.find(".//PREMIS:linkingAgentIdentifierValue").text
+        return PreservationEvent(
+            identifier=event_identifier,
+            type=event_type,
+            datetime=datetime.fromisoformat(event_datetime),
+            detail=event_detail,
+            agent=Agent(address=agent_address, role=agent_role),
+        )
 
 
 class DescriptorFileParser:
@@ -44,18 +71,11 @@ class DescriptorFileParser:
             type=alt_record_id.get("TYPE"), id=alt_record_id.text
         )
 
-    def get_preservation_events(self) -> list[PreservationEvent]:
-        events = []
+    def get_preservation_files(self) -> list[Path]:
+        locrefs = []
         for elem in self.tree.findall(".//METS:md[@USE='PROVENANCE']/METS:mdRef"):
-            premis_locref = elem.get('LOCREF')
-            premis_path = self.file_provider.get_replaced_path(self.descriptor_path, premis_locref)
-            premis_tree = ElementAdapter.from_string(premis_path.read_text(), self.namespaces)
-            try:
-                event_elem = premis_tree.find(".//PREMIS:event")
-                events.append(self.get_event(event_elem))
-            except DataNotFoundError:
-                pass
-        return events
+            locrefs.append(Path(elem.get('LOCREF')))
+        return locrefs
 
     def get_event(self, elem: ElementAdapter) -> PreservationEvent:
         event_identifier = elem.find(".//PREMIS:eventIdentifierValue").text
@@ -148,14 +168,3 @@ class DescriptorFileParser:
             )
 
         return struct_maps
-
-    def get_resource(self):
-        return PackageResource(
-            id=self.get_id(),
-            alternate_identifier=self.get_alternate_identifier(),
-            type=self.get_type(),
-            events=self.get_preservation_events(),
-            metadata_files=self.get_metadata_files(),
-            data_files=self.get_data_files(),
-            struct_maps=self.get_struct_maps(),
-        )
