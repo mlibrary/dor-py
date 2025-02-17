@@ -26,9 +26,7 @@ class PreservationEventFileParser:
 
     def get_event(self) -> PreservationEvent:
         premis_tree = ElementAdapter.from_string(self.path.read_text(), self.namespaces)
-
         event_elem = premis_tree.find(".//PREMIS:event")
-
         event_identifier = event_elem.find(".//PREMIS:eventIdentifierValue").text
         event_type = event_elem.find(".//PREMIS:eventType").text
         event_datetime = event_elem.find(".//PREMIS:eventDateTime").text
@@ -71,26 +69,11 @@ class DescriptorFileParser:
             type=alt_record_id.get("TYPE"), id=alt_record_id.text
         )
 
-    def get_preservation_files(self) -> list[Path]:
+    def get_preservation_file_paths(self) -> list[str]:
         locrefs = []
         for elem in self.tree.findall(".//METS:md[@USE='PROVENANCE']/METS:mdRef"):
-            locrefs.append(Path(elem.get('LOCREF')))
+            locrefs.append(elem.get('LOCREF'))
         return locrefs
-
-    def get_event(self, elem: ElementAdapter) -> PreservationEvent:
-        event_identifier = elem.find(".//PREMIS:eventIdentifierValue").text
-        event_type = elem.find(".//PREMIS:eventType").text
-        event_datetime = elem.find(".//PREMIS:eventDateTime").text
-        event_detail = elem.find(".//PREMIS:eventDetail").text
-        agent_role = elem.find(".//PREMIS:linkingAgentIdentifierType").text
-        agent_address = elem.find(".//PREMIS:linkingAgentIdentifierValue").text
-        return PreservationEvent(
-            identifier=event_identifier,
-            type=event_type,
-            datetime=datetime.fromisoformat(event_datetime),
-            detail=event_detail,
-            agent=Agent(address=agent_address, role=agent_role),
-        )
 
     def get_metadata_files(self) -> list[FileMetadata]:
         return [

@@ -58,10 +58,10 @@ class DescriptorFileParserTest(TestCase):
 
     def test_parser_can_get_preservation_file_paths(self):
         parser = DescriptorFileParser(self.descriptor_path, self.file_provider)
-        pres_files = parser.get_preservation_files()
+        pres_files = parser.get_preservation_file_paths()
         self.assertSetEqual(set([
-            Path("00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml"),
-            Path("00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.object.xml")
+            "00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
+            "00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.object.xml"
         ]), set(pres_files))
 
     def test_parser_can_get_metadata_files(self):

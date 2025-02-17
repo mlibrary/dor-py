@@ -27,11 +27,17 @@ class ResourceProvider:
             self.file_provider
         )
 
-        pres_files = descriptor_file_parser.get_preservation_files()
-        event_files = [pres_file for pres_file in pres_files if "event" in str(pres_file)]
+        pres_file_paths = descriptor_file_parser.get_preservation_file_paths()
+        event_file_paths = [
+            pres_file_path for pres_file_path in pres_file_paths
+            if "event" in pres_file_path
+        ]
         pres_events = []
-        for event_file in event_files:
-            event = PreservationEventFileParser(self.resource_path.parent / event_file).get_event()
+        for event_file_path in event_file_paths:
+            full_event_file_path = self.file_provider.get_replaced_path(
+                self.resource_path, event_file_path
+            )
+            event = PreservationEventFileParser(full_event_file_path).get_event()
             pres_events.append(event)
 
         return PackageResource(
