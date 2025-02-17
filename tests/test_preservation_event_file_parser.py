@@ -20,7 +20,6 @@ class PreservationEventFileParserTest(TestCase):
         )
 
     def test_parser_can_get_preservation_event(self):
-
         expected_event = PreservationEvent(
             identifier="23b04e8b-f7fd-4331-a3bb-0157f9a057d6",
             type="ingest",
