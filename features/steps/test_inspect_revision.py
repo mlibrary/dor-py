@@ -59,13 +59,15 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
             "subjects": [
                 "Liechtenstein",
                 "Vietnam",
-            ]
+            ],
         },
         package_resources=[
             PackageResource(
                 id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 type="Monograph",
-                alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
+                alternate_identifier=AlternateIdentifier(
+                    id="xyzzy:00000001", type="DLXS"
+                ),
                 events=[
                     PreservationEvent(
                         identifier="abdcb901-721a-4be0-a981-14f514236633",
@@ -73,7 +75,8 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         datetime=datetime(2016, 11, 29, 13, 51, 14, tzinfo=UTC),
                         detail="Middle president push visit information feel most.",
                         agent=Agent(
-                            address="christopherpayne@example.org", role="collection manager"
+                            address="christopherpayne@example.org",
+                            role="collection manager",
                         ),
                     )
                 ],
@@ -82,7 +85,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
                         use="DESCRIPTIVE/COMMON",
                         ref=FileReference(
-                            locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
+                            locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
                             mdtype="DOR:SCHEMA",
                             mimetype="application/json",
                         ),
@@ -91,17 +94,9 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
                         use="DESCRIPTIVE",
                         ref=FileReference(
-                            locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                            locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
                             mdtype="DOR:SCHEMA",
                             mimetype="application/json",
-                        ),
-                    ),
-                    FileMetadata(
-                        id="RIGHTS1",
-                        use="RIGHTS",
-                        ref=FileReference(
-                            locref="https://creativecommons.org/publicdomain/zero/1.0/",
-                            mdtype="OTHER",
                         ),
                     ),
                 ],
@@ -138,14 +133,18 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         type="generate access derivative",
                         datetime=datetime(1993, 6, 11, 4, 44, 7, tzinfo=UTC),
                         detail="Night wonder three him family structure simple.",
-                        agent=Agent(address="arroyoalan@example.net", role="image processing"),
+                        agent=Agent(
+                            address="arroyoalan@example.net", role="image processing"
+                        ),
                     ),
                     PreservationEvent(
                         identifier="3bdcb1e3-4674-4b9c-83c8-4f9f9fe50812",
                         type="extract text",
                         datetime=datetime(1988, 5, 26, 18, 33, 46, tzinfo=UTC),
                         detail="Player center road attorney speak wait partner.",
-                        agent=Agent(address="jonathanjones@example.net", role="ocr processing"),
+                        agent=Agent(
+                            address="jonathanjones@example.net", role="ocr processing"
+                        ),
                     ),
                 ],
                 metadata_files=[
@@ -153,7 +152,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                         use="TECHNICAL",
                         ref=FileReference(
-                            locref="../metadata/00000001.source.jpg.mix.xml",
+                            locref="00000000-0000-0000-0000-000000001001/metadata/00000001.source.jpg.mix.xml",
                             mdtype="NISOIMG",
                         ),
                     ),
@@ -161,7 +160,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         id="_0193d5f0-7e75-7803-8e41-71323b7b3284",
                         use="TECHNICAL",
                         ref=FileReference(
-                            locref="../metadata/00000001.access.jpg.mix.xml",
+                            locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.mix.xml",
                             mdtype="NISOIMG",
                         ),
                     ),
@@ -169,7 +168,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         id="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
                         use="TECHNICAL",
                         ref=FileReference(
-                            locref="../metadata/00000001.plaintext.txt.textmd.xml",
+                            locref="00000000-0000-0000-0000-000000001001/metadata/00000001.plaintext.txt.textmd.xml",
                             mdtype="TEXTMD",
                         ),
                     ),
@@ -180,7 +179,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         mdid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                         use="SOURCE",
                         ref=FileReference(
-                            locref="../data/00000001.source.jpg",
+                            locref="00000000-0000-0000-0000-000000001001/data/00000001.source.jpg",
                             mimetype="image/jpeg",
                         ),
                     ),
@@ -190,7 +189,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         mdid="_0193d5f0-7e75-7803-8e41-71323b7b3284",
                         use="ACCESS",
                         ref=FileReference(
-                            locref="../data/00000001.access.jpg",
+                            locref="00000000-0000-0000-0000-000000001001/data/00000001.access.jpg",
                             mimetype="image/jpeg",
                         ),
                     ),
@@ -200,13 +199,13 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                         mdid="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
                         use="SOURCE",
                         ref=FileReference(
-                            locref="../data/00000001.plaintext.txt",
+                            locref="00000000-0000-0000-0000-000000001001/data/00000001.plaintext.txt",
                             mimetype="text/plain",
                         ),
                     ),
                 ],
-            )
-        ]
+            ),
+        ],
     )
 
     with unit_of_work:
@@ -262,4 +261,3 @@ def _(revision: Revision, file_sets):
         for resource in revision.package_resources if resource.type == 'Asset'
     ]
     assert file_sets == expected_file_sets
-

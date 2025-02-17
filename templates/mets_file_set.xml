@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" OBJID="{{ object_identifier }}" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
+
+  <METS:metsHdr CREATEDATE="{{ create_date }}" ID="HDR1" TYPE="File Set">
+    <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
+      <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
+    </METS:agent>
+    <METS:altRecordID TYPE="DLXS">{{ alternate_identifier }}</METS:altRecordID>
+  </METS:metsHdr>
+
+  <METS:mdSec>
+    {% for md in mdsec_items %}
+    <METS:md USE="{{ md.use }}" ID="_{{ md.id }}"><METS:mdRef LOCREF="{{ md.locref }}" LOCTYPE="URL" MDTYPE="{{ md.mdtype }}" {% if md.checksum %}CHECKSUM="{{ md.checksum }}" CHECKSUMTYPE="SHA-512"{% endif %} /></METS:md>
+    {% endfor %}
+  </METS:mdSec>
+
+  <METS:fileSec>
+    {% for file in file_group.files %}
+    <METS:file ID="_{{ file.id }}" {% if file.group_id %}GROUPID="_{{ file.group_id }}"{% endif %} USE="{{ file.use }}" SEQ="{{ seq }}" MIMETYPE="{{ file.mimetype }}" MDID="_{{ file.mdid }}" CHECKSUM="{{ file.checksum }}" CHECKSUMTYPE="SHA-512">
+      <METS:FLocat LOCTYPE="SYSTEM" LOCREF="{{ file.locref }}" />
+    </METS:file>
+    {% endfor %}
+  </METS:fileSec>
+</METS:mets>

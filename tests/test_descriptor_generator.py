@@ -34,7 +34,8 @@ def sample_resources():
                     datetime=datetime(2016, 11, 29, 13, 51, 14, tzinfo=UTC),
                     detail="Middle president push visit information feel most.",
                     agent=Agent(
-                        address="christopherpayne@example.org", role="collection manager"
+                        address="christopherpayne@example.org",
+                        role="collection manager",
                     ),
                 )
             ],
@@ -43,7 +44,7 @@ def sample_resources():
                     id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
                     use="DESCRIPTIVE/COMMON",
                     ref=FileReference(
-                        locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
                         mdtype="DOR:SCHEMA",
                         mimetype="application/json",
                     ),
@@ -52,17 +53,9 @@ def sample_resources():
                     id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
                     use="DESCRIPTIVE",
                     ref=FileReference(
-                        locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
                         mdtype="DOR:SCHEMA",
                         mimetype="application/json",
-                    ),
-                ),
-                FileMetadata(
-                    id="RIGHTS1",
-                    use="RIGHTS",
-                    ref=FileReference(
-                        locref="https://creativecommons.org/publicdomain/zero/1.0/",
-                        mdtype="OTHER",
                     ),
                 ),
             ],
@@ -89,7 +82,7 @@ def sample_resources():
         ),
         PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
-            type="Asset",
+            type="File Set",
             alternate_identifier=AlternateIdentifier(
                 id="xyzzy:00000001:00000001", type="DLXS"
             ),
@@ -99,14 +92,18 @@ def sample_resources():
                     type="generate access derivative",
                     datetime=datetime(1993, 6, 11, 4, 44, 7, tzinfo=UTC),
                     detail="Night wonder three him family structure simple.",
-                    agent=Agent(address="arroyoalan@example.net", role="image processing"),
+                    agent=Agent(
+                        address="arroyoalan@example.net", role="image processing"
+                    ),
                 ),
                 PreservationEvent(
                     identifier="3bdcb1e3-4674-4b9c-83c8-4f9f9fe50812",
                     type="extract text",
                     datetime=datetime(1988, 5, 26, 18, 33, 46, tzinfo=UTC),
                     detail="Player center road attorney speak wait partner.",
-                    agent=Agent(address="jonathanjones@example.net", role="ocr processing"),
+                    agent=Agent(
+                        address="jonathanjones@example.net", role="ocr processing"
+                    ),
                 ),
             ],
             metadata_files=[
@@ -114,7 +111,7 @@ def sample_resources():
                     id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.source.jpg.mix.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.source.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
@@ -123,7 +120,7 @@ def sample_resources():
                     group_id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.access.jpg.mix.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
@@ -132,7 +129,7 @@ def sample_resources():
                     group_id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="TECHNICAL",
                     ref=FileReference(
-                        locref="../metadata/00000001.plaintext.txt.textmd.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.plaintext.txt.textmd.xml",
                         mdtype="TEXTMD",
                     ),
                 ),
@@ -143,7 +140,7 @@ def sample_resources():
                     mdid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="../data/00000001.source.jpg",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.source.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -153,7 +150,7 @@ def sample_resources():
                     mdid="_0193d5f0-7e75-7803-8e41-71323b7b3284",
                     use="ACCESS",
                     ref=FileReference(
-                        locref="../data/00000001.access.jpg",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.access.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -163,12 +160,12 @@ def sample_resources():
                     mdid="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
                     use="SOURCE",
                     ref=FileReference(
-                        locref="../data/00000001.plaintext.txt",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.plaintext.txt",
                         mimetype="text/plain",
                     ),
                 ),
             ],
-        )
+        ),
     ]
 
 def test_generator_can_create_descriptor_files(sample_resources):
@@ -179,8 +176,8 @@ def test_generator_can_create_descriptor_files(sample_resources):
     generator = DescriptorGenerator(package_path=package_path, resources=sample_resources)
     generator.write_files()
 
-    assert (package_path / "descriptor" / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml" ).exists()
-    assert (package_path / "descriptor" / "00000000-0000-0000-0000-000000001001.asset.mets2.xml" ).exists()
+    assert (package_path / "00000000-0000-0000-0000-000000000001" / "descriptor" / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml" ).exists()
+    assert (package_path / "00000000-0000-0000-0000-000000001001" / "descriptor" / "00000000-0000-0000-0000-000000001001.file_set.mets2.xml" ).exists()
 
 def test_generator_can_return_entries(sample_resources):
     package_path = Path("./tests/test_workspace")
@@ -192,6 +189,10 @@ def test_generator_can_return_entries(sample_resources):
 
     entries = generator.entries
     assert entries == [
-        Path("descriptor/00000000-0000-0000-0000-000000000001.monograph.mets2.xml"),
-        Path("descriptor/00000000-0000-0000-0000-000000001001.asset.mets2.xml")
+        Path(
+            "00000000-0000-0000-0000-000000000001/descriptor/00000000-0000-0000-0000-000000000001.monograph.mets2.xml"
+        ),
+        Path(
+            "00000000-0000-0000-0000-000000001001/descriptor/00000000-0000-0000-0000-000000001001.file_set.mets2.xml"
+        ),
     ]

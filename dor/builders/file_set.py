@@ -6,7 +6,7 @@ import hashlib
 
 from dor.settings import S, text_font, template_env
 
-from .parts import FileUses, Md, MdGrp, File, FileGrp, calculate_checksum, generate_md5, generate_uuid
+from .parts import FileUses, Identifier, Md, File, FileGrp, IdGenerator, calculate_checksum, generate_md5, generate_uuid, make_paths
 from .premis import build_event
 
 IMAGE_WIDTH = 680
@@ -39,6 +39,7 @@ def build_image(use, seq, version):
 
 def build_plaintext(use, seq, version):
     fake = Faker(["it_IT", "en_US", "ja_JP"])
+
     buffer = [f"Page v{version}.{seq}"]
     buffer.append(fake["en_US"].paragraph(nb_sentences=5))
     buffer.append(fake["it_IT"].paragraph(nb_sentences=5))
@@ -47,15 +48,22 @@ def build_plaintext(use, seq, version):
     return "\n\n".join(buffer)
 
 
-def build_asset(item_identifier, seq, object_pathname, version):
+def build_file_set(item_identifier, seq, package_pathname, version):
     local_identifier = generate_uuid(base=16*16*16*item_identifier.start+seq)
     identifier = local_identifier
 
+    file_set_pathname = make_paths(package_pathname.joinpath(str(identifier)))
+
+    id_generator = IdGenerator(
+        Identifier(start=16 * 16 * 16 * item_identifier.start + seq, collid=item_identifier.collid)
+    )
+
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
-    asset_template = template_env.get_template("mets_asset.xml")
+    file_set_template = template_env.get_template("mets_file_set.xml")
+    premis_event_template = template_env.get_template("premis_event.xml")
 
-    md_group = MdGrp(use="TECHNICAL")
+    mdsec_items = []
     file_group = FileGrp(use="CONTENTS")
 
     metadata = {}
@@ -70,31 +78,32 @@ def build_asset(item_identifier, seq, object_pathname, version):
     image = build_image(use=FileUses.source, seq=seq, version=version)
     image_filename = f"{padded_seq}.source.jpg"
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    image_pathname = object_pathname.joinpath("data", image_filename)
-    metadata_pathname = object_pathname.joinpath(
+    image_pathname = file_set_pathname.joinpath("data", image_filename)
+    metadata_pathname = file_set_pathname.joinpath(
         "metadata", f"{image_filename}.mix.xml"
     )
     image.save(image_pathname)
     metadata_pathname.open("w").write(mix_template.render(**metadata))
 
-    md_group.items.append(
+    mdsec_items.append(
         Md(
+            id=id_generator(),
             use="TECHNICAL",
             mdtype="NISOIMG",
-            locref=f"../metadata/{image_filename}.mix.xml",
+            locref=f"{identifier}/metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
 
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    object_pathname.joinpath("metadata", f"{image_filename}.mix.xml").open("w").write(
+    file_set_pathname.joinpath("metadata", f"{image_filename}.mix.xml").open("w").write(
         mix_template.render(**metadata)
     )
     file = File(
         id=generate_md5(image_filename),
         use=str(FileUses.source.value),
-        mdid=md_group.items[-1].id,
-        locref=f"../data/{image_filename}",
+        mdid=mdsec_items[-1].id,
+        locref=f"{identifier}/data/{image_filename}",
         mimetype="image/jpeg",
         checksum=calculate_checksum(image_pathname),
     )
@@ -106,18 +115,19 @@ def build_asset(item_identifier, seq, object_pathname, version):
     image_filename = f"{padded_seq}.access.jpg"
 
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    image_pathname = object_pathname.joinpath("data", image_filename)
-    metadata_pathname = object_pathname.joinpath("metadata", f"{image_filename}.mix.xml")
+    image_pathname = file_set_pathname.joinpath("data", image_filename)
+    metadata_pathname = file_set_pathname.joinpath("metadata", f"{image_filename}.mix.xml")
     image.save(image_pathname)
     metadata_pathname.open("w").write(
         mix_template.render(**metadata)
     )
 
-    md_group.items.append(
+    mdsec_items.append(
         Md(
+            id=id_generator(),
             use="TECHNICAL",
             mdtype="NISOIMG",
-            locref=f"../metadata/{image_filename}.mix.xml",
+            locref=f"{identifier}/metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
@@ -126,31 +136,45 @@ def build_asset(item_identifier, seq, object_pathname, version):
         id=generate_md5(image_filename),
         group_id=source_file_identifier,
         use=str(FileUses.access.value),
-        mdid=md_group.items[-1].id,
-        locref=f"../data/{image_filename}",
+        mdid=mdsec_items[-1].id,
+        locref=f"{identifier}/data/{image_filename}",
         mimetype="image/jpeg",
         checksum=calculate_checksum(image_pathname)
     )
     file_group.files.append(file)
 
-    premis_events = []
-    premis_events.append(build_event(event_type='generate access derivative', linking_agent_type='image processing'))
+    premis_event = build_event(event_type='generate access derivative', linking_agent_type='image processing')
+    mdsec_items.append(
+        Md(
+            id=id_generator(),
+            use="PROVENANCE",
+            mdtype="PREMIS",
+            locref=f"{identifier}/metadata/{image_filename}.premis.event.xml",
+            mimetype="text/xml",
+        )
+    )
+    file_set_pathname.joinpath("metadata", image_filename + ".premis.event.xml").open("w").write(
+        premis_event_template.render(
+            event=premis_event
+        )
+    )
 
     plaintext = build_plaintext(use=FileUses.source, seq=seq, version=version)
     text_filename = f"{padded_seq}.plaintext.txt"
-    text_pathname = object_pathname.joinpath("data", text_filename)
-    metadata_pathname = object_pathname.joinpath("metadata", f"{text_filename}.textmd.xml")
+    text_pathname = file_set_pathname.joinpath("data", text_filename)
+    metadata_pathname = file_set_pathname.joinpath("metadata", f"{text_filename}.textmd.xml")
 
     text_pathname.open("w").write(plaintext)
     metadata_pathname.open("w").write(
         textmd_template.render(**metadata)
     )
 
-    md_group.items.append(
+    mdsec_items.append(
         Md(
+            id=id_generator(),
             use="TECHNICAL",
             mdtype="TEXTMD",
-            locref=f"../metadata/{text_filename}.textmd.xml",
+            locref=f"{identifier}/metadata/{text_filename}.textmd.xml",
             checksum=calculate_checksum(metadata_pathname),
         )
     )
@@ -159,23 +183,36 @@ def build_asset(item_identifier, seq, object_pathname, version):
         id=generate_md5(text_filename),
         group_id=source_file_identifier,
         use=str(FileUses.source.value),
-        mdid=md_group.items[-1].id,
-        locref=f"../data/{text_filename}",
+        mdid=mdsec_items[-1].id,
+        locref=f"{identifier}/data/{text_filename}",
         mimetype="text/plain",
         checksum=calculate_checksum(text_pathname),
     )
     file_group.files.append(file)
-    premis_events.append(build_event(event_type='extract text', linking_agent_type='ocr processing'))
 
-    object_pathname.joinpath("descriptor", local_identifier + ".asset.mets2.xml").open("w").write(
-        asset_template.render(
+    premis_event = build_event(event_type='extract text', linking_agent_type='ocr processing')
+    mdsec_items.append(
+        Md(
+            id=id_generator(),
+            use="PROVENANCE",
+            mdtype="PREMIS",
+            locref=f"{identifier}/metadata/{text_filename}.premis.event.xml",
+            mimetype="text/xml",
+        )
+    )
+    file_set_pathname.joinpath("metadata", text_filename + ".premis.event.xml").open("w").write(
+        premis_event_template.render(
+            event=premis_event
+        )
+    )
+
+    file_set_pathname.joinpath("descriptor", local_identifier + ".file_set.mets2.xml").open("w").write(
+        file_set_template.render(
             object_identifier=identifier,
             alternate_identifier=f"{item_identifier.alternate_identifier}:{padded_seq}",
-            file_group=file_group, 
-            md_group=md_group,
+            file_group=file_group,
+            mdsec_items=mdsec_items,
             seq=seq,
-            action=S.action.value,
-            events=premis_events,
             create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         )
     )

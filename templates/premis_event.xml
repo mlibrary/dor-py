@@ -1,0 +1,17 @@
+<PREMIS:premis xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:PREMIS="http://www.loc.gov/premis/v3" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd" version="3.0">
+  <PREMIS:event>
+    <PREMIS:eventIdentifier>
+      <PREMIS:eventIdentifierType>UUID</PREMIS:eventIdentifierType>
+      <PREMIS:eventIdentifierValue>{{ event.identifier }}</PREMIS:eventIdentifierValue>
+    </PREMIS:eventIdentifier>
+    <PREMIS:eventType>{{ event.type }}</PREMIS:eventType>
+    <PREMIS:eventDateTime>{{ event.date_time }}</PREMIS:eventDateTime>
+    <PREMIS:eventDetailInformation>
+      <PREMIS:eventDetail>{{ event.detail }}</PREMIS:eventDetail>
+    </PREMIS:eventDetailInformation>
+    <PREMIS:linkingAgentIdentifier>
+      <PREMIS:linkingAgentIdentifierType>{{ event.linking_agent.type }}</PREMIS:linkingAgentIdentifierType>
+      <PREMIS:linkingAgentIdentifierValue>{{ event.linking_agent.value }}</PREMIS:linkingAgentIdentifierValue>
+    </PREMIS:linkingAgentIdentifier>
+  </PREMIS:event>
+</PREMIS:premis>

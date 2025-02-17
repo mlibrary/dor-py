@@ -11,9 +11,8 @@ class PackageResourceProviderTest(TestCase):
         self.test_submission_path = Path("tests/fixtures/test_submission_package")
         self.data_path = (
             self.test_submission_path
-            / "xyzzy-0001-v1"
+            / "xyzzy-00000000-0000-0000-0000-000000000001-v1"
             / "data"
-            / "00000000-0000-0000-0000-000000000001"
         )
 
         return super().setUp()
@@ -27,18 +26,21 @@ class PackageResourceProviderTest(TestCase):
 
         expected_files.append(
             self.data_path
+            / "00000000-0000-0000-0000-000000000001"
             / "descriptor"
             / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml"
         )
         expected_files.append(
             self.data_path
+            / "00000000-0000-0000-0000-000000001001"
             / "descriptor"
-            / "00000000-0000-0000-0000-000000001001.asset.mets2.xml"
+            / "00000000-0000-0000-0000-000000001001.file_set.mets2.xml"
         )
         expected_files.append(
             self.data_path
+            / "00000000-0000-0000-0000-000000001002"
             / "descriptor"
-            / "00000000-0000-0000-0000-000000001002.asset.mets2.xml"
+            / "00000000-0000-0000-0000-000000001002.file_set.mets2.xml"
         )
 
         provider = PackageResourceProvider(self.data_path, self.file_provider)

@@ -12,11 +12,13 @@ class PackageResourceProvider:
 
     @property
     def descriptor_files(self):
-        descriptor_path = self.data_path / "descriptor"
-        return [file for file in descriptor_path.iterdir()]
+        descriptor_files = []
+        for object_path in self.data_path.iterdir():
+            descriptor_path = object_path / "descriptor"
+            descriptor_files.extend(descriptor_path.iterdir())
+        return descriptor_files
 
     def get_resources(self):
         return [
             DescriptorFileParser(file, self.file_provider).get_resource() for file in self.descriptor_files
         ]
-        

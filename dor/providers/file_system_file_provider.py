@@ -22,6 +22,13 @@ class FilesystemFileProvider(FileProvider):
     def get_combined_path(self, base_path: Path, path_to_apply: str) -> Path:
         return base_path / path_to_apply
 
+    def get_replaced_path(self, base_path: Path, path_to_apply: str) -> Path:
+        replaced_path = Path(path_to_apply)
+        while base_path.parts[-1] != replaced_path.parts[0]:
+            base_path = base_path.parent
+        replaced_path = base_path.parent / replaced_path
+        return replaced_path
+
     def clone_directory_structure(self, source_path: Path, destination_path: Path):
         shutil.copytree(source_path, destination_path)
 

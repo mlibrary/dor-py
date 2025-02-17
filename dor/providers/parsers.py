@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 
 from dor.providers.file_provider import FileProvider
-from utils.element_adapter import ElementAdapter
+from utils.element_adapter import ElementAdapter, DataNotFoundError
 from .models import (
     Agent,
     AlternateIdentifier,
@@ -45,7 +45,17 @@ class DescriptorFileParser:
         )
 
     def get_preservation_events(self) -> list[PreservationEvent]:
-        return [self.get_event(elem) for elem in self.tree.findall(".//PREMIS:event")]
+        events = []
+        for elem in self.tree.findall(".//METS:md[@USE='PROVENANCE']/METS:mdRef"):
+            premis_locref = elem.get('LOCREF')
+            premis_path = self.file_provider.get_replaced_path(self.descriptor_path, premis_locref)
+            premis_tree = ElementAdapter.from_string(premis_path.read_text(), self.namespaces)
+            try:
+                event_elem = premis_tree.find(".//PREMIS:event")
+                events.append(self.get_event(event_elem))
+            except DataNotFoundError:
+                pass
+        return events
 
     def get_event(self, elem: ElementAdapter) -> PreservationEvent:
         event_identifier = elem.find(".//PREMIS:eventIdentifierValue").text
@@ -79,17 +89,13 @@ class DescriptorFileParser:
         use = elem.get("USE")
         md_ref_element = elem.find("METS:mdRef")
         locref = md_ref_element.get("LOCREF")
-        if not locref.startswith("https"):
-            locref = self.file_provider.apply_relative_path(
-                self.descriptor_path, locref
-            )
         mdtype = md_ref_element.get_optional("MDTYPE")
         mimetype = md_ref_element.get_optional("MIMETYPE")
 
         return FileMetadata(
             id=id_,
             use=use,
-            ref=FileReference(locref=str(locref), mdtype=mdtype, mimetype=mimetype),
+            ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
         )
 
     def get_filesec_file_metadatum(self, elem: ElementAdapter):
@@ -101,17 +107,13 @@ class DescriptorFileParser:
         mdtype = None
         flocat_element = elem.find("METS:FLocat")
         locref = flocat_element.get("LOCREF")
-        if not locref.startswith("https"):
-            locref = self.file_provider.apply_relative_path(
-                self.descriptor_path, locref
-            )
 
         return FileMetadata(
             id=id_,
             use=use,
             mdid=mdid,
             groupid=groupid,
-            ref=FileReference(locref=str(locref), mdtype=mdtype, mimetype=mimetype),
+            ref=FileReference(locref=locref, mdtype=mdtype, mimetype=mimetype),
         )
 
     def get_struct_maps(self) -> list[StructMap]:

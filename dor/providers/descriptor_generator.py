@@ -10,7 +10,7 @@ def relative_path_or_not(locref: str):
     return f"../{locref}"
 
 def build_descriptor_filename(resource):
-    return f"{resource.id}.{resource.type.lower()}.mets2.xml"
+    return f"{resource.id}.{resource.type.lower().replace(" ", "_")}.mets2.xml"
 
 class DescriptorGenerator:
     def __init__(self, package_path: Path, resources: list[PackageResource]):
@@ -34,7 +34,9 @@ class DescriptorGenerator:
                 action="stored",
                 create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
-            filename = Path(f"descriptor/{build_descriptor_filename(resource)}")
-            with (self.package_path / filename).open("w") as f:
+            filename = Path(f"{resource.id}/descriptor/{build_descriptor_filename(resource)}")
+            output_filename = self.package_path / filename
+            output_filename.parent.mkdir(parents=True, exist_ok=True)
+            with (output_filename).open("w") as f:
                 f.write(xmldata)
             self.entries.append(filename)

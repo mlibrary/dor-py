@@ -17,6 +17,7 @@ class Md:
     loctype: str = "URL"
     mdtype: str = None
     checksum: str = None
+    mimetype: str = None
 
 
 @dataclass
@@ -52,6 +53,8 @@ class Identifier:
     uuid: uuid6.UUID = None
 
     def __post_init__(self):
+        if self.uuid:
+            self.start = self.uuid.int
         if self.start >= 0:
             self.uuid = uuid6.UUID(int=self.start)
         else:
@@ -60,13 +63,23 @@ class Identifier:
 
     def __str__(self):
         return str(self.uuid)
-    
+
     def __add__(self, other):
         return str(self) + other
-    
+
     @property
     def alternate_identifier(self):
         return f"{self.collid}:{self.uuid.int:08d}"
+
+
+class IdGenerator:
+    def __init__(self, identifier):
+        self.identifier = identifier
+        self.counter = 0
+
+    def __call__(self):
+        self.counter += 1
+        return generate_uuid(base=16 * 16 * self.identifier.start + self.counter)
 
 
 def calculate_checksum(pathname):
@@ -84,3 +97,10 @@ def generate_ulid():
 
 def generate_md5(s):
     return hashlib.md5(s.encode('utf-8')).hexdigest()
+
+def make_paths(pathname):
+    pathname.mkdir()
+    for d in ["data", "descriptor", "metadata"]:
+        d_pathname = pathname.joinpath(d)
+        d_pathname.mkdir()
+    return pathname

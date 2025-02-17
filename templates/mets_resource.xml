@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" xmlns:dcam="http://purl.org/dc/dcam/" OBJID="{{ object_identifier }}" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
+
+  <METS:metsHdr RECORDSTATUS="root" CREATEDATE="{{ create_date }}" ID="HDR1" TYPE="Monograph">
+    <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
+      <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
+    </METS:agent>
+    <METS:altRecordID TYPE="DLXS">{{ alternate_identifier }}</METS:altRecordID>
+  </METS:metsHdr>
+
+  <METS:mdSec>
+
+    {% for md in mdsec_items %}
+    <METS:md ID="_{{ md.id }}" USE="{{ md.use }}">
+      <METS:mdRef LOCREF="{{ md.locref }}" LOCTYPE="{{ md.loctype }}" MDTYPE="{{ md.mdtype }}" MIMETYPE="{{ md.mimetype }}" />
+    </METS:md>
+    {% endfor %}
+
+  </METS:mdSec>
+
+  <METS:structSec>
+    {% if version == 1 %}
+    <METS:structMap ID="SM1" TYPE="physical">
+      <METS:div>
+        {% for file_set_identifier in file_set_identifiers %}
+        <METS:div ORDERLABEL="{{ loop.index }}" TYPE="page" ORDER="{{ loop.index }}" LABEL="Page {{ loop.index }}" ID="urn:dor:{{ file_set_identifier }}">
+          <METS:mptr LOCTYPE="URL" LOCREF="{{ file_set_identifier }}/descriptor/{{ file_set_identifier }}.file_set.mets2.xml" />
+        </METS:div>
+        {% endfor %}  
+      </METS:div>
+    </METS:structMap>
+    {% else %}
+    <METS:structMap ID="SM1" TYPE="manifest">
+      <METS:div>
+        {% for file_set_identifier in file_set_identifiers %}
+        <METS:div TYPE="page">
+          <METS:mptr LOCTYPE="URL" LOCREF="{{ file_set_identifier }}/descriptor/{{ file_set_identifier }}.file_set.mets2.xml" />
+        </METS:div>
+        {% endfor %}  
+      </METS:div>
+    </METS:structMap>
+    {% endif %}
+  </METS:structSec>
+
+</METS:mets>
