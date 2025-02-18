@@ -169,7 +169,7 @@ def sample_resources():
     ]
 
 def test_generator_can_create_descriptor_files(sample_resources):
-    package_path = Path("./tests/test_workspace")
+    package_path = Path("./tests/test_workspaces")
     shutil.rmtree(package_path, ignore_errors=True)
     os.makedirs(package_path / "descriptor")
 
@@ -180,7 +180,7 @@ def test_generator_can_create_descriptor_files(sample_resources):
     assert (package_path / "00000000-0000-0000-0000-000000001001" / "descriptor" / "00000000-0000-0000-0000-000000001001.file_set.mets2.xml" ).exists()
 
 def test_generator_can_return_entries(sample_resources):
-    package_path = Path("./tests/test_workspace")
+    package_path = Path("./tests/test_workspaces")
     shutil.rmtree(package_path, ignore_errors=True)
     os.makedirs(package_path / "descriptor")
 
