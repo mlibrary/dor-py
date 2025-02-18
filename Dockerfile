@@ -23,6 +23,9 @@ ENV PYTHONPATH="/app"
 RUN groupadd -g ${GID} -o app
 RUN useradd -m -d /app -u ${UID} -g ${GID} -o -s /bin/bash app
 
+RUN mkdir /data
+RUN chown ${UID}:${GID} /data
+
 RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   python3-dev \ 
   build-essential \ 
@@ -39,7 +42,8 @@ ENV PYTHONPATH="/app"
 
 # Download rocfl and place in /usr/local/bin
 RUN curl -LO https://github.com/pwinckles/rocfl/releases/download/v1.7.0/rocfl-linux-x86_64-no-s3.zip && \
-  unzip -d /usr/local/bin rocfl-linux-x86_64-no-s3.zip
+  unzip -d /usr/local/bin rocfl-linux-x86_64-no-s3.zip && \
+  rm rocfl-linux-x86_64-no-s3.zip
 
 CMD ["tail", "-f", "/dev/null"]
 
@@ -80,7 +84,7 @@ USER app
 
 EXPOSE 8000
 
-# We don't want poetry on in production, so we copy the needed files form the build stage
+# We don't want poetry on in production, so we copy the needed files from the build stage
 FROM base AS production
 # Switch to the non-root user "user"
 # RUN mkdir -p /venv && chown ${UID}:${GID} /venv
