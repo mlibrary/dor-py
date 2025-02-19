@@ -26,10 +26,7 @@ class ResourceProvider:
         return file_paths[0]
 
     def get_resource(self) -> PackageResource:
-        descriptor_file_parser = DescriptorFileParser(
-            self.get_descriptor_path(),
-            self.file_provider
-        )
+        descriptor_file_parser = DescriptorFileParser(self.get_descriptor_path())
 
         pres_file_paths = descriptor_file_parser.get_preservation_file_paths()
         pres_events: list[PreservationEvent] = []
