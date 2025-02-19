@@ -147,7 +147,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use="PROVENANCE",
+            use="EVENT",
             mdtype="PREMIS",
             locref=f"{identifier}/metadata/{image_filename}.premis.event.xml",
             mimetype="text/xml",
@@ -194,7 +194,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use="PROVENANCE",
+            use="EVENT",
             mdtype="PREMIS",
             locref=f"{identifier}/metadata/{text_filename}.premis.event.xml",
             mimetype="text/xml",

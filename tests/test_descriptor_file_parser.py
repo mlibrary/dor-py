@@ -54,12 +54,11 @@ class DescriptorFileParserTest(TestCase):
 
         self.assertEqual(parser.get_alternate_identifier(), expected_identifier)
 
-    def test_parser_can_get_preservation_file_paths(self):
+    def test_parser_can_get_preservation_event_paths(self):
         parser = DescriptorFileParser(self.descriptor_path)
-        pres_files = parser.get_preservation_file_paths()
+        pres_files = parser.get_preservation_event_paths()
         self.assertSetEqual(set([
             "00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
-            "00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.object.xml"
         ]), set(pres_files))
 
     def test_parser_can_get_metadata_files(self):
@@ -95,7 +94,7 @@ class DescriptorFileParserTest(TestCase):
             ),
             FileMetadata(
                 id="_00000000-0000-0000-0000-000000000104",
-                use="PROVENANCE",
+                use="EVENT",
                 ref=FileReference(
                     locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
                     mdtype="PREMIS",
