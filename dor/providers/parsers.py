@@ -45,16 +45,11 @@ class PreservationEventFileParser:
 class DescriptorFileParser:
     namespaces: dict[str, str] = {
         "METS": "http://www.loc.gov/METS/v2",
-        "PREMIS": "http://www.loc.gov/premis/v3",
     }
 
-    def __init__(self, descriptor_file_path: Path, file_provider: FileProvider):
+    def __init__(self, descriptor_file_path: Path):
         text = descriptor_file_path.read_text()
         self.tree: ElementAdapter = ElementAdapter.from_string(text, self.namespaces)
-        self.file_provider = file_provider
-        self.descriptor_path: Path = file_provider.get_descriptor_dir(
-            descriptor_file_path
-        )
 
     def get_id(self):
         return uuid.UUID(self.tree.get("OBJID"))
