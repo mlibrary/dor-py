@@ -134,7 +134,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use="PROVENANCE",
+            use="EVENT",
             mdtype="PREMIS",
             locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.event.xml",
             mimetype="text/xml",

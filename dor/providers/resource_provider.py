@@ -28,18 +28,13 @@ class ResourceProvider:
     def get_resource(self) -> PackageResource:
         descriptor_file_parser = DescriptorFileParser(self.get_descriptor_path())
 
-        pres_file_paths = descriptor_file_parser.get_preservation_file_paths()
+        event_file_paths = descriptor_file_parser.get_preservation_event_paths()
         pres_events: list[PreservationEvent] = []
-        for pres_file_path in pres_file_paths:
-            full_pres_file_path = self.file_provider.get_replaced_path(
-                self.resource_path, pres_file_path
+        for event_file_path in event_file_paths:
+            full_event_file_path = self.file_provider.get_replaced_path(
+                self.resource_path, event_file_path
             )
-            element_tree = ElementAdapter.from_string(full_pres_file_path.read_text(), self.namespaces)
-            try:
-                element_tree.find(".//PREMIS:event")
-                pres_events.append(PreservationEventFileParser(full_pres_file_path).get_event())
-            except DataNotFoundError:
-                pass
+            pres_events.append(PreservationEventFileParser(full_event_file_path).get_event())
 
         return PackageResource(
             id=descriptor_file_parser.get_id(),

@@ -89,7 +89,7 @@ class ResourceProviderTest(TestCase):
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000000104",
-                    use="PROVENANCE",
+                    use="EVENT",
                     ref=FileReference(
                         locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
                         mdtype="PREMIS",
@@ -171,7 +171,7 @@ class ResourceProviderTest(TestCase):
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100103",
-                    use="PROVENANCE",
+                    use="EVENT",
                     ref=FileReference(
                         locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.premis.event.xml",
                         mdtype="PREMIS",
@@ -187,7 +187,7 @@ class ResourceProviderTest(TestCase):
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100105",
-                    use="PROVENANCE",
+                    use="EVENT",
                     ref=FileReference(
                         locref="00000000-0000-0000-0000-000000001001/metadata/00000001.plaintext.txt.premis.event.xml",
                         mdtype="PREMIS",

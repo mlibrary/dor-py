@@ -64,9 +64,9 @@ class DescriptorFileParser:
             type=alt_record_id.get("TYPE"), id=alt_record_id.text
         )
 
-    def get_preservation_file_paths(self) -> list[str]:
+    def get_preservation_event_paths(self) -> list[str]:
         locrefs = []
-        for elem in self.tree.findall(".//METS:md[@USE='PROVENANCE']/METS:mdRef"):
+        for elem in self.tree.findall(".//METS:md[@USE='EVENT']/METS:mdRef"):
             locrefs.append(elem.get('LOCREF'))
         return locrefs
 
