@@ -56,10 +56,10 @@ class DescriptorFileParserTest(TestCase):
 
     def test_parser_can_get_preservation_event_paths(self):
         parser = DescriptorFileParser(self.descriptor_path)
-        pres_files = parser.get_preservation_event_paths()
+        pres_event_paths = parser.get_preservation_event_paths()
         self.assertSetEqual(set([
             "00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
-        ]), set(pres_files))
+        ]), set(pres_event_paths))
 
     def test_parser_can_get_metadata_files(self):
 

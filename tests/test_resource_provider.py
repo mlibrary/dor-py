@@ -25,7 +25,6 @@ class ResourceProviderTest(TestCase):
         self.file_provider = FilesystemFileProvider()
         self.test_submission_path = Path("tests/fixtures/test_submission_package")
 
-
         self.root_resource_path = (
             self.test_submission_path
             / "xyzzy-00000000-0000-0000-0000-000000000001-v1"

@@ -3,7 +3,6 @@ from pathlib import Path
 from dor.providers.file_provider import FileProvider
 from dor.providers.models import PackageResource, PreservationEvent
 from dor.providers.parsers import DescriptorFileParser, PreservationEventFileParser
-from utils.element_adapter import DataNotFoundError, ElementAdapter
 
 
 class DescriptorFileNotFound(Exception):
@@ -11,9 +10,6 @@ class DescriptorFileNotFound(Exception):
 
 
 class ResourceProvider:
-    namespaces: dict[str, str] = {
-        "PREMIS": "http://www.loc.gov/premis/v3",
-    }
 
     def __init__(self, file_provider: FileProvider, resource_path: Path):
         self.file_provider: FileProvider = file_provider
@@ -21,7 +17,7 @@ class ResourceProvider:
 
     def get_descriptor_path(self) -> Path:
         file_paths = list((self.resource_path / "descriptor").iterdir())
-        if len(file_paths) < 0:
+        if len(file_paths) < 1:
             raise DescriptorFileNotFound()
         return file_paths[0]
 
