@@ -1,8 +1,9 @@
 from pathlib import Path
 
 from dor.providers.file_provider import FileProvider
-from dor.providers.models import PackageResource
+from dor.providers.models import PackageResource, PreservationEvent
 from dor.providers.parsers import DescriptorFileParser, PreservationEventFileParser
+from utils.element_adapter import DataNotFoundError, ElementAdapter
 
 
 class DescriptorFileNotFound(Exception):
@@ -10,6 +11,9 @@ class DescriptorFileNotFound(Exception):
 
 
 class ResourceProvider:
+    namespaces: dict[str, str] = {
+        "PREMIS": "http://www.loc.gov/premis/v3",
+    }
 
     def __init__(self, file_provider: FileProvider, resource_path: Path):
         self.file_provider: FileProvider = file_provider
@@ -28,17 +32,17 @@ class ResourceProvider:
         )
 
         pres_file_paths = descriptor_file_parser.get_preservation_file_paths()
-        event_file_paths = [
-            pres_file_path for pres_file_path in pres_file_paths
-            if "event" in pres_file_path
-        ]
-        pres_events = []
-        for event_file_path in event_file_paths:
-            full_event_file_path = self.file_provider.get_replaced_path(
-                self.resource_path, event_file_path
+        pres_events: list[PreservationEvent] = []
+        for pres_file_path in pres_file_paths:
+            full_pres_file_path = self.file_provider.get_replaced_path(
+                self.resource_path, pres_file_path
             )
-            event = PreservationEventFileParser(full_event_file_path).get_event()
-            pres_events.append(event)
+            element_tree = ElementAdapter.from_string(full_pres_file_path.read_text(), self.namespaces)
+            try:
+                element_tree.find(".//PREMIS:event")
+                pres_events.append(PreservationEventFileParser(full_pres_file_path).get_event())
+            except DataNotFoundError:
+                pass
 
         return PackageResource(
             id=descriptor_file_parser.get_id(),
