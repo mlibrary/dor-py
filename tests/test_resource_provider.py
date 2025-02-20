@@ -1,9 +1,7 @@
-from importlib import resources
+import uuid
+from datetime import datetime, UTC
 from pathlib import Path
 from unittest import TestCase
-
-from datetime import datetime, UTC
-import uuid
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.models import (
@@ -18,6 +16,7 @@ from dor.providers.models import (
     StructMapType,
 )
 from dor.providers.resource_provider import ResourceProvider
+
 
 class ResourceProviderTest(TestCase):
 
@@ -120,7 +119,6 @@ class ResourceProviderTest(TestCase):
 
         resource = ResourceProvider(self.file_provider, self.root_resource_path).get_resource()
         self.assertEqual(expected_resource, resource)
-
 
     def test_resource_provider_provides_file_set_resource(self):
         expected_resource = PackageResource(
