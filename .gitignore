@@ -20,3 +20,5 @@ output/
 tests/test_storage/
 tests/test_descriptor_generator/
 tests/test_workspaces/
+
+features/packager_scratch/*
