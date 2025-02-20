@@ -20,4 +20,4 @@ tests/test_storage
 tests/test_workspaces
 
 features/scratch/*
-
+features/packager_scratch/*
