@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime, UTC
 from pathlib import Path
 from unittest import TestCase
 
