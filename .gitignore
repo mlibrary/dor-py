@@ -20,4 +20,4 @@ tests/test_storage
 tests/test_descriptor_generator
 
 features/scratch/*
-
+features/packager_scratch/*
