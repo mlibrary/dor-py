@@ -29,7 +29,7 @@ class BagAdapter:
     @classmethod
     def make(cls, payload_path: Path, dor_info: dict[str, str], file_provider: FileProvider) -> Self:
         bagit_bag = bagit.make_bag(str(payload_path))
-        bagit._make_tag_file(payload_path / "dor-info.txt", dor_info)
+        bagit._make_tag_file(payload_path / cls.dor_info_file_name, dor_info)
         bagit_bag.save()
         return cls(bagit_bag, file_provider)
 
