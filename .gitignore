@@ -17,6 +17,7 @@ requirements.txt
 output/
 .DS_Store
 
+tests/test_payload
 tests/test_storage/
 tests/test_descriptor_generator/
 tests/test_workspaces/
