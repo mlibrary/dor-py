@@ -8,7 +8,7 @@ def verify_package(
 ) -> None:
     workspace = workspace_class(event.workspace_identifier)
 
-    bag_adapter = bag_adapter_class(workspace.package_directory(), file_provider)
+    bag_adapter = bag_adapter_class.load(workspace.package_directory(), file_provider)
 
     try:
         bag_adapter.validate()
