@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Self
 
 import bagit
 from dor.providers.file_provider import FileProvider 
@@ -16,27 +17,24 @@ class ValidationError(Exception):
         self.message = message
 
 
-class FakeBagAdapter():
-
-    def __init__(self, identifier: str) -> None:
-        self.identifier = identifier
-
-    def validate(self) -> None:
-        return
-    
-    @property
-    def dor_info(self) -> dict:
-        return {
-            'Root-Identifier': "00000000-0000-0000-0000-000000000001"
-        }
-
-
 class BagAdapter:
     
     dor_info_file_name = "dor-info.txt"
 
-    def __init__(self, path: Path, file_provider: FileProvider) -> None:
-        self.bag = bagit.Bag(str(path))
+    @classmethod
+    def load(cls, path: Path, file_provider: FileProvider) -> Self:
+        bagit_bag = bagit.Bag(str(path))
+        return cls(bagit_bag, file_provider)
+
+    @classmethod
+    def make(cls, payload_path: Path, dor_info: dict[str, str], file_provider: FileProvider) -> Self:
+        bagit_bag = bagit.make_bag(str(payload_path))
+        bagit._make_tag_file(payload_path / "dor-info.txt", dor_info)
+        bagit_bag.save()
+        return cls(bagit_bag, file_provider)
+
+    def __init__(self, bag, file_provider: FileProvider) -> None:
+        self.bag = bag
         self.file_provider = file_provider
 
     def validate(self) -> None:
