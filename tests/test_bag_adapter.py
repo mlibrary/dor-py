@@ -1,10 +1,10 @@
 from pathlib import Path
 from typing import Callable
 
-from dor.providers.file_system_file_provider import FilesystemFileProvider
 import pytest
 
 from dor.adapters.bag_adapter import BagAdapter, DorInfoMissingError, ValidationError
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 
 
 @pytest.fixture
@@ -82,6 +82,7 @@ def test_read_dor_info_when_missing(
     with pytest.raises(DorInfoMissingError):
         bag.dor_info
 
+
 @pytest.fixture
 def payload_path():
     payload_path = Path("tests/test_payload")
@@ -91,6 +92,7 @@ def payload_path():
     with open(payload_path / "hello.txt", "w") as file:
         file.write("Hello World!\n")
     return payload_path
+
 
 def test_adapter_can_make_bag(payload_path):
     file_provider = FilesystemFileProvider()
