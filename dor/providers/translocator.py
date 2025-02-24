@@ -44,7 +44,6 @@ class Workspace:
             entries=entries
         )
 
-
 class FakeTranslocator:
 
     def create_workspace_for_package(self, package_identifier: str) -> FakeWorkspace:
@@ -66,3 +65,4 @@ class Translocator():
             self.inbox_path / package_identifier, workspace_path
         )
         return Workspace(str(workspace_path))
+

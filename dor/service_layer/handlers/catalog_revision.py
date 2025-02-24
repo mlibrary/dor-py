@@ -33,7 +33,9 @@ def catalog_revision(event: PackageStored, uow: AbstractUnitOfWork) -> None:
 
     uow.add_event(RevisionCataloged(
         identifier=event.identifier,
+        workspace_identifier=event.workspace_identifier,
         tracking_identifier=event.tracking_identifier,
-        package_identifier=event.package_identifier
+        package_identifier=event.package_identifier,
+        update_flag=event.update_flag,
     ))
     

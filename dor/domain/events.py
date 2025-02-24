@@ -14,6 +14,7 @@ class Event:
 class PackageEvent(Event):
     package_identifier: str
     tracking_identifier: str
+    update_flag: bool
 
 
 @dataclass
@@ -47,7 +48,16 @@ class PackageUnpacked(PackageEvent):
 class PackageStored(PackageEvent):
     identifier: str
     resources: list[PackageResource]
+    workspace_identifier: str
+
 
 @dataclass
 class RevisionCataloged(PackageEvent):
+    identifier: str
+    workspace_identifier: str
+
+
+
+@dataclass
+class WorkspaceCleaned(PackageEvent):
     identifier: str

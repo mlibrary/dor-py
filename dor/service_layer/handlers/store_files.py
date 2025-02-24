@@ -12,7 +12,9 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
 
     bundle = workspace.get_bundle(entries)
 
-    uow.gateway.create_staged_object(id=event.identifier)
+    if not event.update_flag: 
+        uow.gateway.create_staged_object(id=event.identifier)
+
     uow.gateway.stage_object_files(
         id=event.identifier,
         source_bundle=bundle,
@@ -37,8 +39,10 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
 
     stored_event = PackageStored(
         identifier=event.identifier,
+        workspace_identifier=event.workspace_identifier,
         tracking_identifier=event.tracking_identifier,
         package_identifier=event.package_identifier,
-        resources=event.resources
+        resources=event.resources,
+        update_flag=event.update_flag,
     )
     uow.add_event(stored_event)
