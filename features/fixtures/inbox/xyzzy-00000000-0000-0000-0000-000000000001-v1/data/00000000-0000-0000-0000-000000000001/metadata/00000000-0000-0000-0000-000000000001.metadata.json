@@ -1,23 +1,23 @@
 {
     "@schema": "urn:umich.edu:dor:schema:xyzzy",
-    "title": "Suggest training much grow any me own true.",
-    "author": "Dr. Gary Kim",
-    "author_ja": "\u7530\u4e2d \u9999\u7e54",
-    "description": "Hand line for PM identify decade involve. Deep present person forget teach. House here institution identify protect. The describe behind. He growth energy.",
-    "description_ja": "\u30b8\u30e3\u30fc\u30ca\u30eb\u4fdd\u8a3c\u91d1\u98a8\u666f\u3002\u4fdd\u6301\u3059\u308b\u30b7\u30e5\u30ac\u30fc\u7d30\u304b\u3044\u30af\u30fc\u30eb\u30bf\u30ef\u30fc\u4e0d\u81ea\u7136\u306a\u3002\u547c\u3076\u30c8\u30fc\u30b9\u30c8\u30c7\u30c3\u30c9\u4fdd\u6301\u3059\u308b\u96a0\u3059\u30bd\u30fc\u30b9\u30b3\u30fc\u30e9\u30b9\u3002",
-    "publication_date": "1989-01-21",
+    "title": "Almost throughout campaign or production.",
+    "author": "Melanie Wood",
+    "author_ja": "\u6e05\u6c34 \u76f4\u5b50",
+    "description": "Public before product he take and water. Government discussion here. Worry strong true control reach somebody risk.",
+    "description_ja": "\u5f7c\u30b7\u30e5\u30ac\u30fc\u4fdd\u6301\u3059\u308b\u53c2\u52a0\u3059\u308b\u72b6\u6cc1\u30b5\u30e9\u30c0\u3002\u6575\u5bfe\u7684\u306a\u61b2\u6cd5\u30de\u30ea\u30f3\u5927\u7d71\u9818\u8ffd\u653e\u3059\u308b\u5dee\u5225\u3059\u308b\u3055\u3055\u3084\u304d\u3002\u8ef8\u30ed\u30b0\u697d\u3057\u3093\u3067\u3002\u50ac\u7720\u8853\u7d22\u5f15\u4eca\u610f\u56f3\u7d22\u5f15\u898b\u843d\u3068\u3059\u3002",
+    "publication_date": "1973-07-12",
     "places": [
-        "\u30c8\u30eb\u30af\u30e1\u30cb\u30b9\u30bf\u30f3",
-        "Taiwan",
-        "Portogallo",
-        "\u30cb\u30e5\u30fc\u30b8\u30fc\u30e9\u30f3\u30c9",
-        "\u30b9\u30ea\u30ca\u30e0"
+        "Isole Norfolk",
+        "Bhutan",
+        "\u30d0\u30cf\u30de",
+        "\u30af\u30a6\u30a7\u30fc\u30c8",
+        "Suriname"
     ],
     "identification": [
-        "Danio Rerio",
+        "Schizosaccharomyces pombe",
+        "Saccharomyces cervisiae",
         "Caenorhabditis elegans",
-        "Caenorhabditis elegans",
-        "Rattus norvegicus",
-        "Danio Rerio"
+        "Mus musculus",
+        "Rattus norvegicus"
     ]
 }
