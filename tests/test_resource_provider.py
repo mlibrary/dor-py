@@ -39,7 +39,7 @@ class ResourceProviderTest(TestCase):
         )
 
         return super().setUp()
-    
+
     def test_resource_provider_provides_root_resource(self):
         expected_resource = PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
@@ -47,12 +47,12 @@ class ResourceProviderTest(TestCase):
             alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
             events=[
                 PreservationEvent(
-                    identifier="23b04e8b-f7fd-4331-a3bb-0157f9a057d6",
+                    identifier="f5383b6a-c41c-4423-8288-8a4889ed8a48",
                     type="ingest",
-                    datetime=datetime(1974, 6, 24, 1, 8, 39, tzinfo=UTC),
-                    detail="This front attack nature.",
+                    datetime=datetime(2018, 5, 17, 14, 12, 54, tzinfo=UTC),
+                    detail="Giardino si bisogno.",
                     agent=Agent(
-                        address="steven34@example.net",
+                        address="pierina28@example.org",
                         role="collection manager",
                     ),
                 )
@@ -129,22 +129,22 @@ class ResourceProviderTest(TestCase):
             ),
             events=[
                 PreservationEvent(
-                    identifier="f9fa8a15-7be0-4ad5-8682-4423793c9f1d",
+                    identifier="36eafa28-80e6-45d0-a9d9-36500c6bdf0d",
                     type="generate access derivative",
-                    datetime=datetime(1973, 5, 23, 21, 42, 15, tzinfo=UTC),
-                    detail="Care instead also much.",
+                    datetime=datetime(1999, 3, 16, 0, 4, 29, tzinfo=UTC),
+                    detail="Realize defense wife audience cover become show.",
                     agent=Agent(
-                        address="sweaver@example.com",
+                        address="thomasnguyen@example.net",
                         role="image processing",
                     ),
                 ),
                 PreservationEvent(
-                    identifier="006c79ed-f63e-466f-b1fb-171cc229b901",
+                    identifier="37557161-10f8-40c1-842f-be3a386c033c",
                     type="extract text",
-                    datetime=datetime(1998, 8, 29, 13, 3, 58, tzinfo=UTC),
-                    detail="Human debate million theory capital.",
+                    datetime=datetime(2015, 8, 8, 19, 14, 45, tzinfo=UTC),
+                    detail="Cantare alcuno sorgere coprire possibile semplice.",
                     agent=Agent(
-                        address="moorenicholas@example.com",
+                        address="junyamada@example.net",
                         role="ocr processing",
                     ),
                 ),
