@@ -5,6 +5,12 @@ from ulid import ULID
 import hashlib
 from enum import Enum
 
+from datetime import datetime
+
+from faker import Faker
+
+from dor.settings import S
+
 class FileUses(str, Enum):
     access = "ACCESS"
     source = "SOURCE"
@@ -104,3 +110,22 @@ def make_paths(pathname):
         d_pathname = pathname.joinpath(d)
         d_pathname.mkdir()
     return pathname
+
+_faker = None
+
+
+def get_faker():
+    global _faker
+    if _faker is None:
+        if S.seed > -1: Faker.seed(S.seed)
+        if S.seed > -1: print("USING SEED", S.seed)
+        _faker = Faker(["it_IT", "en_US", "ja_JP"])
+    return _faker
+
+
+def get_datetime():
+    fake = get_faker()
+    return fake.date_time_between_dates(
+        datetime_start=datetime(1991, 1, 1, 0, 0, 0),
+        datetime_end=datetime(2027, 12, 31, 23, 59, 59),
+    ).strftime("%Y-%m-%dT%H:%M:%SZ")

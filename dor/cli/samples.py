@@ -4,7 +4,7 @@ import pathlib
 import bagit
 from dor.settings import S, ActionChoices
 
-from dor.builders.parts import generate_uuid, Identifier
+from dor.builders.parts import generate_uuid, Identifier, get_faker, get_datetime
 from dor.builders.resource import build_resource
 
 import sys
@@ -80,9 +80,12 @@ def generate(
         seed=seed,
     )
 
+    fake = get_faker()
+
     if deposit_group is None:
-        deposit_group = generate_uuid()
-    deposit_group_date = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        deposit_group = fake.uuid4()
+
+    deposit_group_date = get_datetime()  
 
     resource_identifier = Identifier(start=start, collid=collid)
     for version in range(1, versions + 1):

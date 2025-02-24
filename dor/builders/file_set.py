@@ -6,7 +6,20 @@ import hashlib
 
 from dor.settings import S, text_font, template_env
 
-from .parts import FileUses, Identifier, Md, File, FileGrp, IdGenerator, calculate_checksum, generate_md5, generate_uuid, make_paths
+from .parts import (
+    FileUses,
+    Identifier,
+    Md,
+    File,
+    FileGrp,
+    IdGenerator,
+    calculate_checksum,
+    generate_md5,
+    generate_uuid,
+    make_paths,
+    get_faker,
+    get_datetime,
+)
 from .premis import build_event
 
 IMAGE_WIDTH = 680
@@ -38,7 +51,7 @@ def build_image(use, seq, version):
 
 
 def build_plaintext(use, seq, version):
-    fake = Faker(["it_IT", "en_US", "ja_JP"])
+    fake = get_faker()
 
     buffer = [f"Page v{version}.{seq}"]
     buffer.append(fake["en_US"].paragraph(nb_sentences=5))
@@ -57,6 +70,8 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     id_generator = IdGenerator(
         Identifier(start=16 * 16 * 16 * item_identifier.start + seq, collid=item_identifier.collid)
     )
+
+    fake = get_faker()
 
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
@@ -206,14 +221,16 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         )
     )
 
-    file_set_pathname.joinpath("descriptor", local_identifier + ".file_set.mets2.xml").open("w").write(
+    file_set_pathname.joinpath(
+        "descriptor", local_identifier + ".file_set.mets2.xml"
+    ).open("w").write(
         file_set_template.render(
             object_identifier=identifier,
             alternate_identifier=f"{item_identifier.alternate_identifier}:{padded_seq}",
             file_group=file_group,
             mdsec_items=mdsec_items,
             seq=seq,
-            create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+            create_date=get_datetime(),
         )
     )
 

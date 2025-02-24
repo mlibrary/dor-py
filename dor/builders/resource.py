@@ -7,7 +7,7 @@ import json
 import random
 
 from dor.settings import S, template_env
-from .parts import Md, MdGrp, File, FileGrp, IdGenerator, calculate_checksum, make_paths, generate_uuid
+from .parts import Md, MdGrp, File, FileGrp, IdGenerator, calculate_checksum, make_paths, get_faker, get_datetime
 from .file_set import build_file_set
 from .premis import build_event
 
@@ -16,6 +16,9 @@ def build_resource(package_pathname, resource_identifier, version=1):
     resource_pathname = make_paths(package_pathname.joinpath(str(resource_identifier)))
 
     alternate_identifier = resource_identifier.alternate_identifier
+
+    fake = get_faker()
+    fake["en_US"].add_provider(ModelOrganism)
 
     resource_template = template_env.get_template("mets_resource.xml")
     premis_event_template = template_env.get_template("premis_event.xml")
@@ -42,16 +45,12 @@ def build_resource(package_pathname, resource_identifier, version=1):
                 file_set_identifiers=file_set_identifiers,
                 object_identifier=resource_identifier,
                 action=S.action.value,
-                create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                create_date=fake["en_US"].date("%Y-%m-%dT%H:%M:%SZ"),
                 version=version,
                 event=build_event(event_type='update', linking_agent_type='collection manager'),
             )
         )
         return resource_identifier
-
-    if S.seed > -1: Faker.seed(S.seed)
-    fake = Faker(locale=["it_IT", "en_US", "ja_JP"])
-    fake["en_US"].add_provider(ModelOrganism)
 
     mdsec_items = []
 
@@ -149,7 +148,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
             object_identifier=resource_identifier,
             alternate_identifier=alternate_identifier,
             mdsec_items=mdsec_items,
-            create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            create_date=get_datetime(),
             version=version,
             collid=S.collid,
             premis_event=premis_event,
