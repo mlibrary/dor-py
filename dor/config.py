@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 import sqlalchemy
 from pydantic.dataclasses import dataclass
 
+
+load_dotenv()
 
 @dataclass
 class DatabaseConfig:
@@ -20,6 +23,9 @@ class Config:
     inbox_path: Path
     workspaces_path: Path
     database: DatabaseConfig
+    pocket_base_api_key: str
+    pocket_base_url: str
+    pocket_base_collection: str
 
     @classmethod
     def from_env(cls):
@@ -33,7 +39,10 @@ class Config:
                 host=os.getenv("POSTGRES_HOST", "db"),
                 database=os.getenv("POSTGRES_DATABSE", "dor_local"),
                 test_database=os.getenv("POSTGRES_TEST_DATABASE", "dor_test")
-            )
+            ),
+            pocket_base_api_key=os.getenv("POCKET_BASE_API_KEY", ""),
+            pocket_base_url=os.getenv("POCKET_BASE_URL", ""),
+            pocket_base_collection=os.getenv("POCKET_BASE_COLLECTION", "")
         )
 
     def _make_database_engine_url(self, database: str):
