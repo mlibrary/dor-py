@@ -59,6 +59,7 @@ def generate(
     num_scans: int = typer.Option(default=-1, help="number of page scans; -1 == random number"),
     start: int = typer.Option(default=1, help="seed number for the root identifier"),
     versions: int = typer.Option(default=1, help="number of versions to generate"),
+    partial: bool = typer.Option(default=True, help="assume partial updates"),
     output_pathname: str = pathlib.Path(__file__).resolve().parent.parent.parent.joinpath("output"),
     seed: int = typer.Option(default=-1, help="Faker seed value"),
 ):
@@ -89,11 +90,15 @@ def generate(
 
     resource_identifier = Identifier(start=start, collid=collid)
     for version in range(1, versions + 1):
+
+        # reset Faker to ensure every version is similar
+        fake = get_faker(True)
+
         package_pathname = S.output_pathname.joinpath(
             f"{S.collid}-{resource_identifier}-v{version}"
         )
         package_pathname.mkdir()
-        identifiers = build_resource(package_pathname, resource_identifier, version=version)
+        identifiers = build_resource(package_pathname, resource_identifier, version=version, partial=partial)
         bag = bagit.make_bag(package_pathname)
 
         # one time ugly

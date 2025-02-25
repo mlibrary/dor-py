@@ -12,7 +12,7 @@ from .file_set import build_file_set
 from .premis import build_event
 
 
-def build_resource(package_pathname, resource_identifier, version=1):
+def build_resource(package_pathname, resource_identifier, version=1, partial=True):
     resource_pathname = make_paths(package_pathname.joinpath(str(resource_identifier)))
 
     alternate_identifier = resource_identifier.alternate_identifier
@@ -29,7 +29,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
     file_set_identifiers = []
     num_scans = random.randint(1, 10) if S.num_scans < 0 else S.num_scans
     sequences = range(1, num_scans + 1)
-    if version > 1:
+    if version > 1 and partial:
         sequences = random.sample(
             sequences, random.randint(1, min(len(sequences) - 1, 2)))
 
@@ -37,7 +37,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
         identifier = build_file_set(resource_identifier, seq, package_pathname, version)
         file_set_identifiers.append(identifier)
 
-    if version > 1:
+    if version > 1 and partial:
         resource_pathname.joinpath("descriptor", resource_identifier + ".mets2.xml").open(
             "w"
         ).write(

@@ -114,9 +114,9 @@ def make_paths(pathname):
 _faker = None
 
 
-def get_faker():
+def get_faker(reset=False):
     global _faker
-    if _faker is None:
+    if _faker is None or reset:
         if S.seed > -1: Faker.seed(S.seed)
         if S.seed > -1: print("USING SEED", S.seed)
         _faker = Faker(["it_IT", "en_US", "ja_JP"])
