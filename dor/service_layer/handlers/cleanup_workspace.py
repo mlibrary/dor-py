@@ -16,5 +16,5 @@ def cleanup_workspace(event: WorkspaceCleaned, uow: AbstractUnitOfWork, workspac
         identifier=event.identifier,
         package_identifier=event.package_identifier,
         tracking_identifier=event.tracking_identifier,
-        update_flag=event.update_flag,))
+    ))
     

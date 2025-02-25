@@ -10,11 +10,11 @@ class Event:
     pass
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PackageEvent(Event):
     package_identifier: str
     tracking_identifier: str
-    update_flag: bool
+    update_flag: bool = False
 
 
 @dataclass
@@ -55,7 +55,6 @@ class PackageStored(PackageEvent):
 class RevisionCataloged(PackageEvent):
     identifier: str
     workspace_identifier: str
-
 
 
 @dataclass
