@@ -12,7 +12,8 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
 
     bundle = workspace.get_bundle(entries)
 
-    if not event.update_flag: 
+    revision = uow.catalog.get(event.identifier)
+    if revision is None: 
         uow.gateway.create_staged_object(id=event.identifier)
 
     uow.gateway.stage_object_files(
