@@ -38,6 +38,9 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
         message=event.version_info.message,
     )
 
+    version_log = uow.gateway.log(id=event.identifier)
+    revision_number = version_log[0].version
+
     stored_event = PackageStored(
         identifier=event.identifier,
         workspace_identifier=event.workspace_identifier,
@@ -45,5 +48,6 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
         package_identifier=event.package_identifier,
         resources=event.resources,
         update_flag=event.update_flag,
+        revision_number=revision_number,
     )
     uow.add_event(stored_event)

@@ -22,7 +22,7 @@ def catalog_revision(event: PackageStored, uow: AbstractUnitOfWork) -> None:
     revision = Revision(
         identifier=event.identifier,
         alternate_identifiers=[root_resource.alternate_identifier.id],
-        revision_number=1,
+        revision_number=event.revision_number,
         created_at=datetime.now(tz=UTC),
         common_metadata=common_metadata,
         package_resources=event.resources

@@ -13,6 +13,7 @@ from gateway.exceptions import (
 )
 from gateway.object_file import ObjectFile
 from gateway.repository_gateway import RepositoryGateway
+from gateway.version_info import VersionInfo
 
 
 class StorageLayout(Enum):
@@ -160,3 +161,31 @@ class OcflRepositoryGateway(RepositoryGateway):
             ObjectFile(Path(row[0].strip()), Path(row[1].strip())) for row in rows
         ]
         return object_files
+
+    def log(self, id: str, reversed: bool = True) -> list[VersionInfo]:
+        version_log = []
+        args: list[str | Path] = ["rocfl", "-r", self.storage_path, "log", "-r", id]
+        info = {}
+        try:
+            result = subprocess.run(args, check=True, capture_output=True)
+            for line in result.stdout.decode("utf-8").split("\n"):
+                if not line.strip():
+                    if info:
+                        version_log.append(VersionInfo(**info))                        
+                    continue
+
+                if line.startswith("Version "):
+                    info = {}
+                    info['version'] = int(line.split(" ")[-1])
+                else:
+                    key, value = [ v.strip() for v in line.strip().split(":", 1) ]
+                    info[key.lower()] = value
+
+            return version_log
+        except CalledProcessError as e:
+            staged_version_not_found_message = (
+                f"Not found: {id} does not have a staged version."
+            )
+            if staged_version_not_found_message in e.stderr.decode():
+                return False
+            raise RepositoryGatewayError() from e

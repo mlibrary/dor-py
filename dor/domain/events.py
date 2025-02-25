@@ -49,6 +49,7 @@ class PackageStored(PackageEvent):
     identifier: str
     resources: list[PackageResource]
     workspace_identifier: str
+    revision_number: int
 
 
 @dataclass
