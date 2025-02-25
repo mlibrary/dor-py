@@ -7,6 +7,7 @@ from gateway.coordinator import Coordinator
 from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.object_file import ObjectFile
 from gateway.repository_gateway import RepositoryGateway
+from gateway.version_info import VersionInfo
 
 
 @dataclass(frozen=True)
@@ -80,7 +81,7 @@ class FakeRepositoryGateway(RepositoryGateway):
     def get_object_files(self, id: str, include_staged: bool = False) -> list[ObjectFile]:
         if id not in self.store:
             raise ObjectDoesNotExistError()
-        
+
         latest_version = self._get_latest_version(id)
         file_paths = latest_version.files if latest_version else set()
         if include_staged:
@@ -94,3 +95,9 @@ class FakeRepositoryGateway(RepositoryGateway):
     def purge_object(self, id: str) -> None:
         if id in self.store:
             self.store.pop(id)
+
+    def log(self, id: str, reversed: bool = True) -> list[VersionInfo]:
+        return reversed([
+            VersionInfo(version=v.number, author=v.contributor, message=v.message)
+            for v in self.store[id]
+        ])
