@@ -48,7 +48,7 @@ class PathData:
 
 @pytest.fixture
 def path_data() -> PathData:
-    scratch = Path("./features/scratch")
+    scratch = Path("./features/scratch-update")
 
     return PathData(
         scratch=scratch,
