@@ -26,6 +26,7 @@ def sample_resources():
         PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
             type="Monograph",
+            root=True,
             alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
             events=[
                 PreservationEvent(
@@ -58,6 +59,24 @@ def sample_resources():
                         mimetype="application/json",
                     ),
                 ),
+                FileMetadata(
+                    id="_00000000-0000-0000-0000-000000000103",
+                    use="PROVENANCE",
+                    ref=FileReference(
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.object.xml",
+                        mdtype="PREMIS",
+                        mimetype="text/xml",
+                    ),
+                ),
+                FileMetadata(
+                    id="_00000000-0000-0000-0000-000000000104",
+                    use="EVENT",
+                    ref=FileReference(
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
+                        mdtype="PREMIS",
+                        mimetype="text/xml",
+                    ),
+                ),
             ],
             struct_maps=[
                 StructMap(
@@ -69,13 +88,7 @@ def sample_resources():
                             type="page",
                             label="Page 1",
                             asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
-                        ),
-                        StructMapItem(
-                            order=2,
-                            type="page",
-                            label="Page 2",
-                            asset_id="urn:dor:00000000-0000-0000-0000-000000001002",
-                        ),
+                        )
                     ],
                 )
             ],
@@ -131,6 +144,14 @@ def sample_resources():
                     ref=FileReference(
                         locref="00000000-0000-0000-0000-000000001001/metadata/00000001.plaintext.txt.textmd.xml",
                         mdtype="TEXTMD",
+                    ),
+                ),
+                FileMetadata(
+                    id="_00000000-0000-0000-0000-000000100103",
+                    use="EVENT",
+                    ref=FileReference(
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.premis.event.xml",
+                        mdtype="PREMIS",
                     ),
                 ),
             ],

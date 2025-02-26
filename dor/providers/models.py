@@ -72,6 +72,7 @@ class PackageResource:
     metadata_files: list[FileMetadata] = field(default_factory=list)
     data_files: list[FileMetadata] = field(default_factory=list)
     struct_maps: list[StructMap] = field(default_factory=list)
+    root: bool = False
 
     def get_entries(self) -> list[Path]:
         entries: list[Path] = []

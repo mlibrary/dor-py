@@ -2,7 +2,7 @@
   <METS:mdSec>
     {% for md in resource.metadata_files %}
     <METS:md ID="{{ md.id }}" USE="{{ md.use }}">
-      <METS:mdRef LOCREF="{{ relative_path_or_not(md.ref.locref) }}" LOCTYPE="URL" MDTYPE="{{ md.ref.mdtype }}" {% if md.ref.mimetype %}MIMETYPE="{{ md.ref.mimetype }}"{% endif %} />
+      <METS:mdRef LOCREF="{{ md.ref.locref }}" LOCTYPE="URL" MDTYPE="{{ md.ref.mdtype }}" {% if md.ref.mimetype %}MIMETYPE="{{ md.ref.mimetype }}"{% endif %} />
     </METS:md>
     {% endfor %}
   </METS:mdSec>
