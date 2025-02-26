@@ -45,9 +45,13 @@ class PathData:
     workspaces: Path
     inbox: Path
 
+path_index = 0
 @pytest.fixture
 def path_data() -> PathData:
-    scratch = Path("./features/scratch-update")
+    global path_index
+    path_index += 1
+    print("== ahoy path_data", path_index);
+    scratch = Path(f"./features/scratch-update-{path_index}")
 
     return PathData(
         scratch=scratch,
@@ -67,7 +71,14 @@ def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
 
     gateway = OcflRepositoryGateway(storage_path=path_data.storage)
 
-    return SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
+    print("-- unit of work creating")
+
+    # yield SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
+
+    uow = SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
+    yield uow
+    uow.rollback()
+    print("-- unit of work teardown")
 
 @pytest.fixture
 def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
@@ -130,10 +141,12 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork, message_bus: Memory
     file_provider.create_directory(path_data.storage)
     file_provider.create_directory(path_data.workspaces)
 
+    print("-- ahoy: a package containing all the scanned pages, OCR, and metadata")
+
     unit_of_work.gateway.create_repository()
 
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
-    tracking_identifier = str(uuid.uuid4())
+    tracking_identifier = "first-load" # str(uuid.uuid4())
 
     event = PackageSubmitted(
         package_identifier=submission_id,
@@ -149,7 +162,7 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork, message_bus: Memory
 def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     """the Collection Manager places the packaged resource in the incoming location."""
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
-    tracking_identifier = str(uuid.uuid4())
+    tracking_identifier = "second-load"  # str(uuid.uuid4())
 
     event = PackageSubmitted(
         package_identifier=submission_id,
@@ -175,7 +188,7 @@ def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
 
 
 @scenario("Updating only metadata of a resource for immediate release")
-def test_updating_a_resource_for_immediate_release():
+def test_updating_only_metadata_of_a_resource_for_immediate_release():
     """Updating only metadata of a resource for immediate release."""
 
 
@@ -190,10 +203,12 @@ def _(
     file_provider.create_directory(path_data.storage)
     file_provider.create_directory(path_data.workspaces)
 
+    print("-- ahoy: a package containing updated resource metadata")
+
     unit_of_work.gateway.create_repository()
 
-    submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v2"
-    tracking_identifier = str(uuid.uuid4())
+    submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
+    tracking_identifier = "third-load" # str(uuid.uuid4())
 
     event = PackageSubmitted(
         package_identifier=submission_id,
@@ -209,8 +224,8 @@ def _(
 )
 def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     """the Collection Manager places the packaged resource in the incoming location."""
-    submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
-    tracking_identifier = str(uuid.uuid4())
+    submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v2"
+    tracking_identifier = "fourth-load" # str(uuid.uuid4())
 
     event = PackageSubmitted(
         package_identifier=submission_id,

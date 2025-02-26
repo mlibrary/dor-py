@@ -22,7 +22,7 @@ class PackageResourcesMerger:
                     self._merge_resource(package_resource, incoming_map[package_resource.id])
                 )
             else:
-                resources.append(resource)
+                resources.append(package_resource)
 
         for resource in self.incoming:
             if not resource.id in current_map:
@@ -53,18 +53,20 @@ class PackageResourcesMerger:
             current_resource.events,
             incoming_resource.events,
         )
-        merged_metadata_files = self._merge_lists(
+
+        merged_metadata_files = self._merge_file_lists(
             current_resource.metadata_files,
             incoming_resource.metadata_files,
             'id',
         )
+
         merged_data_files = self._merge_lists(
             current_resource.data_files,
             incoming_resource.data_files,
             "id",
         )
 
-        if incoming_resource.struct_maps[0].type == StructMapType.PHYSICAL:
+        if incoming_resource.struct_maps and incoming_resource.struct_maps[0].type == StructMapType.PHYSICAL:
             merged_struct_maps = self._merge_lists(
                 current_resource.struct_maps,
                 incoming_resource.struct_maps,
@@ -88,6 +90,21 @@ class PackageResourcesMerger:
         index = self._index(b, attr)
         for value in a + b:
             key = getattr(value, attr)
+            if value in merged: continue
+            elif key in index:
+                merged.append(index[key])
+            elif not value in merged:
+                merged.append(value)
+        return merged
+
+    def _merge_file_lists(self, a, b, attr='identifier'):
+        merged = []
+        index = {}
+        for value in b:
+            index[value.ref.locref] = value
+        
+        for value in a + b:
+            key = value.ref.locref
             if value in merged: continue
             elif key in index:
                 merged.append(index[key])
