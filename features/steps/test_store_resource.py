@@ -25,6 +25,7 @@ from dor.domain.events import (
 from dor.domain.models import WorkflowEventType
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.package_resource_provider import PackageResourceProvider
+from dor.providers.uuid_minter_provider import UuidMinterProvider
 from dor.providers.translocator import Translocator, Workspace
 from dor.service_layer.handlers.catalog_revision import catalog_revision
 from dor.service_layer.handlers.receive_package import receive_package
@@ -69,11 +70,10 @@ def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
 
 @pytest.fixture
 def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
-    value = '55ce2f63-c11a-4fac-b3a9-160305b1a0c4'
     translocator = Translocator(
         inbox_path=path_data.inbox,
         workspaces_path=path_data.workspaces,
-        minter = lambda: value,
+        minter_provider=UuidMinterProvider(),
         file_provider=FilesystemFileProvider()
     )
 
