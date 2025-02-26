@@ -2,7 +2,7 @@
   <METS:fileSec>
     {% for file in resource.data_files %}
     <METS:file ID="{{ file.id }}" {% if file.group_id %}GROUPID="{{ file.group_id }}"{% endif %} USE="{{ file.use }}"  MIMETYPE="{{ file.ref.mimetype }}" MDID="{{ file.mdid }}">
-      <METS:FLocat LOCTYPE="SYSTEM" LOCREF="{{ relative_path_or_not(file.ref.locref) }}" />
+      <METS:FLocat LOCTYPE="SYSTEM" LOCREF="{{ file.ref.locref }}" />
     </METS:file>
     {% endfor %}
   </METS:fileSec>
