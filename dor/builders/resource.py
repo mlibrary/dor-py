@@ -37,16 +37,35 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         file_set_identifiers.append(identifier)
 
     if version > 1 and partial:
-        resource_pathname.joinpath("descriptor", resource_identifier + ".mets2.xml").open(
-            "w"
-        ).write(
+
+        mdsec_items = []
+        premis_event = build_event(event_type="ingest", linking_agent_type="collection manager")
+        resource_pathname.joinpath("metadata", resource_identifier + ".premis.event.xml").open("w").write(
+            premis_event_template.render(
+                event=premis_event
+            )
+        )
+        mdsec_items.append(
+            Md(
+                id=generate_md_identifier(),
+                use="EVENT",
+                mdtype="PREMIS",
+                locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.event.xml",
+                mimetype="text/xml",
+            )
+        )
+
+        resource_pathname.joinpath(
+            "descriptor", resource_identifier + ".mets2.xml"
+        ).open("w").write(
             resource_template.render(
                 file_set_identifiers=file_set_identifiers,
                 object_identifier=resource_identifier,
-                action=S.action.value,
+                alternate_identifier=alternate_identifier,
+                mdsec_items=mdsec_items,
                 create_date=fake.get_datetime(),
                 version=version,
-                event=build_event(event_type='update', linking_agent_type='collection manager'),
+                event=premis_event,
             )
         )
         return resource_identifier
