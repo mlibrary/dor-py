@@ -44,7 +44,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
                 file_set_identifiers=file_set_identifiers,
                 object_identifier=resource_identifier,
                 action=S.action.value,
-                create_date=fake["en_US"].date("%Y-%m-%dT%H:%M:%SZ"),
+                create_date=fake.get_datetime(),
                 version=version,
                 event=build_event(event_type='update', linking_agent_type='collection manager'),
             )

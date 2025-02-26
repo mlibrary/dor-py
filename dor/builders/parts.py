@@ -24,7 +24,7 @@ class Fakish:
     def get_datetime(self, start_date=None):
         if start_date:
             return self.fakers["en_US"].date_time_between(start_date=start_date)\
-                .strftime("%Y-%m-%dT%H:%M:%SZ")
+                .strftime("%Y-%m-%dT00:00:00Z")
         return self.fakers["en_US"].date_time_between_dates(
             datetime_start=datetime(1991, 1, 1, 0, 0, 0),
             datetime_end=datetime(2027, 12, 31, 23, 59, 59),
