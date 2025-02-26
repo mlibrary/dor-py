@@ -1,0 +1,17 @@
+<PREMIS:premis xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:PREMIS="http://www.loc.gov/premis/v3" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd" version="3.0">
+  <PREMIS:event>
+    <PREMIS:eventIdentifier>
+      <PREMIS:eventIdentifierType>UUID</PREMIS:eventIdentifierType>
+      <PREMIS:eventIdentifierValue>f9fa8a15-7be0-4ad5-8682-4423793c9f1d</PREMIS:eventIdentifierValue>
+    </PREMIS:eventIdentifier>
+    <PREMIS:eventType>generate access derivative</PREMIS:eventType>
+    <PREMIS:eventDateTime>1973-05-23T21:42:15Z</PREMIS:eventDateTime>
+    <PREMIS:eventDetailInformation>
+      <PREMIS:eventDetail>Care instead also much.</PREMIS:eventDetail>
+    </PREMIS:eventDetailInformation>
+    <PREMIS:linkingAgentIdentifier>
+      <PREMIS:linkingAgentIdentifierType>image processing</PREMIS:linkingAgentIdentifierType>
+      <PREMIS:linkingAgentIdentifierValue>sweaver@example.com</PREMIS:linkingAgentIdentifierValue>
+    </PREMIS:linkingAgentIdentifier>
+  </PREMIS:event>
+</PREMIS:premis>

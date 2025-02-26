@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from logging import root
 from pathlib import Path
-from typing import Any
+from typing import Any, Tuple
 
 from dor.providers.file_provider import FileProvider
-from dor.providers.models import FileMetadata, FileReference
+from dor.providers.models import FileMetadata, FileReference, StructMap, StructMapItem, StructMapType
 
 @dataclass
 class PackageResult():
@@ -112,6 +112,49 @@ class PackageGenerator:
         ))
         return file_metadatas
 
+    def incorporate_file_sets(self, package_path: Path) -> Tuple[list[StructMap], list[str]]:
+        struct_maps = []
+        for structure in self.metadata["structure"]:
+            items = [
+                StructMapItem(
+                    order=item["order"],
+                    label=item["orderlabel"],
+                    asset_id=item["locref"],
+                    type=item.get("type")
+                )
+                for item in structure["items"]
+            ]
+            struct_maps.append(
+                StructMap(
+                    id=str(uuid.uuid4()),
+                    type=StructMapType[structure["type"].upper()],
+                    items=items
+                )
+            )
+        physical_struct_maps = [
+            struct_map for struct_map in struct_maps
+            if struct_map.type == StructMapType.PHYSICAL
+        ]
+        if len(physical_struct_maps) != 1:
+            raise PackageMetadataError
+        physical_struct_map = physical_struct_maps[0]
+
+        file_set_directories = [
+            entry.name
+            for entry in self.file_set_path.iterdir()
+            if entry.is_dir()
+        ]
+        missing_file_set_ids = []
+        for struct_map_item in physical_struct_map.items:
+            file_set_id = struct_map_item.asset_id
+            if file_set_id in file_set_directories:
+                self.file_provider.clone_directory_structure(
+                    self.file_set_path / file_set_id,
+                    package_path / file_set_id
+                )
+            else:
+                missing_file_set_ids.append(file_set_id)
+        return struct_maps, missing_file_set_ids
 
     def generate(self) -> PackageResult:        
         # print(json.dumps(metadata, indent=4))
@@ -132,7 +175,13 @@ class PackageGenerator:
         )
 
         # Pull in file set resources
-            # Return failure PackageResult if not all file sets are present
+        struct_maps, missing_file_set_ids = self.incorporate_file_sets(package_path)
+        if len(missing_file_set_ids) > 0:
+            return PackageResult(
+                package_identifier=package_identifier,
+                success=False,
+                message="The following file sets were not found: {missing_file_set_ids}"
+            )
 
         # Create descriptor METS (DescriptorGenerator?)
 
