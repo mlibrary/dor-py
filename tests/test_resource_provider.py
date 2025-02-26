@@ -47,12 +47,12 @@ class ResourceProviderTest(TestCase):
             alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
             events=[
                 PreservationEvent(
-                    identifier="f5383b6a-c41c-4423-8288-8a4889ed8a48",
+                    identifier="8c1e311a-e477-409f-aed3-d0ddbcfbc3fa",
                     type="ingest",
-                    datetime=datetime(2018, 5, 17, 14, 12, 54, tzinfo=UTC),
-                    detail="Giardino si bisogno.",
+                    datetime=datetime(2007, 7, 9, 16, 19, 24, tzinfo=UTC),
+                    detail="Ball change find heart.",
                     agent=Agent(
-                        address="pierina28@example.org",
+                        address="dunnhannah@example.com",
                         role="collection manager",
                     ),
                 )
@@ -129,22 +129,22 @@ class ResourceProviderTest(TestCase):
             ),
             events=[
                 PreservationEvent(
-                    identifier="36eafa28-80e6-45d0-a9d9-36500c6bdf0d",
+                    identifier="e88b7591-31db-4e32-98dc-b35f94c662cd",
                     type="generate access derivative",
-                    datetime=datetime(1999, 3, 16, 0, 4, 29, tzinfo=UTC),
-                    detail="Realize defense wife audience cover become show.",
+                    datetime=datetime(2026, 9, 18, 9, 40, 58, tzinfo=UTC),
+                    detail="Level professional Democrat develop eye realize.",
                     agent=Agent(
-                        address="thomasnguyen@example.net",
+                        address="markkim@example.com",
                         role="image processing",
                     ),
                 ),
                 PreservationEvent(
-                    identifier="37557161-10f8-40c1-842f-be3a386c033c",
+                    identifier="e3bb0157-f9a0-47d6-b24c-44878c1e311a",
                     type="extract text",
-                    datetime=datetime(2015, 8, 8, 19, 14, 45, tzinfo=UTC),
-                    detail="Cantare alcuno sorgere coprire possibile semplice.",
+                    datetime=datetime(2026, 11, 4, 3, 52, 43, tzinfo=UTC),
+                    detail="Whatever this front attack.",
                     agent=Agent(
-                        address="junyamada@example.net",
+                        address="steven34@example.net",
                         role="ocr processing",
                     ),
                 ),

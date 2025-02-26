@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" OBJID="00000000-0000-0000-0000-000000001002" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
 
-  <METS:metsHdr CREATEDATE="2002-07-14T11:57:52Z" ID="HDR1" TYPE="File Set">
+  <METS:metsHdr CREATEDATE="2024-02-28T02:09:08Z" ID="HDR1" TYPE="File Set">
     <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
       <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
     </METS:agent>
@@ -32,7 +32,7 @@
       <METS:FLocat LOCTYPE="SYSTEM" LOCREF="00000000-0000-0000-0000-000000001002/data/00000002.access.jpg" />
     </METS:file>
     
-    <METS:file ID="_59472df4b090349a7440a32ca575f87e" GROUPID="_f442339a2731f043f72460c64ad66fee" USE="SOURCE" SEQ="2" MIMETYPE="text/plain" MDID="_00000000-0000-0000-0000-000000100204" CHECKSUM="7a7c56f28e9fa54320147532108c5225dd7b159f50fd0af505c0542704ef079a2b353a97f40dbc21562c0527c845ae57ebcddd21a3d40f35372433650da41b3f" CHECKSUMTYPE="SHA-512">
+    <METS:file ID="_59472df4b090349a7440a32ca575f87e" GROUPID="_f442339a2731f043f72460c64ad66fee" USE="SOURCE" SEQ="2" MIMETYPE="text/plain" MDID="_00000000-0000-0000-0000-000000100204" CHECKSUM="ed0a8002e0c34da5cd23f4ec794a36393fac315de80134f949c963a9645ed394c0f9c668e0443bbf043bcea0f1acdc83e0c23976f7b023850a7ad1453d55d46f" CHECKSUMTYPE="SHA-512">
       <METS:FLocat LOCTYPE="SYSTEM" LOCREF="00000000-0000-0000-0000-000000001002/data/00000002.plaintext.txt" />
     </METS:file>
     
