@@ -8,6 +8,7 @@ import pytest
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.package_generator import PackageGenerator, PackageResult
 
+
 @pytest.fixture
 def sample_package_metadata() -> dict[str, Any]:
     metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata.json")
@@ -43,6 +44,11 @@ def test_generator_generates_package(sample_package_metadata) -> None:
     assert file_set_one_path.exists()
     file_set_two_path = test_packager_path / package_identifier / "00000000-0000-0000-0000-000000001002"
     assert file_set_two_path.exists()
+
+    # Descriptor file was created
+    descriptor_path = test_packager_path / package_identifier / root_identifier / "descriptor"
+    descriptor_file = f"{root_identifier}.monograph.mets2.xml"
+    assert (descriptor_path / descriptor_file).exists()
 
     # Package result returned
     assert result == PackageResult(
