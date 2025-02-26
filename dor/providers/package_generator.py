@@ -2,12 +2,21 @@ import uuid
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from logging import root
 from pathlib import Path
 from typing import Any, Tuple
 
 from dor.providers.file_provider import FileProvider
-from dor.providers.models import FileMetadata, FileReference, StructMap, StructMapItem, StructMapType
+from dor.providers.models import (
+    AlternateIdentifier,
+    FileMetadata,
+    FileReference,
+    PackageResource,
+    StructMap,
+    StructMapItem,
+    StructMapType
+)
+from dor.settings import template_env
+from dor.providers.descriptor_generator import relative_path_or_not
 
 @dataclass
 class PackageResult():
@@ -35,14 +44,18 @@ class PackageGenerator:
         self.output_path = output_path
         self.file_set_path = file_set_path
         self.timestamp = timestamp
-    
-    def create_root_metadata_files(
-            self, package_path: Path, root_resource_identifier: str
-    ) -> list[FileMetadata]:
+
+        self.root_resource_identifier: str = self.metadata["identifier"]
+        self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
+        self.package_path: Path = self.output_path / self.package_identifier
+
+    def create_root_metadata_files(self) -> list[FileMetadata]:
         """Create metadata files (descriptive, common, PREMIS)"""
 
         file_metadatas: list[FileMetadata] = []
-        self.file_provider.create_directory(package_path / root_resource_identifier / "metadata")
+        self.file_provider.create_directory(
+            self.package_path / self.root_resource_identifier / "metadata"
+        )
 
         metadata_file_datas = self.metadata["md"]
         descriptive_datas = [
@@ -52,9 +65,9 @@ class PackageGenerator:
         if len(descriptive_datas) != 1:
             raise PackageMetadataError
         descriptive_data = descriptive_datas[0]
-        descriptive_file_name = root_resource_identifier + ".metadata.json"
-        descriptive_locref = Path(root_resource_identifier) / "metadata" / descriptive_file_name
-        descriptive_metadata_path = package_path / descriptive_locref
+        descriptive_file_name = self.root_resource_identifier + ".metadata.json"
+        descriptive_locref = Path(self.root_resource_identifier) / "metadata" / descriptive_file_name
+        descriptive_metadata_path = self.package_path / descriptive_locref
         with open(descriptive_metadata_path, "w") as descriptive_file:
             descriptive_file.write(json.dumps(descriptive_data["data"], indent=4))
         file_metadatas.append(FileMetadata(
@@ -74,9 +87,9 @@ class PackageGenerator:
         if len(common_datas) != 1:
             raise PackageMetadataError
         common_data = common_datas[0]
-        common_file_name = root_resource_identifier + ".common.json"
-        common_locref = Path(root_resource_identifier) / "metadata" / common_file_name
-        common_metadata_path = package_path / common_locref
+        common_file_name = self.root_resource_identifier + ".common.json"
+        common_locref = Path(self.root_resource_identifier) / "metadata" / common_file_name
+        common_metadata_path = self.package_path / common_locref
         with open(common_metadata_path, "w") as common_file:
             common_file.write(json.dumps(common_data["data"], indent=4))
         file_metadatas.append(FileMetadata(
@@ -96,9 +109,9 @@ class PackageGenerator:
         if len(provenance_datas) != 1:
             raise PackageMetadataError
         provenance_data = provenance_datas[0]
-        provenance_file_name = root_resource_identifier + ".premis.object.xml"
-        provenance_locref = Path(root_resource_identifier) / "metadata" / provenance_file_name
-        provenance_metadata_path = package_path / provenance_locref
+        provenance_file_name = self.root_resource_identifier + ".premis.object.xml"
+        provenance_locref = Path(self.root_resource_identifier) / "metadata" / provenance_file_name
+        provenance_metadata_path = self.package_path / provenance_locref
         with open(provenance_metadata_path, "w") as provenance_file:
             provenance_file.write(provenance_data["data"])
         file_metadatas.append(FileMetadata(
@@ -112,7 +125,7 @@ class PackageGenerator:
         ))
         return file_metadatas
 
-    def incorporate_file_sets(self, package_path: Path) -> Tuple[list[StructMap], list[str]]:
+    def incorporate_file_sets(self) -> Tuple[list[StructMap], list[str], list[str]]:
         struct_maps = []
         for structure in self.metadata["structure"]:
             items = [
@@ -144,52 +157,81 @@ class PackageGenerator:
             for entry in self.file_set_path.iterdir()
             if entry.is_dir()
         ]
+        incorporated_file_set_ids = []
         missing_file_set_ids = []
         for struct_map_item in physical_struct_map.items:
             file_set_id = struct_map_item.asset_id
             if file_set_id in file_set_directories:
                 self.file_provider.clone_directory_structure(
                     self.file_set_path / file_set_id,
-                    package_path / file_set_id
+                    self.package_path / file_set_id
                 )
+                incorporated_file_set_ids.append(file_set_id)
             else:
                 missing_file_set_ids.append(file_set_id)
-        return struct_maps, missing_file_set_ids
+        return struct_maps, incorporated_file_set_ids, missing_file_set_ids
+
+    def create_root_descriptor_file(
+        self,
+        resource: PackageResource,
+        file_set_ids: list[str]
+    ) -> None:
+        descriptor_path = self.package_path / self.root_resource_identifier / "descriptor"
+        self.file_provider.create_directory(descriptor_path)
+        descriptor_file_name = f"{self.root_resource_identifier}.monograph.mets2.xml"
+
+        struct_map_locref_data = {}
+        for file_set_id in file_set_ids:
+            struct_map_locref_data[file_set_id] = Path(file_set_id) / "descriptor" / f"{file_set_id}.file_set.mets2.xml"
+
+        entity_template = template_env.get_template("preservation_mets.xml")
+        xmldata = entity_template.render(
+            relative_path_or_not=relative_path_or_not,
+            resource=resource,
+            struct_map_locref_data=struct_map_locref_data,
+            create_date=self.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+        with (descriptor_path / descriptor_file_name).open("w") as file:
+            file.write(xmldata)
 
     def generate(self) -> PackageResult:        
         # print(json.dumps(metadata, indent=4))
         # Validate metadata?
         # Designate some directory for package payload
-        root_resource_identifier = self.metadata["identifier"]
-        package_identifier = root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
-        package_path = self.output_path / package_identifier
-        self.file_provider.create_directory(package_path)
+        self.file_provider.create_directory(self.package_path)
 
         # Create root resource directory
-        root_resource_path = package_path / root_resource_identifier
+        root_resource_path = self.package_path / self.root_resource_identifier
         self.file_provider.create_directory(root_resource_path)
 
-        file_metadatas = self.create_root_metadata_files(
-            package_path=package_path,
-            root_resource_identifier=root_resource_identifier
-        )
+        metadata_file_metadatas = self.create_root_metadata_files()
 
         # Pull in file set resources
-        struct_maps, missing_file_set_ids = self.incorporate_file_sets(package_path)
+        struct_maps, incorporated_file_set_ids, missing_file_set_ids = self.incorporate_file_sets()
         if len(missing_file_set_ids) > 0:
             return PackageResult(
-                package_identifier=package_identifier,
+                package_identifier=self.package_identifier,
                 success=False,
                 message="The following file sets were not found: {missing_file_set_ids}"
             )
 
         # Create descriptor METS (DescriptorGenerator?)
+        resource = PackageResource(
+            id=uuid.UUID(self.root_resource_identifier),
+            type="Monograph",
+            alternate_identifier=AlternateIdentifier(id="something", type="DLXS"),
+            events=[],
+            metadata_files=metadata_file_metadatas,
+            data_files=[],
+            struct_maps=struct_maps
+        )
+        self.create_root_descriptor_file(resource, incorporated_file_set_ids)
 
         # Create bag in inbox based on payload directory (BagAdapter?)
             # Generate dor-info.txt
         # Return success PackageResult
         return PackageResult(
-            package_identifier=package_identifier,
+            package_identifier=self.package_identifier,
             success=True,
             message="Generated package successfully!"
         )
