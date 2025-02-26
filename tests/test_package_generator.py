@@ -25,7 +25,7 @@ def test_generator_generates_package(sample_package_metadata) -> None:
         file_provider=file_provider,
         metadata=sample_package_metadata,
         output_path=test_packager_path,
-        file_set_path=Path(), # Update later
+        file_set_path=Path("tests/fixtures/test_packager/file_sets"),
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
@@ -38,9 +38,16 @@ def test_generator_generates_package(sample_package_metadata) -> None:
     assert (root_resource_metadata_path / f"{root_identifier}.metadata.json").exists()
     assert (root_resource_metadata_path / f"{root_identifier}.premis.object.xml").exists()
 
+    # File sets were incorporated
+    file_set_one_path = test_packager_path / package_identifier / "00000000-0000-0000-0000-000000001001"
+    assert file_set_one_path.exists()
+    file_set_two_path = test_packager_path / package_identifier / "00000000-0000-0000-0000-000000001002"
+    assert file_set_two_path.exists()
+
     # Package result returned
     assert result == PackageResult(
-        package_identifier=f"00000000-0000-0000-0000-000000000001_19700101000000",
+        package_identifier=package_identifier,
         success=True,
         message="Generated package successfully!"
     )
+
