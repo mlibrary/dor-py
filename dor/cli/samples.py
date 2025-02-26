@@ -4,7 +4,7 @@ import pathlib
 import bagit
 from dor.settings import S, ActionChoices
 
-from dor.builders.parts import generate_uuid, Identifier, get_faker, get_datetime
+from dor.builders.parts import generate_uuid, Identifier, get_faker, reset_fakers, get_datetime
 from dor.builders.resource import build_resource
 
 import sys
@@ -81,18 +81,22 @@ def generate(
         seed=seed,
     )
 
-    fake = get_faker()
-
-    if deposit_group is None:
-        deposit_group = fake.uuid4()
-
-    deposit_group_date = get_datetime()  
+    if S.seed > -1:
+        print("-- generating with seed", seed)
 
     resource_identifier = Identifier(start=start, collid=collid)
     for version in range(1, versions + 1):
 
         # reset Faker to ensure every version is similar
-        fake = get_faker(True)
+        reset_fakers()
+        fake = get_faker()
+
+        if deposit_group is None:
+            version_deposit_group = fake.uuid4()
+        else:
+            version_deposit_group = deposit_group
+
+        deposit_group_date = fake.get_datetime(f"+{version}w")
 
         package_pathname = S.output_pathname.joinpath(
             f"{S.collid}-{resource_identifier}-v{version}"

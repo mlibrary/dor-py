@@ -17,8 +17,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
 
     alternate_identifier = resource_identifier.alternate_identifier
 
-    fake = get_faker()
-    fake["en_US"].add_provider(ModelOrganism)
+    fake = get_faker(role='resource')
 
     resource_template = template_env.get_template("mets_resource.xml")
     premis_event_template = template_env.get_template("premis_event.xml")
@@ -54,16 +53,21 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
 
     mdsec_items = []
 
+    metadata_fake = get_faker('metadata')
+    metadata_fake["en_US"].add_provider(ModelOrganism)
+
     metadata = {}
     metadata["@schema"] = f"urn:umich.edu:dor:schema:{S.collid}"
-    metadata["title"] = fake["en_US"].sentence()
-    metadata["author"] = fake["en_US"].name()
-    metadata["author_ja"] = fake["ja_JP"].name()
-    metadata["description"] = fake["en_US"].paragraph(5)
-    metadata["description_ja"] = fake["ja_JP"].paragraph(5)
-    metadata["publication_date"] = fake["en_US"].date()
-    metadata["places"] = [fake.country() for _ in range(5)]
-    metadata["identification"] = [fake["en_US"].organism_latin() for _ in range(5)]
+    metadata["title"] = metadata_fake["en_US"].sentence()
+    metadata["author"] = metadata_fake["en_US"].name()
+    metadata["author_ja"] = metadata_fake["ja_JP"].name()
+    metadata["description"] = metadata_fake["en_US"].paragraph(5)
+    metadata["description_ja"] = metadata_fake["ja_JP"].paragraph(5)
+    metadata["publication_date"] = metadata_fake["en_US"].date()
+    metadata["places"] = [metadata_fake.country() for _ in range(5)]
+    metadata["identification"] = [
+        metadata_fake["en_US"].organism_latin() for _ in range(5)
+    ]
 
     metadata_pathname = resource_pathname.joinpath(
         "metadata", resource_identifier + ".metadata.json"

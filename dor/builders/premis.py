@@ -4,7 +4,7 @@ from datetime import UTC
 from .parts import get_faker, get_datetime
 
 def build_event(event_type: str, linking_agent_type: str):
-    fake = get_faker()
+    fake = get_faker(role='premis')
     return dict(
         identifier=fake.uuid4(),
         type=event_type,

@@ -51,7 +51,7 @@ def build_image(use, seq, version):
 
 
 def build_plaintext(use, seq, version):
-    fake = get_faker()
+    fake = get_faker(role='plaintext')
 
     buffer = [f"Page v{version}.{seq}"]
     buffer.append(fake["en_US"].paragraph(nb_sentences=5))
@@ -70,8 +70,6 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     id_generator = IdGenerator(
         Identifier(start=16 * 16 * 16 * item_identifier.start + seq, collid=item_identifier.collid)
     )
-
-    fake = get_faker()
 
     mix_template = template_env.get_template("metadata_mix.xml")
     textmd_template = template_env.get_template("metadata_textmd.xml")
