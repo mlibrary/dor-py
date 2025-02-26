@@ -22,10 +22,10 @@ from dor.domain.events import (
     PackageVerified,
     PackageUnpacked,
     RevisionCataloged,
-    WorkspaceCleaned
 )
 from dor.domain.models import WorkflowEventType
 from dor.providers.file_system_file_provider import FilesystemFileProvider
+from dor.providers.uuid_minter_provider import UuidMinterProvider
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
 from dor.service_layer.handlers.catalog_revision import catalog_revision
@@ -34,7 +34,6 @@ from dor.service_layer.handlers.record_workflow_event import record_workflow_eve
 from dor.service_layer.handlers.store_files import store_files
 from dor.service_layer.handlers.unpack_package import unpack_package
 from dor.service_layer.handlers.verify_package import verify_package
-from dor.service_layer.handlers.cleanup_workspace import cleanup_workspace
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
@@ -72,11 +71,10 @@ def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
 
 @pytest.fixture
 def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
-    value = '55ce2f63-c11a-4fac-b3a9-160305b1a0c4'
     translocator = Translocator(
         inbox_path=path_data.inbox,
         workspaces_path=path_data.workspaces,
-        minter = lambda: value,
+        minter_provider=UuidMinterProvider(),
         file_provider=FilesystemFileProvider()
     )
 
@@ -110,11 +108,7 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
         ],
         RevisionCataloged: [
             lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: cleanup_workspace(event, unit_of_work, Workspace, FilesystemFileProvider())
         ],
-        WorkspaceCleaned: [
-            lambda event: record_workflow_event(event, unit_of_work)
-        ]
     }
     message_bus = MemoryMessageBus(handlers)
     return message_bus
@@ -149,7 +143,9 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork, message_bus: Memory
     message_bus.handle(event, unit_of_work)
 
 
-@when('the Collection Manager places the packaged resource in the incoming location')
+@when('the Collection Manager places the packaged resource in the incoming location',
+    target_fixture="tracking_identifier"
+)
 def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     """the Collection Manager places the packaged resource in the incoming location."""
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
