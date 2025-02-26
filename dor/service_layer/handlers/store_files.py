@@ -1,5 +1,6 @@
 from pathlib import Path
 from dor.domain.events import PackageStored, PackageUnpacked
+from dor.providers.package_resources_merger import PackageResourcesMerger
 from dor.service_layer.unit_of_work import AbstractUnitOfWork
 from dor.providers.descriptor_generator import DescriptorGenerator
 
@@ -21,9 +22,14 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
         source_bundle=bundle,
     )
 
+    resources = event.resources
+    if revision:
+        merger = PackageResourcesMerger(current=revision.package_resources, incoming=resources)
+        resources = merger.merge_changes()
+
     generator = DescriptorGenerator(
         package_path=workspace.object_data_directory(),
-        resources=event.resources
+        resources=resources
     )
     generator.write_files()
     descriptor_bundle = workspace.get_bundle(generator.entries)
@@ -46,7 +52,7 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
         workspace_identifier=event.workspace_identifier,
         tracking_identifier=event.tracking_identifier,
         package_identifier=event.package_identifier,
-        resources=event.resources,
+        resources=resources,
         update_flag=event.update_flag,
         revision_number=revision_number,
     )
