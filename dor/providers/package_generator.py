@@ -16,7 +16,7 @@ from dor.providers.models import (
     StructMapType
 )
 from dor.settings import template_env
-from dor.providers.descriptor_generator import relative_path_or_not
+
 
 @dataclass
 class PackageResult():
@@ -132,7 +132,7 @@ class PackageGenerator:
                 StructMapItem(
                     order=item["order"],
                     label=item["orderlabel"],
-                    asset_id=item["locref"],
+                    file_set_id=item["locref"],
                     type=item.get("type")
                 )
                 for item in structure["items"]
@@ -160,7 +160,7 @@ class PackageGenerator:
         incorporated_file_set_ids = []
         missing_file_set_ids = []
         for struct_map_item in physical_struct_map.items:
-            file_set_id = struct_map_item.asset_id
+            file_set_id = struct_map_item.file_set_id
             if file_set_id in file_set_directories:
                 self.file_provider.clone_directory_structure(
                     self.file_set_path / file_set_id,
@@ -186,7 +186,6 @@ class PackageGenerator:
 
         entity_template = template_env.get_template("preservation_mets.xml")
         xmldata = entity_template.render(
-            relative_path_or_not=relative_path_or_not,
             resource=resource,
             struct_map_locref_data=struct_map_locref_data,
             create_date=self.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
