@@ -130,13 +130,13 @@ class DescriptorFileParser:
             for order_elem in order_elems:
                 order_number = int(order_elem.get("ORDER"))
                 label = order_elem.get("LABEL")
-                asset_id = order_elem.get("ID")
+                file_set_id = order_elem.get("ID")
                 order_elem_type = order_elem.get_optional("TYPE")
                 struct_map_items.append(
                     StructMapItem(
                         order=order_number,
                         label=label,
-                        asset_id=asset_id,
+                        file_set_id=file_set_id,
                         type=order_elem_type,
                     )
                 )

@@ -110,13 +110,13 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                                 order=1,
                                 type="page",
                                 label="Page 1",
-                                asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                                file_set_id="urn:dor:00000000-0000-0000-0000-000000001001",
                             ),
                             StructMapItem(
                                 order=2,
                                 type="page",
                                 label="Page 2",
-                                asset_id="urn:dor:00000000-0000-0000-0000-000000001002",
+                                file_set_id="urn:dor:00000000-0000-0000-0000-000000001002",
                             ),
                         ],
                     )

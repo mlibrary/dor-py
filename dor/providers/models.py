@@ -52,7 +52,7 @@ class StructMapType(Enum):
 class StructMapItem:
     order: int
     label: str
-    asset_id: str
+    file_set_id: str
     type: str | None = None
 
 

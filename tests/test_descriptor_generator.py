@@ -87,7 +87,7 @@ def sample_resources():
                             order=1,
                             type="page",
                             label="Page 1",
-                            asset_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                            file_set_id="urn:dor:00000000-0000-0000-0000-000000001001",
                         )
                     ],
                 )
