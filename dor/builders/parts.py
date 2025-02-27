@@ -5,6 +5,42 @@ from ulid import ULID
 import hashlib
 from enum import Enum
 
+from datetime import datetime
+
+from faker.factory import Factory
+
+from dor.settings import S
+
+
+class Fakish:
+    def __init__(self, seed=-1):
+        locales = ["it_IT", "en_US", "ja_JP"]
+        self.fakers = {}
+        for locale in locales:
+            _Faker = Factory.create
+            self.fakers[locale] = _Faker(locale=locale)
+            self.fakers[locale].seed(seed if seed > -1 else None)
+
+    def get_datetime(self, start_date=None):
+        if start_date:
+            return self.fakers["en_US"].date_time_between(start_date=start_date)\
+                .strftime("%Y-%m-%dT00:00:00Z")
+        return self.fakers["en_US"].date_time_between_dates(
+            datetime_start=datetime(1991, 1, 1, 0, 0, 0),
+            datetime_end=datetime(2027, 12, 31, 23, 59, 59),
+        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def __getitem__(self, locale):
+        return self.fakers[locale]
+
+    def __getattr__(self, name):
+        op = getattr(self.fakers["en_US"], name, None)
+        if callable(op):
+            return op
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'"
+        )
+
 class FileUses(str, Enum):
     access = "ACCESS"
     source = "SOURCE"
@@ -104,3 +140,23 @@ def make_paths(pathname):
         d_pathname = pathname.joinpath(d)
         d_pathname.mkdir()
     return pathname
+
+_fakers = {}
+
+def reset_fakers():
+    global _fakers
+    _fakers.clear()
+
+def get_faker(role="default"):
+    global _fakers
+    if not role in _fakers:
+        _fakers[role] = Fakish(S.seed)
+    return _fakers[role]
+
+
+def get_datetime():
+    fake = get_faker()
+    return fake.date_time_between_dates(
+        datetime_start=datetime(1991, 1, 1, 0, 0, 0),
+        datetime_end=datetime(2027, 12, 31, 23, 59, 59),
+    ).strftime("%Y-%m-%dT%H:%M:%SZ")

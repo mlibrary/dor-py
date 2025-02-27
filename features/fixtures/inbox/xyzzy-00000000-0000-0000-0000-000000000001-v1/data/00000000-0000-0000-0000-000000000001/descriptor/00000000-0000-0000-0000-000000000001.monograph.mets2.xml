@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" xmlns:dcam="http://purl.org/dc/dcam/" OBJID="00000000-0000-0000-0000-000000000001" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
 
-  <METS:metsHdr RECORDSTATUS="root" CREATEDATE="2025-02-11T21:26:34Z" ID="HDR1" TYPE="Monograph">
+  <METS:metsHdr RECORDSTATUS="root" CREATEDATE="2008-02-18T04:26:48Z" ID="HDR1" TYPE="Monograph">
     <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
       <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
     </METS:agent>

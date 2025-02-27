@@ -4,7 +4,7 @@ import pathlib
 import bagit
 from dor.settings import S, ActionChoices
 
-from dor.builders.parts import generate_uuid, Identifier
+from dor.builders.parts import generate_uuid, Identifier, get_faker, reset_fakers, get_datetime
 from dor.builders.resource import build_resource
 
 import sys
@@ -59,6 +59,7 @@ def generate(
     num_scans: int = typer.Option(default=-1, help="number of page scans; -1 == random number"),
     start: int = typer.Option(default=1, help="seed number for the root identifier"),
     versions: int = typer.Option(default=1, help="number of versions to generate"),
+    partial: bool = typer.Option(default=True, help="assume partial updates"),
     output_pathname: str = pathlib.Path(__file__).resolve().parent.parent.parent.joinpath("output"),
     seed: int = typer.Option(default=-1, help="Faker seed value"),
 ):
@@ -80,17 +81,28 @@ def generate(
         seed=seed,
     )
 
-    if deposit_group is None:
-        deposit_group = generate_uuid()
-    deposit_group_date = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if S.seed > -1:
+        print("-- generating with seed", seed)
 
     resource_identifier = Identifier(start=start, collid=collid)
     for version in range(1, versions + 1):
+
+        # reset Faker to ensure every version is similar
+        reset_fakers()
+        fake = get_faker()
+
+        if deposit_group is None:
+            version_deposit_group = fake.uuid4()
+        else:
+            version_deposit_group = deposit_group
+
+        deposit_group_date = fake.get_datetime(f"+{version}w")
+
         package_pathname = S.output_pathname.joinpath(
             f"{S.collid}-{resource_identifier}-v{version}"
         )
         package_pathname.mkdir()
-        identifiers = build_resource(package_pathname, resource_identifier, version=version)
+        identifiers = build_resource(package_pathname, resource_identifier, version=version, partial=partial)
         bag = bagit.make_bag(package_pathname)
 
         # one time ugly

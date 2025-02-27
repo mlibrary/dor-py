@@ -7,15 +7,17 @@ import json
 import random
 
 from dor.settings import S, template_env
-from .parts import Md, MdGrp, File, FileGrp, IdGenerator, calculate_checksum, make_paths, generate_uuid
+from .parts import Md, MdGrp, File, FileGrp, IdGenerator, calculate_checksum, make_paths, get_faker, get_datetime
 from .file_set import build_file_set
 from .premis import build_event
 
 
-def build_resource(package_pathname, resource_identifier, version=1):
+def build_resource(package_pathname, resource_identifier, version=1, partial=True):
     resource_pathname = make_paths(package_pathname.joinpath(str(resource_identifier)))
 
     alternate_identifier = resource_identifier.alternate_identifier
+
+    fake = get_faker(role='resource')
 
     resource_template = template_env.get_template("mets_resource.xml")
     premis_event_template = template_env.get_template("premis_event.xml")
@@ -26,7 +28,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
     file_set_identifiers = []
     num_scans = random.randint(1, 10) if S.num_scans < 0 else S.num_scans
     sequences = range(1, num_scans + 1)
-    if version > 1:
+    if version > 1 and partial:
         sequences = random.sample(
             sequences, random.randint(1, min(len(sequences) - 1, 2)))
 
@@ -34,37 +36,57 @@ def build_resource(package_pathname, resource_identifier, version=1):
         identifier = build_file_set(resource_identifier, seq, package_pathname, version)
         file_set_identifiers.append(identifier)
 
-    if version > 1:
-        resource_pathname.joinpath("descriptor", resource_identifier + ".mets2.xml").open(
-            "w"
-        ).write(
+    if version > 1 and partial:
+
+        mdsec_items = []
+        premis_event = build_event(event_type="ingest", linking_agent_type="collection manager")
+        resource_pathname.joinpath("metadata", f"{resource_identifier}-{version}.premis.event.xml").open("w").write(
+            premis_event_template.render(
+                event=premis_event
+            )
+        )
+        mdsec_items.append(
+            Md(
+                id=generate_md_identifier(),
+                use="EVENT",
+                mdtype="PREMIS",
+                locref=f"{resource_identifier}/metadata/{resource_identifier}-{version}.premis.event.xml",
+                mimetype="text/xml",
+            )
+        )
+
+        resource_pathname.joinpath(
+            "descriptor", resource_identifier + ".monograph.mets2.xml"
+        ).open("w").write(
             resource_template.render(
                 file_set_identifiers=file_set_identifiers,
                 object_identifier=resource_identifier,
-                action=S.action.value,
-                create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                alternate_identifier=alternate_identifier,
+                mdsec_items=mdsec_items,
+                create_date=fake.get_datetime(),
                 version=version,
-                event=build_event(event_type='update', linking_agent_type='collection manager'),
+                event=premis_event,
             )
         )
         return resource_identifier
 
-    if S.seed > -1: Faker.seed(S.seed)
-    fake = Faker(locale=["it_IT", "en_US", "ja_JP"])
-    fake["en_US"].add_provider(ModelOrganism)
-
     mdsec_items = []
+
+    metadata_fake = get_faker('metadata')
+    metadata_fake["en_US"].add_provider(ModelOrganism)
 
     metadata = {}
     metadata["@schema"] = f"urn:umich.edu:dor:schema:{S.collid}"
-    metadata["title"] = fake["en_US"].sentence()
-    metadata["author"] = fake["en_US"].name()
-    metadata["author_ja"] = fake["ja_JP"].name()
-    metadata["description"] = fake["en_US"].paragraph(5)
-    metadata["description_ja"] = fake["ja_JP"].paragraph(5)
-    metadata["publication_date"] = fake["en_US"].date()
-    metadata["places"] = [fake.country() for _ in range(5)]
-    metadata["identification"] = [fake["en_US"].organism_latin() for _ in range(5)]
+    metadata["title"] = metadata_fake["en_US"].sentence()
+    metadata["author"] = metadata_fake["en_US"].name()
+    metadata["author_ja"] = metadata_fake["ja_JP"].name()
+    metadata["description"] = metadata_fake["en_US"].paragraph(5)
+    metadata["description_ja"] = metadata_fake["ja_JP"].paragraph(5)
+    metadata["publication_date"] = metadata_fake["en_US"].date()
+    metadata["places"] = [metadata_fake.country() for _ in range(5)]
+    metadata["identification"] = [
+        metadata_fake["en_US"].organism_latin() for _ in range(5)
+    ]
 
     metadata_pathname = resource_pathname.joinpath(
         "metadata", resource_identifier + ".metadata.json"
@@ -149,7 +171,7 @@ def build_resource(package_pathname, resource_identifier, version=1):
             object_identifier=resource_identifier,
             alternate_identifier=alternate_identifier,
             mdsec_items=mdsec_items,
-            create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            create_date=get_datetime(),
             version=version,
             collid=S.collid,
             premis_event=premis_event,

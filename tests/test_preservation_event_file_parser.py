@@ -21,12 +21,12 @@ class PreservationEventFileParserTest(TestCase):
 
     def test_parser_can_get_preservation_event(self):
         expected_event = PreservationEvent(
-            identifier="23b04e8b-f7fd-4331-a3bb-0157f9a057d6",
+            identifier="8c1e311a-e477-409f-aed3-d0ddbcfbc3fa",
             type="ingest",
-            datetime=datetime(1974, 6, 24, 1, 8, 39, tzinfo=UTC),
-            detail="This front attack nature.",
+            datetime=datetime(2007, 7, 9, 16, 19, 24, tzinfo=UTC),
+            detail="Ball change find heart.",
             agent=Agent(
-                address="steven34@example.net",
+                address="dunnhannah@example.com",
                 role="collection manager",
             ),
         )
