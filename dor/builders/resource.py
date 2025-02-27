@@ -56,7 +56,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         )
 
         resource_pathname.joinpath(
-            "descriptor", resource_identifier + ".mets2.xml"
+            "descriptor", resource_identifier + ".monograph.mets2.xml"
         ).open("w").write(
             resource_template.render(
                 file_set_identifiers=file_set_identifiers,
