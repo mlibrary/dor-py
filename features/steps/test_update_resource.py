@@ -1,9 +1,8 @@
 """Update Resource feature tests."""
-import uuid
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Callable, Type 
+from typing import Callable, Type, Generator 
 
 import pytest
 from pytest_bdd import scenario, given, when, then
@@ -47,7 +46,7 @@ class PathData:
 
 @pytest.fixture
 def path_data() -> PathData:
-    scratch = Path(f"./features/scratch-update")
+    scratch = Path(f"./features/scratch")
 
     return PathData(
         scratch=scratch,
@@ -57,7 +56,7 @@ def path_data() -> PathData:
     )
 
 @pytest.fixture
-def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
+def unit_of_work(path_data: PathData) -> Generator[AbstractUnitOfWork, None, None]:
     engine = create_engine(
         config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
     )
