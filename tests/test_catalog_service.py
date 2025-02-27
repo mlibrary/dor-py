@@ -53,6 +53,7 @@ def test_catalog_has_empty_file_sets():
             PackageResource(
                 id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 type="Monograph",
+                root=True,
                 alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
                 events=[
                     PreservationEvent(

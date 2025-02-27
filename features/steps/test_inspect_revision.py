@@ -65,6 +65,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
             PackageResource(
                 id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 type="Monograph",
+                root=True,
                 alternate_identifier=AlternateIdentifier(
                     id="xyzzy:00000001", type="DLXS"
                 ),
