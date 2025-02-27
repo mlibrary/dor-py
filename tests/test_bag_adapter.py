@@ -96,6 +96,13 @@ def payload_path():
 
 def test_adapter_can_make_bag(payload_path):
     file_provider = FilesystemFileProvider()
-    dor_info = {"Action": "Store"}
-    bag = BagAdapter.make(payload_path, dor_info, file_provider)
+    bag = BagAdapter.make(payload_path, file_provider)
     bag.validate()
+
+def test_adapter_can_add_dor_info(payload_path):
+    file_provider = FilesystemFileProvider()
+    dor_info = {"Action": "store"}
+    bag = BagAdapter.make(payload_path, file_provider)
+    bag.add_dor_info(dor_info=dor_info)
+
+    assert dor_info == bag.dor_info
