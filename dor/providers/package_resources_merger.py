@@ -42,13 +42,6 @@ class PackageResourcesMerger:
         merged_data_files = []
         merged_struct_maps = []
 
-        # index = self._index(incoming_resource.events, 'identifier')
-        # for event in ( current_resource.events + incoming_resource.events ):
-        #     if event.identifier in index:
-        #         merged_events.append(index[event.identifier])
-        #     elif not event in merged_events:
-        #         merged_events.append(event)
-
         merged_events = self._merge_lists(
             current_resource.events,
             incoming_resource.events,
@@ -60,7 +53,7 @@ class PackageResourcesMerger:
             'id',
         )
 
-        merged_data_files = self._merge_lists(
+        merged_data_files = self._merge_file_lists(
             current_resource.data_files,
             incoming_resource.data_files,
             "id",
