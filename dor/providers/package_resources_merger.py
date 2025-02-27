@@ -50,13 +50,11 @@ class PackageResourcesMerger:
         merged_metadata_files = self._merge_file_lists(
             current_resource.metadata_files,
             incoming_resource.metadata_files,
-            'id',
         )
 
         merged_data_files = self._merge_file_lists(
             current_resource.data_files,
             incoming_resource.data_files,
-            "id",
         )
 
         if incoming_resource.struct_maps and incoming_resource.struct_maps[0].type == StructMapType.PHYSICAL:
@@ -90,7 +88,7 @@ class PackageResourcesMerger:
                 merged.append(value)
         return merged
 
-    def _merge_file_lists(self, a, b, attr='identifier'):
+    def _merge_file_lists(self, a, b):
         merged = []
         index = {}
         for value in b:
