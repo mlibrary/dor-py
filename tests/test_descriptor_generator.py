@@ -1,10 +1,11 @@
-import os
-import shutil
-from pathlib import Path
 import uuid
-import pytest
 from datetime import datetime, UTC
+from pathlib import Path
 
+import pytest
+
+from dor.providers.descriptor_generator import DescriptorGenerator
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.models import (
     Agent,
     AlternateIdentifier,
@@ -17,8 +18,6 @@ from dor.providers.models import (
     StructMapType,
 )
 
-from dor.providers.translocator import Workspace
-from dor.providers.descriptor_generator import DescriptorGenerator
 
 @pytest.fixture
 def sample_resources():
@@ -190,9 +189,9 @@ def sample_resources():
     ]
 
 def test_generator_can_create_descriptor_files(sample_resources):
-    package_path = Path("./tests/test_workspaces")
-    shutil.rmtree(package_path, ignore_errors=True)
-    os.makedirs(package_path / "descriptor")
+    file_provider = FilesystemFileProvider()
+    package_path = Path("./tests/test_descriptor_generator")
+    file_provider.delete_dir_and_contents(package_path)
 
     generator = DescriptorGenerator(package_path=package_path, resources=sample_resources)
     generator.write_files()
@@ -201,9 +200,9 @@ def test_generator_can_create_descriptor_files(sample_resources):
     assert (package_path / "00000000-0000-0000-0000-000000001001" / "descriptor" / "00000000-0000-0000-0000-000000001001.file_set.mets2.xml" ).exists()
 
 def test_generator_can_return_entries(sample_resources):
-    package_path = Path("./tests/test_workspaces")
-    shutil.rmtree(package_path, ignore_errors=True)
-    os.makedirs(package_path / "descriptor")
+    file_provider = FilesystemFileProvider()
+    package_path = Path("./tests/test_descriptor_generator")
+    file_provider.delete_dir_and_contents(package_path)
 
     generator = DescriptorGenerator(package_path=package_path, resources=sample_resources)
     generator.write_files()

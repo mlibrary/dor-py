@@ -1,8 +1,8 @@
 from pathlib import Path
 from datetime import datetime, UTC
 
-from dor.settings import template_env
 from dor.providers.models import PackageResource
+from dor.settings import template_env
 
 
 def build_descriptor_file_path(resource):
@@ -12,6 +12,7 @@ class DescriptorGenerator:
     def __init__(self, package_path: Path, resources: list[PackageResource]):
         self.package_path = package_path
         self.resources = resources
+
         self.entries = []
 
     def write_files(self):
@@ -28,9 +29,9 @@ class DescriptorGenerator:
                 struct_map_locref_data=struct_map_locref_data,
                 create_date=datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
-            filename = build_descriptor_file_path(resource)
-            output_filename = self.package_path / filename
-            output_filename.parent.mkdir(parents=True, exist_ok=True)
-            with (output_filename).open("w") as f:
+            descriptor_file_path = build_descriptor_file_path(resource)
+            output_path = self.package_path / descriptor_file_path
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with (output_path).open("w") as f:
                 f.write(xmldata)
-            self.entries.append(filename)
+            self.entries.append(descriptor_file_path)
