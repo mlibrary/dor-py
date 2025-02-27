@@ -40,7 +40,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
 
         mdsec_items = []
         premis_event = build_event(event_type="ingest", linking_agent_type="collection manager")
-        resource_pathname.joinpath("metadata", resource_identifier + ".premis.event.xml").open("w").write(
+        resource_pathname.joinpath("metadata", f"{resource_identifier}-{version}.premis.event.xml").open("w").write(
             premis_event_template.render(
                 event=premis_event
             )
@@ -50,7 +50,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
                 id=generate_md_identifier(),
                 use="EVENT",
                 mdtype="PREMIS",
-                locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.event.xml",
+                locref=f"{resource_identifier}/metadata/{resource_identifier}-{version}.premis.event.xml",
                 mimetype="text/xml",
             )
         )
