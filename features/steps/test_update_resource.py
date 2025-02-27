@@ -140,8 +140,7 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork, message_bus: Memory
 
     event = PackageSubmitted(
         package_identifier=submission_id,
-        tracking_identifier=tracking_identifier,
-        update_flag=False,
+        tracking_identifier=tracking_identifier
     )
     message_bus.handle(event, unit_of_work)
 
