@@ -24,7 +24,6 @@ def store_files(event: PackageUnpacked, uow: AbstractUnitOfWork, workspace_class
 
     resources = event.resources
     if revision:
-        print("-- ahoy revising!")
         merger = PackageResourcesMerger(current=revision.package_resources, incoming=resources)
         resources = merger.merge_changes()
 

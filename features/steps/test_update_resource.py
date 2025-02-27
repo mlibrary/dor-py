@@ -45,13 +45,9 @@ class PathData:
     workspaces: Path
     inbox: Path
 
-path_index = 0
 @pytest.fixture
 def path_data() -> PathData:
-    global path_index
-    path_index += 1
-    print("== ahoy path_data", path_index);
-    scratch = Path(f"./features/scratch-update-{path_index}")
+    scratch = Path(f"./features/scratch-update")
 
     return PathData(
         scratch=scratch,
@@ -62,33 +58,19 @@ def path_data() -> PathData:
 
 @pytest.fixture
 def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
-    print("-- unit of work start")
     engine = create_engine(
         config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
     )
-    print("-- unit of work engine")
-    session_factory = sessionmaker(bind=engine)
-    print("-- unit of work session factory")
+    connection = engine.connect()
+    session_factory = sessionmaker(bind=connection)
     Base.metadata.drop_all(engine)
-    print("-- unit of work drop all")
     Base.metadata.create_all(engine)
-    print("-- unit of work create all")
 
     gateway = OcflRepositoryGateway(storage_path=path_data.storage)
 
-    print("-- unit of work creating")
+    yield SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
 
-    # yield SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
-
-    uow = SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
-    yield uow
-    print("-- unit of work about to drop all")
-    uow.rollback()
-    # uow.session.close_all_sessions()
-    session_factory.close_all()
-    Base.metadata.drop_all(engine)
-    engine.dispose()
-    print("-- unit of work teardown")
+    connection.close()
 
 @pytest.fixture
 def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
@@ -151,8 +133,6 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork, message_bus: Memory
     file_provider.create_directory(path_data.storage)
     file_provider.create_directory(path_data.workspaces)
 
-    print("-- ahoy: a package containing all the scanned pages, OCR, and metadata")
-
     unit_of_work.gateway.create_repository()
 
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
@@ -174,7 +154,6 @@ def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
     tracking_identifier = "second-load"  # str(uuid.uuid4())
 
-    print("-- ahoy: second load")
     event = PackageSubmitted(
         package_identifier=submission_id,
         tracking_identifier=tracking_identifier,
@@ -189,7 +168,6 @@ def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
     expected_identifier = "00000000-0000-0000-0000-000000000001"
     assert unit_of_work.gateway.has_object(expected_identifier)
 
-    print("-- ahoy check workflow events")
     with unit_of_work:
         revision = unit_of_work.catalog.get(expected_identifier)
         assert revision is not None
@@ -214,8 +192,6 @@ def _(
     file_provider.create_directory(path_data.scratch)
     file_provider.create_directory(path_data.storage)
     file_provider.create_directory(path_data.workspaces)
-
-    print("-- ahoy: a package containing updated resource metadata")
 
     unit_of_work.gateway.create_repository()
 

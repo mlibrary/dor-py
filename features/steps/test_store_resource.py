@@ -60,20 +60,16 @@ def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
     engine = create_engine(
         config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
     )
-    session_factory = sessionmaker(bind=engine)
+    connection = engine.connect()
+    session_factory = sessionmaker(bind=connection)
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     gateway = OcflRepositoryGateway(storage_path=path_data.storage)
 
-    # return SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
+    yield SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
 
-    uow = SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
-    yield uow
-    uow.rollback()
-    session_factory.close_all()
-    print("-- unit of work teardown")
-
+    connection.close()
 
 @pytest.fixture
 def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
