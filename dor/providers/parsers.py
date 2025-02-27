@@ -2,7 +2,6 @@ from datetime import datetime
 import uuid
 from pathlib import Path
 
-from dor.providers.file_provider import FileProvider
 from utils.element_adapter import ElementAdapter
 from .models import (
     Agent,
@@ -57,6 +56,11 @@ class DescriptorFileParser:
     def get_type(self):
         hdr = self.tree.find("METS:metsHdr")
         return hdr.get("TYPE")
+
+    def get_root(self):
+        header = self.tree.find("METS:metsHdr")
+        record_status = header.get_optional("RECORDSTATUS")
+        return record_status == "root"
 
     def get_alternate_identifier(self) -> AlternateIdentifier:
         alt_record_id = self.tree.find("METS:metsHdr/METS:altRecordID")

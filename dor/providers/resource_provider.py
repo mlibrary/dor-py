@@ -36,6 +36,7 @@ class ResourceProvider:
             id=descriptor_file_parser.get_id(),
             alternate_identifier=descriptor_file_parser.get_alternate_identifier(),
             type=descriptor_file_parser.get_type(),
+            root=descriptor_file_parser.get_root(),
             events=pres_events,
             metadata_files=descriptor_file_parser.get_metadata_files(),
             data_files=descriptor_file_parser.get_data_files(),

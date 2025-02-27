@@ -47,6 +47,10 @@ class DescriptorFileParserTest(TestCase):
         parser = DescriptorFileParser(self.descriptor_path)
         self.assertEqual(parser.get_type(), "Monograph")
 
+    def test_parser_can_get_root(self):
+        parser = DescriptorFileParser(self.descriptor_path)
+        self.assertEqual(parser.get_root(), True)
+
     def test_parser_can_get_alternate_identifier(self):
         parser = DescriptorFileParser(self.descriptor_path)
 
