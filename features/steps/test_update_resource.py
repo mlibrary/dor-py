@@ -62,12 +62,17 @@ def path_data() -> PathData:
 
 @pytest.fixture
 def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
+    print("-- unit of work start")
     engine = create_engine(
         config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
     )
+    print("-- unit of work engine")
     session_factory = sessionmaker(bind=engine)
+    print("-- unit of work session factory")
     Base.metadata.drop_all(engine)
+    print("-- unit of work drop all")
     Base.metadata.create_all(engine)
+    print("-- unit of work create all")
 
     gateway = OcflRepositoryGateway(storage_path=path_data.storage)
 
@@ -77,7 +82,12 @@ def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
 
     uow = SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
     yield uow
+    print("-- unit of work about to drop all")
     uow.rollback()
+    # uow.session.close_all_sessions()
+    session_factory.close_all()
+    Base.metadata.drop_all(engine)
+    engine.dispose()
     print("-- unit of work teardown")
 
 @pytest.fixture
@@ -164,6 +174,7 @@ def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
     tracking_identifier = "second-load"  # str(uuid.uuid4())
 
+    print("-- ahoy: second load")
     event = PackageSubmitted(
         package_identifier=submission_id,
         tracking_identifier=tracking_identifier,
@@ -178,6 +189,7 @@ def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
     expected_identifier = "00000000-0000-0000-0000-000000000001"
     assert unit_of_work.gateway.has_object(expected_identifier)
 
+    print("-- ahoy check workflow events")
     with unit_of_work:
         revision = unit_of_work.catalog.get(expected_identifier)
         assert revision is not None

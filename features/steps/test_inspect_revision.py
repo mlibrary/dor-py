@@ -38,8 +38,16 @@ def unit_of_work() -> AbstractUnitOfWork:
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
-    uow = SqlalchemyUnitOfWork(gateway=FakeRepositoryGateway(), session_factory=session_factory)
-    return uow
+    # uow = SqlalchemyUnitOfWork(gateway=FakeRepositoryGateway(), session_factory=session_factory)
+    # return uow
+
+    uow = SqlalchemyUnitOfWork(
+        gateway=FakeRepositoryGateway(), session_factory=session_factory
+    )
+    yield uow
+    uow.rollback()
+    session_factory.close_all()
+    print("-- unit of work teardown")
 
 @given(
     parsers.parse(u'a preserved monograph with an alternate identifier of "{alt_id}"'),
