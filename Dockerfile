@@ -109,14 +109,12 @@ ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/po
 RUN unzip /tmp/pb.zip -d /pb/
 RUN rm /tmp/pb.zip
 
-# uncomment to copy the local pb_migrations dir into the image
-# COPY ./pb_migrations /pb/pb_migrations
+# Copy the user setup script 
+COPY pb_user_setup.sh /pb/pb_user_setup.sh
 
-# uncomment to copy the local pb_hooks dir into the image
-# COPY ./pb_hooks /pb/pb_hooks
+# Ensure the script is executable
+RUN chmod +x /pb/pb_user_setup.sh
 
 EXPOSE 8080
 
-# start PocketBase
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8080"]
 USER app

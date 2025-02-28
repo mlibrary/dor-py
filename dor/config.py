@@ -23,9 +23,9 @@ class Config:
     inbox_path: Path
     workspaces_path: Path
     database: DatabaseConfig
-    pocket_base_api_key: str
+    pocket_base_username: str
+    pocket_base_password: str
     pocket_base_url: str
-    pocket_base_collection: str
 
     @classmethod
     def from_env(cls):
@@ -40,9 +40,10 @@ class Config:
                 database=os.getenv("POSTGRES_DATABSE", "dor_local"),
                 test_database=os.getenv("POSTGRES_TEST_DATABASE", "dor_test")
             ),
-            pocket_base_api_key=os.getenv("POCKET_BASE_API_KEY", ""),
-            pocket_base_url=os.getenv("POCKET_BASE_URL", ""),
-            pocket_base_collection=os.getenv("POCKET_BASE_COLLECTION", "")
+            pocket_base_username=os.getenv("POCKET_BASE_USERNAME", ""),
+            pocket_base_password=os.getenv("POCKET_BASE_PASSWORD", ""),
+            pocket_base_url=os.getenv("POCKET_BASE_URL", "")
+            
         )
 
     def _make_database_engine_url(self, database: str):

@@ -54,5 +54,7 @@ services:
     image: pocketbase:0.25.8
     volumes:
       - ./data:/pb/data 
+      - ./pb_user_setup.sh:/pb/pb_user_setup.sh
+    command: /bin/sh -c "/pb/pocketbase serve --http=0.0.0.0:8080 & /bin/sh /pb/pb_user_setup.sh && tail -f /dev/null"
 volumes:
   db-data:

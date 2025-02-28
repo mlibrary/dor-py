@@ -1,12 +1,10 @@
 import dataclasses
 import uuid
 from datetime import datetime, UTC
-from typing import Generator
+from typing import Any, Generator
 
 import pytest
 import sqlalchemy
-import requests
-from datetime import datetime
 from fastapi.testclient import TestClient
 
 from dor.adapters.sqlalchemy import Base, _custom_json_serializer
@@ -223,93 +221,3 @@ def sample_revision_two(sample_revision) -> Revision:
     sample_revision_two.created_at = datetime(2025, 2, 11, 12, 0, 0, 0, tzinfo=UTC)
     sample_revision_two.common_metadata["subjects"].append("Something new")
     return sample_revision_two
-
-
-# PocketBase URL and collection name
-PB_URL = config.pocket_base_url
-COLLECTION_NAME = config.pocket_base_collection
-API_TOKEN = config.pocket_base_api_key
-# Function to check if the collection exists
-def collection_exists():
-    url = f"{PB_URL}/api/collections/{COLLECTION_NAME}"
-    headers = {
-        "Authorization": f"Bearer {API_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    response = requests.get(url, headers=headers)
-    return response.status_code == 200  
-
-# Function to create the logs collection
-def create_log_collection():
-    url = f"{PB_URL}/api/collections"
-    headers = {
-        "Authorization": f"Bearer {API_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    
-    collection_data = {
-        "name":"logs",
-        "type":"base",
-        "fields":[
-            {
-                "name":"message",
-                "type":"text",
-                "required":True
-            },
-            {
-                "name":"level",
-                "type":"text",
-                "required":True
-            },
-            {
-                "name":"timestamp",
-                "type":"autodate",
-                "onCreate": True,
-                "onUpdate": True,
-            },
-            {
-                "name":"applicationInfo",
-                "type":"text"
-            }
-        ],
-        "system":False
-    }
-
-    # Send the request to create the collection
-    response = requests.post(url, headers=headers, json=collection_data)
-    if response.status_code == 200:
-        print(f"Collection '{COLLECTION_NAME}' created successfully!")
-    else:
-        print(f"Failed to create collection: {response.status_code}, {response.text}")
-
-# Function to add a log to PocketBase
-def log_to_pocketbase(message, level, application_info=None):
-
-    if not collection_exists():
-        create_log_collection()  
-
-    url = f"{PB_URL}/api/collections/{COLLECTION_NAME}/records"
-    headers = {
-        "Authorization": f"Bearer {API_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    
-    log_data = {
-        "message": message,              
-        "level": level,                   
-        "timestamp": datetime.now().isoformat(),  
-        "applicationInfo": application_info 
-    }
-
-
-    response = requests.post(url, headers=headers, json=log_data)
-
-    if response.status_code == 200:
-        print("Log added successfully!")
-    else:
-        print(f"Failed to add log: {response.status_code}, {response.text}")
-
-
-log_to_pocketbase("This is a warning message", level="WARN", application_info="DOR-Packager")
-log_to_pocketbase("This is an error message", level="ERROR", application_info="DOR-Packager")
-
