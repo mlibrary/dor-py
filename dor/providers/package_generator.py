@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any, Callable, Tuple
 
 from dor.providers.file_provider import FileProvider
 from dor.providers.models import (
@@ -49,6 +49,28 @@ class PackageGenerator:
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
 
+    def create_root_metadata_file(
+        self,
+        metadata_data: dict[str, Any],
+        file_ending: str,
+        serializer: Callable[[Any], str]
+    ) -> FileMetadata:
+        print(metadata_data)
+        file_name = self.root_resource_identifier + file_ending
+        locref = Path(self.root_resource_identifier) / "metadata" / file_name
+        metadata_path = self.package_path / locref
+        with open(metadata_path, "w") as descriptive_file:
+            descriptive_file.write(serializer(metadata_data["data"]))
+        return FileMetadata(
+            id="_" + str(uuid.uuid4()),
+            use=metadata_data["use"],
+            ref=FileReference(
+                locref=str(locref),
+                mdtype=metadata_data.get("mdtype"),
+                mimetype=metadata_data["mimetype"]
+            )
+        )
+
     def create_root_metadata_files(self) -> list[FileMetadata]:
         """Create metadata files (descriptive, common, PREMIS)"""
 
@@ -65,20 +87,12 @@ class PackageGenerator:
         if len(descriptive_datas) != 1:
             raise PackageMetadataError
         descriptive_data = descriptive_datas[0]
-        descriptive_file_name = self.root_resource_identifier + ".metadata.json"
-        descriptive_locref = Path(self.root_resource_identifier) / "metadata" / descriptive_file_name
-        descriptive_metadata_path = self.package_path / descriptive_locref
-        with open(descriptive_metadata_path, "w") as descriptive_file:
-            descriptive_file.write(json.dumps(descriptive_data["data"], indent=4))
-        file_metadatas.append(FileMetadata(
-            id="_" + str(uuid.uuid4()),
-            use=descriptive_data["use"],
-            ref=FileReference(
-                locref=str(descriptive_locref),
-                mdtype=descriptive_data.get("mdtype"),
-                mimetype="application/json"
-            )
-        ))
+        descriptive_file_metadata = self.create_root_metadata_file(
+            metadata_data=descriptive_data,
+            file_ending=".metadata.json",
+            serializer=lambda x: json.dumps(x, indent=4)
+        )
+        file_metadatas.append(descriptive_file_metadata)
 
         common_datas = [
             metadata_file_data for metadata_file_data in metadata_file_datas
@@ -87,20 +101,12 @@ class PackageGenerator:
         if len(common_datas) != 1:
             raise PackageMetadataError
         common_data = common_datas[0]
-        common_file_name = self.root_resource_identifier + ".common.json"
-        common_locref = Path(self.root_resource_identifier) / "metadata" / common_file_name
-        common_metadata_path = self.package_path / common_locref
-        with open(common_metadata_path, "w") as common_file:
-            common_file.write(json.dumps(common_data["data"], indent=4))
-        file_metadatas.append(FileMetadata(
-            id="_" + str(uuid.uuid4()),
-            use=common_data["use"],
-            ref=FileReference(
-                locref=str(common_locref),
-                mdtype=common_data.get("mdtype"),
-                mimetype="application/json"
-            )
-        ))
+        common_file_metadata = self.create_root_metadata_file(
+            metadata_data=common_data,
+            file_ending=".common.json",
+            serializer=lambda x: json.dumps(x, indent=4)
+        )
+        file_metadatas.append(common_file_metadata)
 
         provenance_datas = [
             metadata_file_data for metadata_file_data in metadata_file_datas
@@ -109,20 +115,12 @@ class PackageGenerator:
         if len(provenance_datas) != 1:
             raise PackageMetadataError
         provenance_data = provenance_datas[0]
-        provenance_file_name = self.root_resource_identifier + ".premis.object.xml"
-        provenance_locref = Path(self.root_resource_identifier) / "metadata" / provenance_file_name
-        provenance_metadata_path = self.package_path / provenance_locref
-        with open(provenance_metadata_path, "w") as provenance_file:
-            provenance_file.write(provenance_data["data"])
-        file_metadatas.append(FileMetadata(
-            id="_" + str(uuid.uuid4()),
-            use=str(provenance_data["use"]),
-            ref=FileReference(
-                locref=str(provenance_locref),
-                mdtype=provenance_data.get("mdtype"),
-                mimetype="text/xml"
-            )
-        ))
+        provenance_file_metadata = self.create_root_metadata_file(
+            metadata_data=provenance_data,
+            file_ending=".premis.object.xml",
+            serializer=lambda x: x
+        )
+        file_metadatas.append(provenance_file_metadata)
         return file_metadatas
 
     def get_struct_maps(self) -> list[StructMap]:
