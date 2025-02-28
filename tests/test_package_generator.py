@@ -16,6 +16,13 @@ def sample_package_metadata() -> dict[str, Any]:
     return sample_package_metadata
 
 
+@pytest.fixture
+def sample_package_metadata_with_missing_file_set() -> dict[str, Any]:
+    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_file_set.json")
+    sample_package_metadata_with_missing_file_set = json.loads(metadata_path.read_text())
+    return sample_package_metadata_with_missing_file_set
+
+
 def test_generator_generates_package(sample_package_metadata) -> None:
     file_provider = FilesystemFileProvider()
     test_packager_path = Path("tests/test_packager")
@@ -57,3 +64,24 @@ def test_generator_generates_package(sample_package_metadata) -> None:
         message="Generated package successfully!"
     )
 
+
+def test_generator_fails_when_missing_file_sets(sample_package_metadata_with_missing_file_set) -> None:
+    file_provider = FilesystemFileProvider()
+    test_packager_path = Path("tests/test_packager")
+    file_provider.delete_dir_and_contents(test_packager_path)
+    file_provider.create_directory(test_packager_path)
+
+    generator = PackageGenerator(
+        file_provider=file_provider,
+        metadata=sample_package_metadata_with_missing_file_set,
+        output_path=test_packager_path,
+        file_set_path=Path("tests/fixtures/test_packager/file_sets"),
+        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+    )
+    result = generator.generate()
+
+    assert result == PackageResult(
+        package_identifier="00000000-0000-0000-0000-000000000001_19700101000000",
+        success=False,
+        message="The following file sets were not found: 00000000-0000-0000-0000-000000001003"
+    )
