@@ -125,7 +125,7 @@ class PackageGenerator:
         ))
         return file_metadatas
 
-    def incorporate_file_sets(self) -> Tuple[list[StructMap], list[str], list[str]]:
+    def get_struct_maps(self) -> list[StructMap]:
         struct_maps = []
         for structure in self.metadata["structure"]:
             items = [
@@ -144,14 +144,9 @@ class PackageGenerator:
                     items=items
                 )
             )
-        physical_struct_maps = [
-            struct_map for struct_map in struct_maps
-            if struct_map.type == StructMapType.PHYSICAL
-        ]
-        if len(physical_struct_maps) != 1:
-            raise PackageMetadataError
-        physical_struct_map = physical_struct_maps[0]
+        return struct_maps
 
+    def incorporate_file_sets(self, physical_struct_map: StructMap) -> Tuple[list[str], list[str]]:
         file_set_directories = [
             entry.name
             for entry in self.file_set_path.iterdir()
@@ -169,7 +164,7 @@ class PackageGenerator:
                 incorporated_file_set_ids.append(file_set_id)
             else:
                 missing_file_set_ids.append(file_set_id)
-        return struct_maps, incorporated_file_set_ids, missing_file_set_ids
+        return incorporated_file_set_ids, missing_file_set_ids
 
     def create_root_descriptor_file(
         self,
@@ -206,7 +201,15 @@ class PackageGenerator:
         metadata_file_metadatas = self.create_root_metadata_files()
 
         # Pull in file set resources
-        struct_maps, incorporated_file_set_ids, missing_file_set_ids = self.incorporate_file_sets()
+        struct_maps = self.get_struct_maps()
+        physical_struct_maps = [
+            struct_map for struct_map in struct_maps
+            if struct_map.type == StructMapType.PHYSICAL
+        ]
+        if len(physical_struct_maps) != 1:
+            raise PackageMetadataError
+        physical_struct_map = physical_struct_maps[0]
+        incorporated_file_set_ids, missing_file_set_ids = self.incorporate_file_sets(physical_struct_map)
         if len(missing_file_set_ids) > 0:
             return PackageResult(
                 package_identifier=self.package_identifier,
@@ -218,6 +221,7 @@ class PackageGenerator:
         resource = PackageResource(
             id=uuid.UUID(self.root_resource_identifier),
             type="Monograph",
+            root=True,
             alternate_identifier=AlternateIdentifier(id="something", type="DLXS"),
             events=[],
             metadata_files=metadata_file_metadatas,
