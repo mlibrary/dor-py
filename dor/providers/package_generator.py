@@ -193,12 +193,6 @@ class PackageGenerator:
         # Designate some directory for package payload
         self.file_provider.create_directory(self.package_path)
 
-        # Create root resource directory
-        root_resource_path = self.package_path / self.root_resource_identifier
-        self.file_provider.create_directory(root_resource_path)
-
-        metadata_file_metadatas = self.create_root_metadata_files()
-
         # Pull in file set resources
         struct_maps = self.get_struct_maps()
         physical_struct_maps = [
@@ -215,6 +209,12 @@ class PackageGenerator:
                 success=False,
                 message=f"The following file sets were not found: {", ".join(missing_file_set_ids)}"
             )
+
+        # Create root resource directory
+        root_resource_path = self.package_path / self.root_resource_identifier
+        self.file_provider.create_directory(root_resource_path)
+
+        metadata_file_metadatas = self.create_root_metadata_files()
 
         # Create descriptor METS (DescriptorGenerator?)
         resource = PackageResource(
