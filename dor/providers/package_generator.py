@@ -132,7 +132,7 @@ class PackageGenerator:
                 StructMapItem(
                     order=item["order"],
                     label=item["orderlabel"],
-                    file_set_id=item["locref"],
+                    file_set_id="urn:dor:" + item["locref"],
                     type=item.get("type")
                 )
                 for item in structure["items"]
@@ -155,7 +155,7 @@ class PackageGenerator:
         incorporated_file_set_ids = []
         missing_file_set_ids = []
         for struct_map_item in physical_struct_map.items:
-            file_set_id = struct_map_item.file_set_id
+            file_set_id = struct_map_item.file_set_id.replace("urn:dor:", "")
             if file_set_id in file_set_directories:
                 self.file_provider.clone_directory_structure(
                     self.file_set_path / file_set_id,
@@ -177,7 +177,8 @@ class PackageGenerator:
 
         struct_map_locref_data = {}
         for file_set_id in file_set_ids:
-            struct_map_locref_data[file_set_id] = Path(file_set_id) / "descriptor" / f"{file_set_id}.file_set.mets2.xml"
+            identifier = "urn:dor:" + file_set_id
+            struct_map_locref_data[identifier] = Path(file_set_id) / "descriptor" / f"{file_set_id}.file_set.mets2.xml"
 
         entity_template = template_env.get_template("preservation_mets.xml")
         xmldata = entity_template.render(
