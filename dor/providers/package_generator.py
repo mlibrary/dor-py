@@ -215,7 +215,7 @@ class PackageGenerator:
             return PackageResult(
                 package_identifier=self.package_identifier,
                 success=False,
-                message="The following file sets were not found: {missing_file_set_ids}"
+                message=f"The following file sets were not found: {", ".join(missing_file_set_ids)}"
             )
 
         # Create descriptor METS (DescriptorGenerator?)
