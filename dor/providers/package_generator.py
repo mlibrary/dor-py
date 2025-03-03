@@ -57,6 +57,9 @@ class PackageGenerator:
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
 
+    def clear_package_path(self):
+        self.file_provider.delete_dir_and_contents(self.package_path)
+
     def create_root_metadata_file(
         self,
         metadata_data: dict[str, Any],
@@ -151,10 +154,9 @@ class PackageGenerator:
             )
         return struct_maps
 
-    def incorporate_file_sets(self, physical_struct_map: StructMap) -> Tuple[list[str], list[str]]:
+    def incorporate_file_sets(self, physical_struct_map: StructMap) -> Tuple[list[str], list[str]]:        
         file_set_directories = [
-            entry.name
-            for entry in self.file_set_path.iterdir()
+            entry.name for entry in self.file_set_path.iterdir()
             if entry.is_dir()
         ]
         incorporated_file_set_ids = []
@@ -212,6 +214,7 @@ class PackageGenerator:
         physical_struct_map = physical_struct_maps[0]
         incorporated_file_set_ids, missing_file_set_ids = self.incorporate_file_sets(physical_struct_map)
         if len(missing_file_set_ids) > 0:
+            self.clear_package_path()
             return PackageResult(
                 package_identifier=self.package_identifier,
                 success=False,
@@ -224,7 +227,7 @@ class PackageGenerator:
 
         metadata_file_metadatas = self.create_root_metadata_files()
 
-        # Create descriptor METS (DescriptorGenerator?)
+        # Create root descriptor METS
         resource = PackageResource(
             id=uuid.UUID(self.root_resource_identifier),
             type="Monograph",
