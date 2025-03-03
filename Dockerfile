@@ -95,7 +95,7 @@ EXPOSE 8000
 
 USER app
 
-FROM python:3.7-alpine
+FROM alpine:latest
 
 ARG PB_VERSION=0.25.8
 
@@ -119,5 +119,3 @@ EXPOSE 8080
 
 # Set the command to run when the container starts
 CMD ["/bin/sh", "-c", "/pb/pocketbase serve --http=0.0.0.0:8080 & /bin/sh /pb/pb_user_setup.sh && tail -f /dev/null"]
-
-USER app
