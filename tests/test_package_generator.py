@@ -25,9 +25,9 @@ def sample_package_metadata_with_missing_file_set() -> dict[str, Any]:
 
 def test_generator_generates_package(sample_package_metadata) -> None:
     file_provider = FilesystemFileProvider()
-    test_packager_path = Path("tests/test_packager")
-    file_provider.delete_dir_and_contents(test_packager_path)
-    file_provider.create_directory(test_packager_path)
+    test_path = Path("tests/test_package_generator")
+    file_provider.delete_dir_and_contents(test_path)
+    file_provider.create_directory(test_path)
 
     generator = PackageGenerator(
         file_provider=file_provider,
@@ -36,7 +36,7 @@ def test_generator_generates_package(sample_package_metadata) -> None:
             identifier="23312082-44d8-489e-97f4-383329de9ac5",
             date=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
         ),
-        output_path=test_packager_path,
+        output_path=test_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
@@ -44,7 +44,7 @@ def test_generator_generates_package(sample_package_metadata) -> None:
 
     root_identifier = "00000000-0000-0000-0000-000000000001"
     package_identifier = f"{root_identifier}_19700101000000"
-    package_data_path = test_packager_path / package_identifier / "data"
+    package_data_path = test_path / package_identifier / "data"
 
     # Metadata files were created
     root_resource_metadata_path = package_data_path / root_identifier / "metadata"
@@ -73,9 +73,9 @@ def test_generator_generates_package(sample_package_metadata) -> None:
 
 def test_generator_fails_when_missing_file_sets(sample_package_metadata_with_missing_file_set) -> None:
     file_provider = FilesystemFileProvider()
-    test_packager_path = Path("tests/test_packager")
-    file_provider.delete_dir_and_contents(test_packager_path)
-    file_provider.create_directory(test_packager_path)
+    test_path = Path("tests/test_package_generator")
+    file_provider.delete_dir_and_contents(test_path)
+    file_provider.create_directory(test_path)
 
     generator = PackageGenerator(
         file_provider=file_provider,
@@ -84,7 +84,7 @@ def test_generator_fails_when_missing_file_sets(sample_package_metadata_with_mis
             identifier="23312082-44d8-489e-97f4-383329de9ac5",
             date=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
         ),
-        output_path=test_packager_path,
+        output_path=test_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )

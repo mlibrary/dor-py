@@ -19,7 +19,7 @@ output/
 tests/test_payload
 tests/test_storage
 tests/test_descriptor_generator
-tests/test_packager
+tests/test_package_generator
 
 features/scratch/*
 features/packager_scratch/*
