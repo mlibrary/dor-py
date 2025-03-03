@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Pull Docker images
+        run: |
+          docker pull pocketbase:0.25.8
       - name: Run tests
         run: |
           ./init.sh
