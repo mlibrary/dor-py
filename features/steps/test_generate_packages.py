@@ -115,7 +115,7 @@ def _(inbox_path):
     package_paths = list(inbox_path.iterdir())
     assert len(package_paths) == 1
     for package_path in package_paths:
-        bag = BagAdapter(package_path, FilesystemFileProvider())
+        bag = BagAdapter.load(package_path, FilesystemFileProvider())
         bag.validate()
 
 

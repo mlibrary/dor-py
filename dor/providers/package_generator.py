@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Tuple
 
+from dor.adapters.bag_adapter import BagAdapter
 from dor.providers.file_provider import FileProvider
 from dor.providers.models import (
     AlternateIdentifier,
@@ -196,6 +197,7 @@ class PackageGenerator:
     def generate(self) -> PackageResult:        
         # print(json.dumps(metadata, indent=4))
         # Validate metadata?
+
         # Designate some directory for package payload
         self.file_provider.create_directory(self.package_path)
 
@@ -244,6 +246,9 @@ class PackageGenerator:
             "Root-Identifier": self.root_resource_identifier,
             "Identifier": incorporated_file_set_ids,
         }
+        bag = BagAdapter.make(self.package_path, self.file_provider)
+        bag.add_dor_info(dor_info=dor_info)
+
         # Return success PackageResult
         return PackageResult(
             package_identifier=self.package_identifier,
