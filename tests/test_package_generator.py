@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.package_generator import PackageGenerator, PackageResult
+from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
 
 
 @pytest.fixture
@@ -32,6 +32,10 @@ def test_generator_generates_package(sample_package_metadata) -> None:
     generator = PackageGenerator(
         file_provider=file_provider,
         metadata=sample_package_metadata,
+        deposit_group=DepositGroup(
+            identifier="23312082-44d8-489e-97f4-383329de9ac5",
+            date=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+        ),
         output_path=test_packager_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
@@ -74,6 +78,10 @@ def test_generator_fails_when_missing_file_sets(sample_package_metadata_with_mis
     generator = PackageGenerator(
         file_provider=file_provider,
         metadata=sample_package_metadata_with_missing_file_set,
+        deposit_group=DepositGroup(
+            identifier="23312082-44d8-489e-97f4-383329de9ac5",
+            date=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+        ),
         output_path=test_packager_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
