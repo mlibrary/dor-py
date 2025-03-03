@@ -14,7 +14,7 @@ from pytest_bdd import (
 
 from dor.adapters.bag_adapter import BagAdapter
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.package_generator import PackageGenerator, PackageResult
+from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
 
 
 class Packager:
@@ -22,6 +22,7 @@ class Packager:
     def __init__(
         self,
         dump_file_path: Path,
+        config_file_path: Path,
         pending_path: Path,
         inbox_path: Path,
         timestamper: Callable[[], datetime]
@@ -31,10 +32,18 @@ class Packager:
         self.inbox_path = inbox_path
         self.timestamper = timestamper
 
+        config = json.loads(config_file_path.read_text())
+        deposit_group_data = config["deposit_group"]
+        self.deposit_group = DepositGroup(
+            identifier=deposit_group_data["identifier"],
+            date=datetime.fromisoformat(deposit_group_data["date"])
+        )
+
     def generate_package(self, metadata: dict[str, Any]) -> PackageResult:
         result = PackageGenerator(
             file_provider=FilesystemFileProvider(),
             metadata=metadata,
+            deposit_group=self.deposit_group,
             output_path=self.inbox_path,
             file_set_path=self.pending_path,
             timestamp=self.timestamper()
@@ -85,11 +94,13 @@ def _(inbox_path):
     
     packager_fixtures_path = Path("features/fixtures/packager/")
     jsonl_dump_file_path = packager_fixtures_path / "sample-dump-1.jsonl"
+    config_file_path = packager_fixtures_path / "config.json"
     pending_path = packager_fixtures_path / "pending"
 
     packager = Packager(
         dump_file_path=jsonl_dump_file_path,
-        pending_path=pending_path, 
+        config_file_path=config_file_path,
+        pending_path=pending_path,
         inbox_path=inbox_path,
         timestamper=lambda: datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
