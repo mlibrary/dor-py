@@ -42,22 +42,24 @@ def test_generator_generates_package(sample_package_metadata) -> None:
     )
     result = generator.generate()
 
-    # Metadata files were created
     root_identifier = "00000000-0000-0000-0000-000000000001"
     package_identifier = f"{root_identifier}_19700101000000"
-    root_resource_metadata_path = test_packager_path / package_identifier / root_identifier / "metadata"
+    package_data_path = test_packager_path / package_identifier / "data"
+
+    # Metadata files were created
+    root_resource_metadata_path = package_data_path / root_identifier / "metadata"
     assert (root_resource_metadata_path / f"{root_identifier}.common.json").exists()
     assert (root_resource_metadata_path / f"{root_identifier}.metadata.json").exists()
     assert (root_resource_metadata_path / f"{root_identifier}.premis.object.xml").exists()
 
     # File sets were incorporated
-    file_set_one_path = test_packager_path / package_identifier / "00000000-0000-0000-0000-000000001001"
+    file_set_one_path = package_data_path / "00000000-0000-0000-0000-000000001001"
     assert file_set_one_path.exists()
-    file_set_two_path = test_packager_path / package_identifier / "00000000-0000-0000-0000-000000001002"
+    file_set_two_path = package_data_path / "00000000-0000-0000-0000-000000001002"
     assert file_set_two_path.exists()
 
     # Descriptor file was created
-    descriptor_path = test_packager_path / package_identifier / root_identifier / "descriptor"
+    descriptor_path = package_data_path / root_identifier / "descriptor"
     descriptor_file = f"{root_identifier}.monograph.mets2.xml"
     assert (descriptor_path / descriptor_file).exists()
 
