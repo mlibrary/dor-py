@@ -95,7 +95,7 @@ EXPOSE 8000
 
 USER app
 
-FROM alpine:latest
+FROM python:3.7-alpine
 
 ARG PB_VERSION=0.25.8
 
