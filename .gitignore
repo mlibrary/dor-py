@@ -20,4 +20,3 @@ output/
 features/scratch/
 tests/test_storage/
 tests/test_descriptor_generator/
-tests/test_workspaces/
