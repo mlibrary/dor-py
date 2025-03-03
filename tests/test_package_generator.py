@@ -90,8 +90,10 @@ def test_generator_fails_when_missing_file_sets(sample_package_metadata_with_mis
     )
     result = generator.generate()
 
+    package_identifier = "00000000-0000-0000-0000-000000000001_19700101000000"
+    assert not (test_path / package_identifier).exists()
     assert result == PackageResult(
-        package_identifier="00000000-0000-0000-0000-000000000001_19700101000000",
+        package_identifier=package_identifier,
         success=False,
         message="The following file sets were not found: 00000000-0000-0000-0000-000000001003"
     )
