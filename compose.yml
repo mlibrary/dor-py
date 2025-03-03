@@ -2,6 +2,7 @@ services:
   app:
     depends_on:
       - db
+      - pocketbase
     build: 
       context: .
       target: development
@@ -20,6 +21,7 @@ services:
   api:
     depends_on:
       - db
+      - pocketbase
     build: 
       context: .
       target: development
