@@ -17,9 +17,14 @@ from dor.providers.models import (
 )
 from dor.settings import template_env
 
+@dataclass
+class DepositGroup:
+    identifier: str
+    date: datetime
+
 
 @dataclass
-class PackageResult():
+class PackageResult:
     package_identifier: str
     success: bool
     message: str
@@ -35,12 +40,14 @@ class PackageGenerator:
         self,
         file_provider: FileProvider,
         metadata: dict[str, Any],
+        deposit_group: DepositGroup,
         output_path: Path,
         file_set_path: Path,
         timestamp: datetime
     ):
         self.file_provider = file_provider
         self.metadata = metadata
+        self.deposit_group = deposit_group
         self.output_path = output_path
         self.file_set_path = file_set_path
         self.timestamp = timestamp
@@ -55,7 +62,6 @@ class PackageGenerator:
         file_ending: str,
         serializer: Callable[[Any], str]
     ) -> FileMetadata:
-        print(metadata_data)
         file_name = self.root_resource_identifier + file_ending
         locref = Path(self.root_resource_identifier) / "metadata" / file_name
         metadata_path = self.package_path / locref
@@ -230,7 +236,14 @@ class PackageGenerator:
         self.create_root_descriptor_file(resource, incorporated_file_set_ids)
 
         # Create bag in inbox based on payload directory (BagAdapter?)
-            # Generate dor-info.txt
+        # Generate dor-info.txt
+        dor_info = {
+            "Action": "store",
+            "Deposit-Group-Identifier": self.deposit_group.identifier,
+            "Deposit-Group-Date": self.deposit_group.date,
+            "Root-Identifier": self.root_resource_identifier,
+            "Identifier": incorporated_file_set_ids,
+        }
         # Return success PackageResult
         return PackageResult(
             package_identifier=self.package_identifier,
