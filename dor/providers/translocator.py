@@ -4,7 +4,7 @@ from typing import Callable
 
 from dor.providers.file_provider import FileProvider
 from gateway.bundle import Bundle
-
+from utils.minter import minter
 
 @dataclass
 class FakeWorkspace:

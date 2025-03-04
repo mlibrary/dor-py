@@ -1,10 +1,9 @@
+import pytest
+
 from pathlib import Path
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-import pytest
-
 from dor.providers.translocator import Translocator
-
 
 @pytest.fixture
 def workspaces_path() -> Path:
@@ -18,7 +17,8 @@ def test_create_translocator(inbox_path: Path, workspaces_path: Path) -> None:
     Translocator(
         inbox_path=inbox_path, workspaces_path=workspaces_path, minter=lambda: "some_id", file_provider=FilesystemFileProvider()
     )
-
+ 
+    
 def test_translocator_can_create_workspace(inbox_path: Path, workspaces_path: Path) -> None:
     file_provider = FilesystemFileProvider()
     file_provider.delete_dir_and_contents(

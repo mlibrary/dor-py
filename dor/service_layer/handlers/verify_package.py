@@ -16,10 +16,12 @@ def verify_package(
             package_identifier=event.package_identifier,
             tracking_identifier=event.tracking_identifier,
             workspace_identifier=workspace.identifier,
+            update_flag=event.update_flag,
         ))
     except ValidationError as e:
         uow.add_event(PackageNotVerified(
             package_identifier=event.package_identifier,
             tracking_identifier=event.tracking_identifier,
-            message=e.message
+            message=e.message,
+            update_flag=event.update_flag,
         ))

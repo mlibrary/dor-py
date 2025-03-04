@@ -34,12 +34,14 @@ def unit_of_work() -> AbstractUnitOfWork:
     engine = create_engine(
         config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
     )
-    session_factory = sessionmaker(bind=engine)
+    connection = engine.connect()
+    session_factory = sessionmaker(bind=connection)
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
-    uow = SqlalchemyUnitOfWork(gateway=FakeRepositoryGateway(), session_factory=session_factory)
-    return uow
+    yield SqlalchemyUnitOfWork(gateway=FakeRepositoryGateway(), session_factory=session_factory)
+
+    connection.close()
 
 @given(
     parsers.parse(u'a preserved monograph with an alternate identifier of "{alt_id}"'),

@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.object_file import ObjectFile
-
+from gateway.version_info import VersionInfo
 
 class RepositoryGateway(metaclass=ABCMeta):
 
@@ -38,4 +38,8 @@ class RepositoryGateway(metaclass=ABCMeta):
 
     @abstractmethod
     def get_object_files(self, id: str, include_staged: bool = False) -> list[ObjectFile]:
+        pass
+
+    @abstractmethod
+    def log(self, id: str, reversed: bool = True) -> list[VersionInfo]:
         pass
