@@ -59,7 +59,11 @@
             "use": "PROVENANCE",
             "mimetype": "text/xml",
             "mdtype": "PREMIS",
-            "data": "<PREMIS:premis version=\"3.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:PREMIS=\"http://www.loc.gov/premis/v3\"\n  xsi:schemaLocation=\"http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd\">\n  <PREMIS:object xsi:type=\"PREMIS:representation\">\n    <PREMIS:objectIdentifier>\n      <PREMIS:objectIdentifierType>DLXS</PREMIS:objectIdentifierType>\n      <PREMIS:objectIdentifierValue>campe.0001.001</PREMIS:objectIdentifierValue>\n    </PREMIS:objectIdentifier>\n    <PREMIS:significantProperties>\n      <PREMIS:significantPropertiesType>scans count</PREMIS:significantPropertiesType>\n      <PREMIS:significantPropertiesValue>2</PREMIS:significantPropertiesValue>\n    </PREMIS:significantProperties>\n    <PREMIS:relationship>\n        <PREMIS:relationshipType>structural</PREMIS:relationshipType>\n        <PREMIS:relationshipSubType>isPartOf</PREMIS:relationshipSubType>\n        <PREMIS:relatedObjectIdentifier>\n          <PREMIS:relatedObjectIdentifierType>local</PREMIS:relatedObjectIdentifierType>\n          <PREMIS:relatedObjectIdentifierValue>campe</PREMIS:relatedObjectIdentifierValue>\n        </PREMIS:relatedObjectIdentifier>\n    </PREMIS:relationship>\n    <PREMIS:linkingRightsStatementIdentifier>\n      <PREMIS:linkingRightsStatementIdentifierType>local</PREMIS:linkingRightsStatementIdentifierType>\n      <PREMIS:linkingRightsStatementIdentifierValue>http://rightsstatements.org/vocab/NoC-US/1.0/</PREMIS:linkingRightsStatementIdentifierValue>\n    </PREMIS:linkingRightsStatementIdentifier>\n  </PREMIS:object>\n</PREMIS:premis>"
+            "data": {
+                "alternate_identifier": "campe.0001.001",
+                "scans_count": 3,
+                "collid": "campe"
+            }
         }
     ],
     "structure": [
