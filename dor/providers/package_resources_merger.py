@@ -1,9 +1,4 @@
-from pathlib import Path
-from datetime import datetime, UTC
-
 from dor.providers.models import PackageResource, StructMapType
-
-### IGNORE THIS FILE
 
 class PackageResourcesMerger:
     def __init__(self, incoming: list[PackageResource], current: list[PackageResource]):
