@@ -1,5 +1,5 @@
-import uuid
 import json
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -17,6 +17,7 @@ from dor.providers.models import (
     StructMapType
 )
 from dor.settings import template_env
+
 
 @dataclass
 class DepositGroup:
@@ -82,7 +83,7 @@ class PackageGenerator:
         )
 
     def create_root_metadata_files(self) -> list[FileMetadata]:
-        """Create metadata files (descriptive, common, PREMIS)"""
+        """Create metadata files for root resource (descriptive, common, PREMIS)"""
 
         file_metadatas: list[FileMetadata] = []
         self.file_provider.create_directory(
@@ -154,7 +155,9 @@ class PackageGenerator:
             )
         return struct_maps
 
-    def incorporate_file_sets(self, physical_struct_map: StructMap) -> Tuple[list[str], list[str]]:        
+    def incorporate_file_sets(self, physical_struct_map: StructMap) -> Tuple[list[str], list[str]]:
+        """Copy in file set resources, keeping track of those incorporated and missing"""
+
         file_set_directories = [
             entry.name for entry in self.file_set_path.iterdir()
             if entry.is_dir()
@@ -178,6 +181,8 @@ class PackageGenerator:
         resource: PackageResource,
         file_set_ids: list[str]
     ) -> None:
+        """Create root resource's descriptor file using a template"""
+
         descriptor_path = self.package_path / self.root_resource_identifier / "descriptor"
         self.file_provider.create_directory(descriptor_path)
         descriptor_file_name = f"{self.root_resource_identifier}.monograph.mets2.xml"
@@ -197,13 +202,10 @@ class PackageGenerator:
             file.write(xmldata)
 
     def generate(self) -> PackageResult:        
-        # print(json.dumps(metadata, indent=4))
         # Validate metadata?
 
-        # Designate some directory for package payload
         self.file_provider.create_directory(self.package_path)
 
-        # Pull in file set resources
         struct_maps = self.get_struct_maps()
         physical_struct_maps = [
             struct_map for struct_map in struct_maps
@@ -221,13 +223,11 @@ class PackageGenerator:
                 message=f"The following file sets were not found: {", ".join(missing_file_set_ids)}"
             )
 
-        # Create root resource directory
         root_resource_path = self.package_path / self.root_resource_identifier
         self.file_provider.create_directory(root_resource_path)
 
         metadata_file_metadatas = self.create_root_metadata_files()
 
-        # Create root descriptor METS
         resource = PackageResource(
             id=uuid.UUID(self.root_resource_identifier),
             type="Monograph",
@@ -240,8 +240,6 @@ class PackageGenerator:
         )
         self.create_root_descriptor_file(resource, incorporated_file_set_ids)
 
-        # Create bag in inbox based on payload directory (BagAdapter?)
-        # Generate dor-info.txt
         dor_info = {
             "Action": "store",
             "Deposit-Group-Identifier": self.deposit_group.identifier,
@@ -252,7 +250,6 @@ class PackageGenerator:
         bag = BagAdapter.make(self.package_path, self.file_provider)
         bag.add_dor_info(dor_info=dor_info)
 
-        # Return success PackageResult
         return PackageResult(
             package_identifier=self.package_identifier,
             success=True,
