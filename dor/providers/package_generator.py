@@ -9,20 +9,17 @@ from dor.adapters.bag_adapter import BagAdapter
 from dor.providers.file_provider import FileProvider
 from dor.providers.models import (
     AlternateIdentifier,
+    DepositGroup,
     FileMetadata,
     FileReference,
+    PackageFileMetadata,
+    PackageMetadata,
     PackageResource,
     StructMap,
     StructMapItem,
     StructMapType
 )
 from dor.settings import template_env
-
-
-@dataclass
-class DepositGroup:
-    identifier: str
-    date: datetime
 
 
 @dataclass
@@ -41,7 +38,7 @@ class PackageGenerator:
     def __init__(
         self,
         file_provider: FileProvider,
-        metadata: dict[str, Any],
+        metadata: PackageMetadata,
         deposit_group: DepositGroup,
         output_path: Path,
         file_set_path: Path,
@@ -54,7 +51,7 @@ class PackageGenerator:
         self.file_set_path = file_set_path
         self.timestamp = timestamp
 
-        self.root_resource_identifier: str = self.metadata["identifier"]
+        self.root_resource_identifier: str = self.metadata.identifier
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
 
@@ -63,7 +60,7 @@ class PackageGenerator:
 
     def create_root_metadata_file(
         self,
-        metadata_data: dict[str, Any],
+        metadata_data: PackageFileMetadata,
         file_ending: str,
         serializer: Callable[[Any], str]
     ) -> FileMetadata:
@@ -71,14 +68,14 @@ class PackageGenerator:
         locref = Path(self.root_resource_identifier) / "metadata" / file_name
         metadata_path = self.package_path / locref
         with open(metadata_path, "w") as descriptive_file:
-            descriptive_file.write(serializer(metadata_data["data"]))
+            descriptive_file.write(serializer(metadata_data.data))
         return FileMetadata(
             id="_" + str(uuid.uuid4()),
-            use=metadata_data["use"],
+            use=metadata_data.use,
             ref=FileReference(
                 locref=str(locref),
-                mdtype=metadata_data.get("mdtype"),
-                mimetype=metadata_data["mimetype"]
+                mdtype=metadata_data.mdtype,
+                mimetype=metadata_data.mimetype
             )
         )
 
@@ -90,10 +87,10 @@ class PackageGenerator:
             self.package_path / self.root_resource_identifier / "metadata"
         )
 
-        metadata_file_datas = self.metadata["md"]
+        metadata_file_datas = self.metadata.md
         descriptive_datas = [
             metadata_file_data for metadata_file_data in metadata_file_datas
-            if metadata_file_data["use"] == "DESCRIPTIVE"
+            if metadata_file_data.use == "DESCRIPTIVE"
         ]
         if len(descriptive_datas) != 1:
             raise PackageMetadataError
@@ -107,7 +104,7 @@ class PackageGenerator:
 
         common_datas = [
             metadata_file_data for metadata_file_data in metadata_file_datas
-            if metadata_file_data["use"] == "DESCRIPTIVE/COMMON"
+            if metadata_file_data.use == "DESCRIPTIVE/COMMON"
         ]
         if len(common_datas) != 1:
             raise PackageMetadataError
@@ -121,7 +118,7 @@ class PackageGenerator:
 
         provenance_datas = [
             metadata_file_data for metadata_file_data in metadata_file_datas
-            if metadata_file_data["use"] == "PROVENANCE"
+            if metadata_file_data.use == "PROVENANCE"
         ]
         if len(provenance_datas) != 1:
             raise PackageMetadataError
@@ -136,20 +133,20 @@ class PackageGenerator:
 
     def get_struct_maps(self) -> list[StructMap]:
         struct_maps = []
-        for structure in self.metadata["structure"]:
+        for structure in self.metadata.structure:
             items = [
                 StructMapItem(
-                    order=item["order"],
-                    label=item["orderlabel"],
-                    file_set_id="urn:dor:" + item["locref"],
-                    type=item.get("type")
+                    order=item.order,
+                    label=item.orderlabel,
+                    file_set_id="urn:dor:" + item.locref,
+                    type=item.type
                 )
-                for item in structure["items"]
+                for item in structure.items
             ]
             struct_maps.append(
                 StructMap(
                     id=str(uuid.uuid4()),
-                    type=StructMapType[structure["type"].upper()],
+                    type=StructMapType[structure.type.upper()],
                     items=items
                 )
             )

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
+from dor.providers.models import PackagerConfig, PackageMetadata
 from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
 
 
@@ -22,14 +23,11 @@ class Packager:
         self.inbox_path = inbox_path
         self.timestamper = timestamper
 
-        config = json.loads(config_file_path.read_text())
-        deposit_group_data = config["deposit_group"]
-        self.deposit_group = DepositGroup(
-            identifier=deposit_group_data["identifier"],
-            date=datetime.fromisoformat(deposit_group_data["date"])
-        )
+        config_data = json.loads(config_file_path.read_text())
+        config = PackagerConfig.model_validate(config_data)
+        self.deposit_group = config.deposit_group
 
-    def generate_package(self, metadata: dict[str, Any]) -> PackageResult:
+    def generate_package(self, metadata: PackageMetadata) -> PackageResult:
         result = PackageGenerator(
             file_provider=FilesystemFileProvider(),
             metadata=metadata,
@@ -50,7 +48,8 @@ class Packager:
                 line = file.readline()
                 if line != "":
                     metadata = json.loads(line)
-                    package_result = self.generate_package(metadata)
+                    package_metadata = PackageMetadata.model_validate(metadata)
+                    package_result = self.generate_package(package_metadata)
                     package_results.append(package_result)
                 else:
                     more_lines = False

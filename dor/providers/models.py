@@ -1,10 +1,13 @@
 from dataclasses import field
-from pydantic.dataclasses import dataclass
-
 import uuid
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Any, Optional
+
+from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
+
 
 @dataclass
 class AlternateIdentifier:
@@ -84,3 +87,40 @@ class PackageResource:
             entries.append(Path(file_metadata.ref.locref))
 
         return entries
+
+
+# Packager
+
+class DepositGroup(BaseModel):
+    identifier: str
+    date: datetime
+
+
+class PackagerConfig(BaseModel):
+    deposit_group: DepositGroup
+
+
+class PackageFileMetadata(BaseModel):
+    use: str
+    mimetype: str
+    mdtype: Optional[str] = None
+    data: Any
+
+
+class PackageStructureItem(BaseModel):
+    order: str
+    orderlabel: str
+    type: str
+    locref: str
+
+
+class PackageStructure(BaseModel):
+    type: str
+    items: list[PackageStructureItem]
+
+
+class PackageMetadata(BaseModel):
+    identifier: str
+    md: list[PackageFileMetadata]
+    structure: list[PackageStructure]
+

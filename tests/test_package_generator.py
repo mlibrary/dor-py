@@ -1,26 +1,28 @@
 import json
 from datetime import datetime, UTC
 from pathlib import Path
-from typing import Any
 
 import pytest
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
+from dor.providers.models import DepositGroup, PackageMetadata
+from dor.providers.package_generator import PackageGenerator, PackageResult
 
 
 @pytest.fixture
-def sample_package_metadata() -> dict[str, Any]:
+def sample_package_metadata() -> PackageMetadata:
     metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata.json")
-    sample_package_metadata = json.loads(metadata_path.read_text())
-    return sample_package_metadata
+    metadata = json.loads(metadata_path.read_text())
+    package_metadata = PackageMetadata.model_validate(metadata)
+    return package_metadata
 
 
 @pytest.fixture
-def sample_package_metadata_with_missing_file_set() -> dict[str, Any]:
+def sample_package_metadata_with_missing_file_set() -> PackageMetadata:
     metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_file_set.json")
-    sample_package_metadata_with_missing_file_set = json.loads(metadata_path.read_text())
-    return sample_package_metadata_with_missing_file_set
+    metadata = json.loads(metadata_path.read_text())
+    package_metadata = PackageMetadata.model_validate(metadata)
+    return package_metadata
 
 
 @pytest.fixture
@@ -32,7 +34,7 @@ def deposit_group() -> DepositGroup:
 
 
 def test_generator_generates_package(
-    sample_package_metadata: dict[str, Any], deposit_group: DepositGroup
+    sample_package_metadata: PackageMetadata, deposit_group: DepositGroup
 ) -> None:
     file_provider = FilesystemFileProvider()
     test_path = Path("tests/test_package_generator")
@@ -79,7 +81,7 @@ def test_generator_generates_package(
 
 
 def test_generator_fails_when_missing_file_sets(
-    sample_package_metadata_with_missing_file_set: dict[str, Any], deposit_group: DepositGroup
+    sample_package_metadata_with_missing_file_set: PackageMetadata, deposit_group: DepositGroup
 ) -> None:
     file_provider = FilesystemFileProvider()
     test_path = Path("tests/test_package_generator")
