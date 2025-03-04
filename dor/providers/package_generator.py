@@ -36,6 +36,16 @@ class PackageMetadataError(Exception):
     pass
 
 
+def serialize_provenance(data: Any) -> str:
+    template = template_env.get_template("premis_object.xml")
+    xmldata = template.render(
+        alternate_identifier=data["alternate_identifier"],
+        scans_count=data["scans_count"],
+        collid=data["collid"]
+    )
+    return xmldata
+
+
 class PackageGenerator:
 
     def __init__(
@@ -61,6 +71,18 @@ class PackageGenerator:
 
     def clear_package_path(self):
         self.file_provider.delete_dir_and_contents(self.package_path)
+
+    def get_metadata_file_data(self, use: str) -> dict[str, Any]:
+        matching_file_datas = [
+            metadata_file_data for metadata_file_data in self.metadata["md"]
+            if metadata_file_data["use"] == use
+        ]
+        if len(matching_file_datas) != 1:
+            raise PackageMetadataError(
+                f"Expected to find a single set of data for use \"{use}\"" +
+                f"but found {len(matching_file_datas)}"
+            )
+        return matching_file_datas[0]
 
     def create_root_metadata_file(
         self,
@@ -91,14 +113,7 @@ class PackageGenerator:
             self.package_path / self.root_resource_identifier / "metadata"
         )
 
-        metadata_file_datas = self.metadata["md"]
-        descriptive_datas = [
-            metadata_file_data for metadata_file_data in metadata_file_datas
-            if metadata_file_data["use"] == "DESCRIPTIVE"
-        ]
-        if len(descriptive_datas) != 1:
-            raise PackageMetadataError
-        descriptive_data = descriptive_datas[0]
+        descriptive_data = self.get_metadata_file_data(use="DESCRIPTIVE")
         descriptive_file_metadata = self.create_root_metadata_file(
             metadata_data=descriptive_data,
             file_ending=".metadata.json",
@@ -106,13 +121,7 @@ class PackageGenerator:
         )
         file_metadatas.append(descriptive_file_metadata)
 
-        common_datas = [
-            metadata_file_data for metadata_file_data in metadata_file_datas
-            if metadata_file_data["use"] == "DESCRIPTIVE/COMMON"
-        ]
-        if len(common_datas) != 1:
-            raise PackageMetadataError
-        common_data = common_datas[0]
+        common_data = self.get_metadata_file_data(use="DESCRIPTIVE/COMMON")
         common_file_metadata = self.create_root_metadata_file(
             metadata_data=common_data,
             file_ending=".common.json",
@@ -120,17 +129,11 @@ class PackageGenerator:
         )
         file_metadatas.append(common_file_metadata)
 
-        provenance_datas = [
-            metadata_file_data for metadata_file_data in metadata_file_datas
-            if metadata_file_data["use"] == "PROVENANCE"
-        ]
-        if len(provenance_datas) != 1:
-            raise PackageMetadataError
-        provenance_data = provenance_datas[0]
+        provenance_data = self.get_metadata_file_data(use="PROVENANCE")
         provenance_file_metadata = self.create_root_metadata_file(
             metadata_data=provenance_data,
             file_ending=".premis.object.xml",
-            serializer=lambda x: x
+            serializer=serialize_provenance
         )
         file_metadatas.append(provenance_file_metadata)
         return file_metadatas
@@ -229,11 +232,15 @@ class PackageGenerator:
 
         metadata_file_metadatas = self.create_root_metadata_files()
 
+        provenance_data = self.get_metadata_file_data(use="PROVENANCE")
+        alternate_identifier = provenance_data["data"]["alternate_identifier"]
         resource = PackageResource(
             id=uuid.UUID(self.root_resource_identifier),
             type=self.type,
             root=True,
-            alternate_identifier=AlternateIdentifier(id="something", type="DLXS"),
+            alternate_identifier=AlternateIdentifier(
+                id=alternate_identifier, type="DLXS"
+            ),
             events=[],
             metadata_files=metadata_file_metadatas,
             data_files=[],
