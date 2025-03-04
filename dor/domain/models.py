@@ -39,7 +39,6 @@ class WorkflowEventType(Enum):
     PACKAGE_UNPACKED = "PackageUnpacked"
     PACKAGE_STORED = "PackageStored"
     REVISION_CATALOGED = "RevisionCataloged"
-    WORKSPACE_CLEANED = "WorkspaceCleaned"
 
 
 @dataclass
