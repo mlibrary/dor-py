@@ -23,7 +23,17 @@ def sample_package_metadata_with_missing_file_set() -> dict[str, Any]:
     return sample_package_metadata_with_missing_file_set
 
 
-def test_generator_generates_package(sample_package_metadata) -> None:
+@pytest.fixture
+def deposit_group() -> DepositGroup:
+    return DepositGroup(
+        identifier="23312082-44d8-489e-97f4-383329de9ac5",
+        date=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+    )
+
+
+def test_generator_generates_package(
+    sample_package_metadata: dict[str, Any], deposit_group: DepositGroup
+) -> None:
     file_provider = FilesystemFileProvider()
     test_path = Path("tests/test_package_generator")
     file_provider.delete_dir_and_contents(test_path)
@@ -32,10 +42,7 @@ def test_generator_generates_package(sample_package_metadata) -> None:
     generator = PackageGenerator(
         file_provider=file_provider,
         metadata=sample_package_metadata,
-        deposit_group=DepositGroup(
-            identifier="23312082-44d8-489e-97f4-383329de9ac5",
-            date=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
-        ),
+        deposit_group=deposit_group,
         output_path=test_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
@@ -71,7 +78,9 @@ def test_generator_generates_package(sample_package_metadata) -> None:
     )
 
 
-def test_generator_fails_when_missing_file_sets(sample_package_metadata_with_missing_file_set) -> None:
+def test_generator_fails_when_missing_file_sets(
+    sample_package_metadata_with_missing_file_set: dict[str, Any], deposit_group: DepositGroup
+) -> None:
     file_provider = FilesystemFileProvider()
     test_path = Path("tests/test_package_generator")
     file_provider.delete_dir_and_contents(test_path)
@@ -80,10 +89,7 @@ def test_generator_fails_when_missing_file_sets(sample_package_metadata_with_mis
     generator = PackageGenerator(
         file_provider=file_provider,
         metadata=sample_package_metadata_with_missing_file_set,
-        deposit_group=DepositGroup(
-            identifier="23312082-44d8-489e-97f4-383329de9ac5",
-            date=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
-        ),
+        deposit_group=deposit_group,
         output_path=test_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
