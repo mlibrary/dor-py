@@ -55,6 +55,7 @@ class PackageGenerator:
         self.timestamp = timestamp
 
         self.root_resource_identifier: str = self.metadata["identifier"]
+        self.type: str = self.metadata["type"]
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
 
@@ -230,7 +231,7 @@ class PackageGenerator:
 
         resource = PackageResource(
             id=uuid.UUID(self.root_resource_identifier),
-            type="Monograph",
+            type=self.type,
             root=True,
             alternate_identifier=AlternateIdentifier(id="something", type="DLXS"),
             events=[],
