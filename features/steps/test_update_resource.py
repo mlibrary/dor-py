@@ -24,7 +24,6 @@ from dor.domain.events import (
 )
 from dor.domain.models import WorkflowEventType
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.uuid_minter_provider import UuidMinterProvider
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
 from dor.service_layer.handlers.catalog_revision import catalog_revision
@@ -36,6 +35,7 @@ from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
+from utils.minter import minter
 
 @dataclass
 class PathData:
@@ -76,7 +76,7 @@ def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> Memory
     translocator = Translocator(
         inbox_path=path_data.inbox,
         workspaces_path=path_data.workspaces,
-        minter_provider=UuidMinterProvider(),
+        minter=minter,
         file_provider=FilesystemFileProvider()
     )
 

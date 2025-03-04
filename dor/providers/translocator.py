@@ -3,9 +3,8 @@ from pathlib import Path
 from typing import Callable
 
 from dor.providers.file_provider import FileProvider
-from dor.providers.minter_provider import MinterProvider
 from gateway.bundle import Bundle
-
+from utils.minter import minter
 
 @dataclass
 class FakeWorkspace:
@@ -53,14 +52,14 @@ class FakeTranslocator:
 
 class Translocator():
 
-    def __init__(self, inbox_path: Path, workspaces_path: Path, minter_provider: MinterProvider, file_provider: FileProvider) -> None:
+    def __init__(self, inbox_path: Path, workspaces_path: Path, minter: Callable[[],str], file_provider: FileProvider) -> None:
         self.inbox_path = inbox_path
         self.workspaces_path = workspaces_path
-        self.minter_provider = minter_provider
+        self.minter = minter
         self.file_provider = file_provider
 
     def create_workspace_for_package(self, package_identifier: str) -> Workspace:
-        workspace_id = self.minter_provider.mint()
+        workspace_id = self.minter()
         workspace_path = self.workspaces_path / workspace_id
         self.file_provider.clone_directory_structure(
             self.inbox_path / package_identifier, workspace_path
