@@ -56,8 +56,3 @@ class PackageStored(PackageEvent):
 class RevisionCataloged(PackageEvent):
     identifier: str
     workspace_identifier: str
-
-
-@dataclass
-class WorkspaceCleaned(PackageEvent):
-    identifier: str

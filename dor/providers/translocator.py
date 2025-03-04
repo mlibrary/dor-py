@@ -44,6 +44,7 @@ class Workspace:
             entries=entries
         )
 
+
 class FakeTranslocator:
 
     def create_workspace_for_package(self, package_identifier: str) -> FakeWorkspace:
@@ -52,7 +53,7 @@ class FakeTranslocator:
 
 class Translocator():
 
-    def __init__(self, inbox_path: Path, workspaces_path: Path, minter: Callable[[],str], file_provider: FileProvider) -> None:
+    def __init__(self, inbox_path: Path, workspaces_path: Path, minter: Callable[[], str], file_provider: FileProvider) -> None:
         self.inbox_path = inbox_path
         self.workspaces_path = workspaces_path
         self.minter = minter
@@ -65,4 +66,3 @@ class Translocator():
             self.inbox_path / package_identifier, workspace_path
         )
         return Workspace(str(workspace_path))
-

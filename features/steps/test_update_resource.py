@@ -184,7 +184,7 @@ def test_updating_only_metadata_of_a_resource_for_immediate_release():
 def _(
     path_data: PathData, unit_of_work: AbstractUnitOfWork, message_bus: MemoryMessageBus
 ):
-    """a package containing all the scanned pages, OCR, and metadata."""
+    """a package containing updated resource metadata"""
     file_provider = FilesystemFileProvider()
     file_provider.delete_dir_and_contents(path=path_data.scratch)
     file_provider.create_directory(path_data.scratch)

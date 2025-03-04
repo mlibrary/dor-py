@@ -37,7 +37,6 @@ from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfW
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
 from utils.minter import minter
 
-
 @dataclass
 class PathData:
     scratch: Path
