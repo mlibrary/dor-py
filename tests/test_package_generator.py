@@ -10,35 +10,6 @@ from dor.providers.package_generator import DepositGroup, PackageGenerator, Pack
 
 
 @pytest.fixture
-def sample_package_metadata() -> dict[str, Any]:
-    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata.json")
-    sample_package_metadata = json.loads(metadata_path.read_text())
-    return sample_package_metadata
-
-
-@pytest.fixture
-def sample_package_metadata_with_missing_file_set() -> dict[str, Any]:
-    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_file_set.json")
-    sample_package_metadata_with_missing_file_set = json.loads(metadata_path.read_text())
-    return sample_package_metadata_with_missing_file_set
-
-
-@pytest.fixture
-def sample_package_metadata_with_missing_file_data() -> dict[str, Any]:
-    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_file_data.json")
-    sample_package_metadata_with_missing_file_data = json.loads(metadata_path.read_text())
-    return sample_package_metadata_with_missing_file_data
-
-
-
-@pytest.fixture
-def sample_package_metadata_with_missing_struct_map() -> dict[str, Any]:
-    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_struct_map.json")
-    sample_package_metadata_with_missing_struct_map = json.loads(metadata_path.read_text())
-    return sample_package_metadata_with_missing_struct_map
-
-
-@pytest.fixture
 def deposit_group() -> DepositGroup:
     return DepositGroup(
         identifier="23312082-44d8-489e-97f4-383329de9ac5",
@@ -46,17 +17,18 @@ def deposit_group() -> DepositGroup:
     )
 
 
-def test_generator_generates_package(
-    sample_package_metadata: dict[str, Any], deposit_group: DepositGroup
-) -> None:
+def test_generator_generates_package(deposit_group: DepositGroup) -> None:
     file_provider = FilesystemFileProvider()
     test_path = Path("tests/test_package_generator")
     file_provider.delete_dir_and_contents(test_path)
     file_provider.create_directory(test_path)
 
+    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata.json")
+    metadata = json.loads(metadata_path.read_text())
+
     generator = PackageGenerator(
         file_provider=file_provider,
-        metadata=sample_package_metadata,
+        metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
@@ -93,17 +65,18 @@ def test_generator_generates_package(
     )
 
 
-def test_generator_fails_when_missing_file_sets(
-    sample_package_metadata_with_missing_file_set: dict[str, Any], deposit_group: DepositGroup
-) -> None:
+def test_generator_fails_when_missing_file_sets(deposit_group: DepositGroup) -> None:
     file_provider = FilesystemFileProvider()
     test_path = Path("tests/test_package_generator")
     file_provider.delete_dir_and_contents(test_path)
     file_provider.create_directory(test_path)
 
+    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_file_set.json")
+    metadata = json.loads(metadata_path.read_text())
+
     generator = PackageGenerator(
         file_provider=file_provider,
-        metadata=sample_package_metadata_with_missing_file_set,
+        metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
@@ -120,17 +93,18 @@ def test_generator_fails_when_missing_file_sets(
     )
 
 
-def test_generator_fails_when_missing_file_data(
-    sample_package_metadata_with_missing_file_data: dict[str, Any], deposit_group: DepositGroup
-) -> None:
+def test_generator_fails_when_missing_file_data(deposit_group: DepositGroup) -> None:
     file_provider = FilesystemFileProvider()
     test_path = Path("tests/test_package_generator")
     file_provider.delete_dir_and_contents(test_path)
     file_provider.create_directory(test_path)
 
+    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_file_data.json")
+    metadata = json.loads(metadata_path.read_text())
+
     generator = PackageGenerator(
         file_provider=file_provider,
-        metadata=sample_package_metadata_with_missing_file_data,
+        metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
@@ -150,17 +124,18 @@ def test_generator_fails_when_missing_file_data(
     )
 
 
-def test_generator_fails_when_missing_struct_map(
-    sample_package_metadata_with_missing_struct_map: dict[str, Any], deposit_group: DepositGroup
-) -> None:
+def test_generator_fails_when_missing_struct_map(deposit_group: DepositGroup) -> None:
     file_provider = FilesystemFileProvider()
     test_path = Path("tests/test_package_generator")
     file_provider.delete_dir_and_contents(test_path)
     file_provider.create_directory(test_path)
 
+    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_struct_map.json")
+    metadata = json.loads(metadata_path.read_text())
+
     generator = PackageGenerator(
         file_provider=file_provider,
-        metadata=sample_package_metadata_with_missing_struct_map,
+        metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_path,
         file_set_path=Path("tests/fixtures/test_packager/file_sets"),
