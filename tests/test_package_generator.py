@@ -30,6 +30,14 @@ def sample_package_metadata_with_missing_file_data() -> dict[str, Any]:
     return sample_package_metadata_with_missing_file_data
 
 
+
+@pytest.fixture
+def sample_package_metadata_with_missing_struct_map() -> dict[str, Any]:
+    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_struct_map.json")
+    sample_package_metadata_with_missing_struct_map = json.loads(metadata_path.read_text())
+    return sample_package_metadata_with_missing_struct_map
+
+
 @pytest.fixture
 def deposit_group() -> DepositGroup:
     return DepositGroup(
@@ -139,4 +147,31 @@ def test_generator_fails_when_missing_file_data(
             "Expected to find a single instance of metadata file data for use \"PROVENANCE\" " +
             "but found 0"
         )
+    )
+
+
+def test_generator_fails_when_missing_struct_map(
+    sample_package_metadata_with_missing_struct_map: dict[str, Any], deposit_group: DepositGroup
+) -> None:
+    file_provider = FilesystemFileProvider()
+    test_path = Path("tests/test_package_generator")
+    file_provider.delete_dir_and_contents(test_path)
+    file_provider.create_directory(test_path)
+
+    generator = PackageGenerator(
+        file_provider=file_provider,
+        metadata=sample_package_metadata_with_missing_struct_map,
+        deposit_group=deposit_group,
+        output_path=test_path,
+        file_set_path=Path("tests/fixtures/test_packager/file_sets"),
+        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+    )
+    result = generator.generate()
+
+    package_identifier = "00000000-0000-0000-0000-000000000001_19700101000000"
+    assert not (test_path / package_identifier).exists()
+    assert result == PackageResult(
+        package_identifier=package_identifier,
+        success=False,
+        message="Expected to find a single \"PHYSICAL\" structure object but found 0"
     )
