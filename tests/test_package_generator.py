@@ -75,7 +75,7 @@ def test_generator_generates_package(
     )
 
 
-def test_generator_fails_when_missing_file_sets(
+def test_generator_fails_when_metadata_references_missing_file_set(
     fixtures_path: Path, test_output_path: Path, deposit_group: DepositGroup
 ) -> None:
     metadata_path = fixtures_path / "sample_package_metadata_with_missing_file_set.json"
@@ -100,10 +100,10 @@ def test_generator_fails_when_missing_file_sets(
     )
 
 
-def test_generator_fails_when_missing_file_data(
+def test_generator_fails_when_metadata_is_missing_file_data(
     fixtures_path: Path, test_output_path: Path, deposit_group: DepositGroup
 ) -> None:
-    metadata_path = fixtures_path / "sample_package_metadata_with_missing_file_data.json"
+    metadata_path = fixtures_path / "sample_package_metadata_without_file_data.json"
     metadata = json.loads(metadata_path.read_text())
 
     generator = PackageGenerator(
@@ -128,10 +128,10 @@ def test_generator_fails_when_missing_file_data(
     )
 
 
-def test_generator_fails_when_missing_struct_map(
+def test_generator_fails_when_metadata_is_missing_struct_map(
     fixtures_path: Path, test_output_path: Path, deposit_group: DepositGroup
 ) -> None:
-    metadata_path = fixtures_path / "sample_package_metadata_with_missing_struct_map.json"
+    metadata_path = fixtures_path / "sample_package_metadata_without_struct_map.json"
     metadata = json.loads(metadata_path.read_text())
 
     generator = PackageGenerator(
