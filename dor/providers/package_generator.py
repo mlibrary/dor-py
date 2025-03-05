@@ -176,6 +176,7 @@ class PackageGenerator:
         entity_template = template_env.get_template("preservation_mets.xml")
         xmldata = entity_template.render(
             resource=resource,
+            object_identifier=resource.id,
             struct_map_locref_data=struct_map_locref_data,
             create_date=self.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
         )
