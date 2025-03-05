@@ -33,7 +33,11 @@ class PackageResult:
 
 
 class PackageMetadataError(Exception):
-    pass
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+        self.message = message
 
 
 def serialize_provenance(data: Any) -> str:
@@ -79,7 +83,7 @@ class PackageGenerator:
         ]
         if len(matching_file_datas) != 1:
             raise PackageMetadataError(
-                f"Expected to find a single set of data for use \"{use}\"" +
+                f"Expected to find a single instance of metadata file data for use \"{use}\" " +
                 f"but found {len(matching_file_datas)}"
             )
         return matching_file_datas[0]
@@ -230,7 +234,15 @@ class PackageGenerator:
         root_resource_path = self.package_path / self.root_resource_identifier
         self.file_provider.create_directory(root_resource_path)
 
-        metadata_file_metadatas = self.create_root_metadata_files()
+        try:
+            metadata_file_metadatas = self.create_root_metadata_files()
+        except PackageMetadataError as error:
+            self.clear_package_path()
+            return PackageResult(
+                package_identifier=self.package_identifier,
+                success=False,
+                message=error.message
+            )
 
         provenance_data = self.get_metadata_file_data(use="PROVENANCE")
         alternate_identifier = provenance_data["data"]["alternate_identifier"]
