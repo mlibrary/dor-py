@@ -24,6 +24,13 @@ def sample_package_metadata_with_missing_file_set() -> dict[str, Any]:
 
 
 @pytest.fixture
+def sample_package_metadata_with_missing_file_data() -> dict[str, Any]:
+    metadata_path = Path("tests/fixtures/test_packager/sample_package_metadata_with_missing_file_data.json")
+    sample_package_metadata_with_missing_file_data = json.loads(metadata_path.read_text())
+    return sample_package_metadata_with_missing_file_data
+
+
+@pytest.fixture
 def deposit_group() -> DepositGroup:
     return DepositGroup(
         identifier="23312082-44d8-489e-97f4-383329de9ac5",
@@ -102,4 +109,34 @@ def test_generator_fails_when_missing_file_sets(
         package_identifier=package_identifier,
         success=False,
         message="The following file sets were not found: 00000000-0000-0000-0000-000000001003"
+    )
+
+
+def test_generator_fails_when_missing_file_data(
+    sample_package_metadata_with_missing_file_data: dict[str, Any], deposit_group: DepositGroup
+) -> None:
+    file_provider = FilesystemFileProvider()
+    test_path = Path("tests/test_package_generator")
+    file_provider.delete_dir_and_contents(test_path)
+    file_provider.create_directory(test_path)
+
+    generator = PackageGenerator(
+        file_provider=file_provider,
+        metadata=sample_package_metadata_with_missing_file_data,
+        deposit_group=deposit_group,
+        output_path=test_path,
+        file_set_path=Path("tests/fixtures/test_packager/file_sets"),
+        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+    )
+    result = generator.generate()
+
+    package_identifier = "00000000-0000-0000-0000-000000000001_19700101000000"
+    assert not (test_path / package_identifier).exists()
+    assert result == PackageResult(
+        package_identifier=package_identifier,
+        success=False,
+        message=(
+            "Expected to find a single instance of metadata file data for use \"PROVENANCE\" " +
+            "but found 0"
+        )
     )
