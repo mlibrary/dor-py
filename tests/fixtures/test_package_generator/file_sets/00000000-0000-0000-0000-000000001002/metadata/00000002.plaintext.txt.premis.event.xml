@@ -1,0 +1,17 @@
+<PREMIS:premis xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:PREMIS="http://www.loc.gov/premis/v3" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd" version="3.0">
+  <PREMIS:event>
+    <PREMIS:eventIdentifier>
+      <PREMIS:eventIdentifierType>UUID</PREMIS:eventIdentifierType>
+      <PREMIS:eventIdentifierValue>d28f2fbc-a722-4376-ab24-3aa4c6a8cb65</PREMIS:eventIdentifierValue>
+    </PREMIS:eventIdentifier>
+    <PREMIS:eventType>extract text</PREMIS:eventType>
+    <PREMIS:eventDateTime>1996-01-23T05:33:38Z</PREMIS:eventDateTime>
+    <PREMIS:eventDetailInformation>
+      <PREMIS:eventDetail>Article leader sit size weight wait during.</PREMIS:eventDetail>
+    </PREMIS:eventDetailInformation>
+    <PREMIS:linkingAgentIdentifier>
+      <PREMIS:linkingAgentIdentifierType>ocr processing</PREMIS:linkingAgentIdentifierType>
+      <PREMIS:linkingAgentIdentifierValue>robinsonjamie@example.com</PREMIS:linkingAgentIdentifierValue>
+    </PREMIS:linkingAgentIdentifier>
+  </PREMIS:event>
+</PREMIS:premis>

@@ -1,0 +1,17 @@
+<PREMIS:premis xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:PREMIS="http://www.loc.gov/premis/v3" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd" version="3.0">
+  <PREMIS:event>
+    <PREMIS:eventIdentifier>
+      <PREMIS:eventIdentifierType>UUID</PREMIS:eventIdentifierType>
+      <PREMIS:eventIdentifierValue>006c79ed-f63e-466f-b1fb-171cc229b901</PREMIS:eventIdentifierValue>
+    </PREMIS:eventIdentifier>
+    <PREMIS:eventType>extract text</PREMIS:eventType>
+    <PREMIS:eventDateTime>1998-08-29T13:03:58Z</PREMIS:eventDateTime>
+    <PREMIS:eventDetailInformation>
+      <PREMIS:eventDetail>Human debate million theory capital.</PREMIS:eventDetail>
+    </PREMIS:eventDetailInformation>
+    <PREMIS:linkingAgentIdentifier>
+      <PREMIS:linkingAgentIdentifierType>ocr processing</PREMIS:linkingAgentIdentifierType>
+      <PREMIS:linkingAgentIdentifierValue>moorenicholas@example.com</PREMIS:linkingAgentIdentifierValue>
+    </PREMIS:linkingAgentIdentifier>
+  </PREMIS:event>
+</PREMIS:premis>

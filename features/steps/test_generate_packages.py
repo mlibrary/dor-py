@@ -1,10 +1,8 @@
 """Generate Packages feature tests."""
-from dataclasses import dataclass
+from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
 
-from dor.adapters.bag_adapter import BagAdapter
-from dor.providers.file_system_file_provider import FilesystemFileProvider
 from pytest_bdd import (
     given,
     scenario,
@@ -12,27 +10,10 @@ from pytest_bdd import (
     when,
 )
 
-@dataclass
-class PackageResult():
-    package_identifier: str
-    success: bool
-    message: str
-
-
-class Packager:
-
-    def __init__(
-        self,
-        dump_file_path: Path,
-        pending_path: Path,
-        inbox_path: Path
-    ):
-        self.dump_file_path = dump_file_path
-        self.pending_path = pending_path
-        self.inbox_path = inbox_path
-
-    def generate(self) -> list[PackageResult]:
-        return []
+from dor.adapters.bag_adapter import BagAdapter
+from dor.providers.file_system_file_provider import FilesystemFileProvider
+from dor.providers.packager import Packager
+from dor.providers.package_generator import PackageResult
 
 
 scenario = partial(scenario, '../generate_packages.feature')
@@ -61,9 +42,16 @@ def _(inbox_path):
     
     packager_fixtures_path = Path("features/fixtures/packager/")
     jsonl_dump_file_path = packager_fixtures_path / "sample-dump-1.jsonl"
+    config_file_path = packager_fixtures_path / "config.json"
     pending_path = packager_fixtures_path / "pending"
 
-    packager = Packager(jsonl_dump_file_path, pending_path, inbox_path)
+    packager = Packager(
+        dump_file_path=jsonl_dump_file_path,
+        config_file_path=config_file_path,
+        pending_path=pending_path,
+        inbox_path=inbox_path,
+        timestamper=lambda: datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+    )
     package_results = packager.generate()
     return package_results
 
@@ -75,7 +63,7 @@ def _(inbox_path):
     package_paths = list(inbox_path.iterdir())
     assert len(package_paths) == 1
     for package_path in package_paths:
-        bag = BagAdapter(package_path, FilesystemFileProvider())
+        bag = BagAdapter.load(package_path, FilesystemFileProvider())
         bag.validate()
 
 
@@ -86,5 +74,5 @@ def _(package_results):
     assert package_results == [PackageResult(
         package_identifier=f"00000000-0000-0000-0000-000000000001_19700101000000",
         success=True,
-        message="Things worked! yay!"
+        message="Generated package successfully!"
     )]
