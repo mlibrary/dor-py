@@ -1,0 +1,70 @@
+{
+    "identifier": "00000000-0000-0000-0000-000000000001",
+    "type": "Monograph",
+    "md": [
+        {
+            "use": "DESCRIPTIVE",
+            "mimetype": "application/json",
+            "data": {
+                "title": [
+                    "Elizabeth Camp Journal, Volume 1, June 20, 1819 - June 17, 1821"
+                ],
+                "series": [
+                    "Elizabeth Camp Journals, 1819-1825"
+                ],
+                "author": [
+                    "Camp, Elizabeth"
+                ],
+                "type": [
+                    "journal"
+                ],
+                "pubinfo": [
+                    "Stockbridge, New York, et al.",
+                    "1819 June 20 - 1821 June 17"
+                ],
+                "method": [
+                    "autograph manuscript signed"
+                ],
+                "size": [
+                    "16 x 20 cm (Manuscript measuring 15.5 centimeters in height and 20 centimeters in width)"
+                ],
+                "notes": [
+                    "Volume 1 of 2. Elizabeth Camp's journals detail her time spent with the Stockbridge Indians as a schoolteacher and unofficial missionary."
+                ]
+            }
+        },
+        {
+            "use": "DESCRIPTIVE/COMMON",
+            "mimetype": "application/json",
+            "data": {
+                "title": [
+                    "Elizabeth Camp Journal, Volume 1, June 20, 1819 - June 17, 1821"
+                ],
+                "series": [
+                    "Elizabeth Camp Journals, 1819-1825"
+                ],
+                "author": [
+                    "Camp, Elizabeth"
+                ],
+                "type": [
+                    "journal"
+                ],
+                "pubinfo": [
+                    "Stockbridge, New York, et al.",
+                    "1819 June 20 - 1821 June 17"
+                ]
+            }
+        },
+        {
+            "use": "PROVENANCE",
+            "mdtype": "PREMIS",
+            "mimetype": "text/xml",
+            "data": {
+                "alternate_identifier": "campe.0001.001",
+                "scans_count": 2,
+                "collid": "campe"
+            }
+        }
+    ],
+    "structure": []
+}
