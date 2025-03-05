@@ -220,7 +220,15 @@ class PackageGenerator:
             if struct_map.type == StructMapType.PHYSICAL
         ]
         if len(physical_struct_maps) != 1:
-            raise PackageMetadataError
+            self.clear_package_path()
+            return PackageResult(
+                package_identifier=self.package_identifier,
+                success=False,
+                message=(
+                    "Expected to find a single \"PHYSICAL\" structure object " +
+                    f"but found {len(physical_struct_maps)}"
+                )
+            )
         physical_struct_map = physical_struct_maps[0]
         incorporated_file_set_ids, missing_file_set_ids = self.incorporate_file_sets(physical_struct_map)
         if len(missing_file_set_ids) > 0:
