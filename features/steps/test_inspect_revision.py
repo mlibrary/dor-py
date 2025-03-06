@@ -2,46 +2,30 @@ import uuid
 from datetime import datetime, UTC
 from functools import partial
 
-import pytest
 from pydantic_core import to_jsonable_python
 from pytest_bdd import scenario, given, when, then, parsers
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from dor.adapters.sqlalchemy import Base, _custom_json_serializer
-from dor.config import config
 from dor.domain.models import Revision
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
 from dor.service_layer import catalog_service
-from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
-from gateway.fake_repository_gateway import FakeRepositoryGateway
+from dor.service_layer.unit_of_work import AbstractUnitOfWork
+
 
 scenario = partial(scenario, '../inspect_revision.feature')
+
 
 @scenario('Revision summary')
 def test_revision_summary():
     pass
 
+
 @scenario('Revision file sets')
 def test_revision_file_sets():
     pass
 
-@pytest.fixture
-def unit_of_work() -> AbstractUnitOfWork:
-    engine = create_engine(
-        config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
-    )
-    connection = engine.connect()
-    session_factory = sessionmaker(bind=connection)
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-
-    yield SqlalchemyUnitOfWork(gateway=FakeRepositoryGateway(), session_factory=session_factory)
-
-    connection.close()
 
 @given(
     parsers.parse(u'a preserved monograph with an alternate identifier of "{alt_id}"'),
@@ -217,6 +201,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
 
     return revision
 
+
 @when(
     parsers.parse(u'the Collection Manager looks up the revision by "{alt_id}"'),
     target_fixture="summary"
@@ -226,6 +211,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
         revision = unit_of_work.catalog.get_by_alternate_identifier(alt_id)
     summary = catalog_service.summarize(revision)
     return summary
+
 
 @then(u'the Collection Manager sees the summary of the revision.')
 def _(revision: Revision, summary):
@@ -247,6 +233,7 @@ def _(revision: Revision, summary):
     )
     assert summary == expected_summary
 
+
 @when(
     parsers.parse(u'the Collection Manager lists the contents of the revision for "{alt_id}"'),
     target_fixture="file_sets"
@@ -256,6 +243,7 @@ def _(alt_id, unit_of_work):
         revision = unit_of_work.catalog.get_by_alternate_identifier(alt_id)
     file_sets = catalog_service.get_file_sets(revision)
     return file_sets
+
 
 @then(u'the Collection Manager sees the file sets.')
 def _(revision: Revision, file_sets):

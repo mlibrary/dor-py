@@ -1,122 +1,16 @@
 """Update Resource feature tests."""
-from dataclasses import dataclass
 from functools import partial
-from pathlib import Path
-from typing import Callable, Type, Generator 
-
-import pytest
 from pytest_bdd import scenario, given, when, then
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from dor.adapters.bag_adapter import BagAdapter
-from dor.adapters.sqlalchemy import Base, _custom_json_serializer
-from dor.config import config
-from dor.domain.events import (
-    Event,
-    PackageReceived,
-    PackageStored,
-    PackageSubmitted,
-    PackageVerified,
-    PackageUnpacked,
-    RevisionCataloged,
-)
-from dor.domain.models import WorkflowEventType
+from dor.domain.events import PackageSubmitted
+from dor.domain.models import PathData, WorkflowEventType
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.package_resource_provider import PackageResourceProvider
-from dor.providers.translocator import Translocator, Workspace
-from dor.service_layer.handlers.catalog_revision import catalog_revision
-from dor.service_layer.handlers.receive_package import receive_package
-from dor.service_layer.handlers.record_workflow_event import record_workflow_event
-from dor.service_layer.handlers.store_files import store_files
-from dor.service_layer.handlers.unpack_package import unpack_package
-from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
-from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
-from gateway.ocfl_repository_gateway import OcflRepositoryGateway
-from utils.minter import minter
-
-@dataclass
-class PathData:
-    scratch: Path
-    storage: Path
-    workspaces: Path
-    inbox: Path
-
-@pytest.fixture
-def path_data() -> PathData:
-    scratch = Path(f"./features/scratch")
-
-    return PathData(
-        scratch=scratch,
-        inbox=Path("./features/fixtures/inbox"),
-        workspaces=scratch / "workspaces",
-        storage=scratch / "storage"
-    )
-
-@pytest.fixture
-def unit_of_work(path_data: PathData) -> Generator[AbstractUnitOfWork, None, None]:
-    engine = create_engine(
-        config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
-    )
-    connection = engine.connect()
-    session_factory = sessionmaker(bind=connection)
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
-
-    gateway = OcflRepositoryGateway(storage_path=path_data.storage)
-
-    yield SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
-
-    connection.close()
-
-@pytest.fixture
-def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
-    translocator = Translocator(
-        inbox_path=path_data.inbox,
-        workspaces_path=path_data.workspaces,
-        minter=minter,
-        file_provider=FilesystemFileProvider()
-    )
-
-    handlers: dict[Type[Event], list[Callable]] = {
-        PackageSubmitted: [
-            lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: receive_package(event, unit_of_work, translocator)
-        ],
-        PackageReceived: [
-            lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: verify_package(event, unit_of_work, BagAdapter, Workspace, FilesystemFileProvider())
-        ],
-        PackageVerified: [
-            lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: unpack_package(
-                event,
-                unit_of_work,
-                BagAdapter,
-                PackageResourceProvider,
-                Workspace,
-                FilesystemFileProvider(),
-            )
-        ],
-        PackageUnpacked: [
-            lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: store_files(event, unit_of_work, Workspace)
-        ],
-        PackageStored: [
-            lambda event: record_workflow_event(event, unit_of_work),
-            lambda event: catalog_revision(event, unit_of_work)
-        ],
-        RevisionCataloged: [
-            lambda event: record_workflow_event(event, unit_of_work),
-        ],
-    }
-    message_bus = MemoryMessageBus(handlers)
-    return message_bus
+from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
 
 scenario = partial(scenario, '../update_resource.feature')
+
 
 @scenario('Updating a resource for immediate release')
 def test_updating_a_resource_for_immediate_release():
@@ -159,6 +53,7 @@ def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     )
     message_bus.handle(event, unit_of_work)
     return tracking_identifier
+
 
 @then('the Collection Manager can see that it was revised.')
 def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):

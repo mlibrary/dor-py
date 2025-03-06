@@ -17,6 +17,12 @@ from dor.providers.models import (
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
 
+pytest_plugins = [
+    "features.pytest.fixtures.message_bus",
+    "features.pytest.fixtures.path_data",
+    "features.pytest.fixtures.unit_of_work",
+]
+
 
 @pytest.fixture
 def db_session() -> Generator[sqlalchemy.orm.Session, None, None]:

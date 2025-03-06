@@ -1,6 +1,9 @@
 import uuid
-from enum import Enum
+
+from dataclasses import dataclass
 from datetime import datetime, UTC
+from enum import Enum
+from pathlib import Path
 from typing import Any
 
 from pydantic import field_validator
@@ -8,6 +11,14 @@ from pydantic.dataclasses import dataclass
 
 from gateway.coordinator import Coordinator
 from dor.providers.models import PackageResource
+
+
+@dataclass
+class PathData:
+    scratch: Path
+    storage: Path
+    workspaces: Path
+    inbox: Path
 
 
 @dataclass(frozen=True)
