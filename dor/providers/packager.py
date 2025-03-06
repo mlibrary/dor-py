@@ -38,21 +38,14 @@ class Packager:
             file_set_path=self.pending_path,
             timestamp=self.timestamper()
         ).generate()
-
         return result
 
     def generate(self) -> list[PackageResult]:
         package_results: list[PackageResult] = []
-        more_lines = True
-
         with open(self.dump_file_path, "r") as file:
-            while more_lines:
-                line = file.readline()
-                if line != "":
-                    metadata = json.loads(line)
-                    package_result = self.generate_package(metadata)
-                    package_results.append(package_result)
-                else:
-                    more_lines = False
-
+            for line in file:
+                if not line.strip(): continue
+                metadata = json.loads(line)
+                package_result = self.generate_package(metadata)
+                package_results.append(package_result)
         return package_results
