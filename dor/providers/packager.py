@@ -1,10 +1,15 @@
 import json
 from datetime import datetime
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
+from dor.providers.package_generator import PackageGenerator
+from dor.providers.packager_models import (
+    BatchResult, config_converter, DepositGroup, metadata_converter,
+    PackageMetadata, PackageResult, ValidationError
+)
 
 
 class Packager:
@@ -22,14 +27,14 @@ class Packager:
         self.inbox_path = inbox_path
         self.timestamper = timestamper
 
-        config = json.loads(config_file_path.read_text())
-        deposit_group_data = config["deposit_group"]
+        config_data = json.loads(config_file_path.read_text())
+        config = config_converter.convert(config_data)
         self.deposit_group = DepositGroup(
-            identifier=deposit_group_data["identifier"],
-            date=datetime.fromisoformat(deposit_group_data["date"])
+            identifier=config.deposit_group.identifier,
+            date=config.deposit_group.date
         )
 
-    def generate_package(self, metadata: dict[str, Any]) -> PackageResult:
+    def generate_package(self, metadata: PackageMetadata) -> PackageResult:
         result = PackageGenerator(
             file_provider=FilesystemFileProvider(),
             metadata=metadata,
@@ -40,12 +45,22 @@ class Packager:
         ).generate()
         return result
 
-    def generate(self) -> list[PackageResult]:
+    def generate(self) -> BatchResult:
         package_results: list[PackageResult] = []
+        validation_errors = []
+
         with open(self.dump_file_path, "r") as file:
             for line in file:
                 if not line.strip(): continue
-                metadata = json.loads(line)
-                package_result = self.generate_package(metadata)
+                metadata_data = json.loads(line)
+                try:
+                    package_metadata = metadata_converter.convert(metadata_data)
+                except ValidationError as error:
+                    validation_errors.append(error)
+                    continue
+                package_result = self.generate_package(package_metadata)
                 package_results.append(package_result)
-        return package_results
+        return BatchResult(
+            package_results=package_results,
+            validation_errors=validation_errors
+        )

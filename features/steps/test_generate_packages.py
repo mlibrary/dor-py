@@ -36,7 +36,7 @@ def _():
     return inbox_path
 
 
-@when('the Collection Manager invokes the packager', target_fixture="package_results")
+@when('the Collection Manager invokes the packager', target_fixture="batch_result")
 def _(inbox_path):
     """the Collection Manager invokes the packager."""
     
@@ -52,8 +52,8 @@ def _(inbox_path):
         inbox_path=inbox_path,
         timestamper=lambda: datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
-    package_results = packager.generate()
-    return package_results
+    batch_result = packager.generate()
+    return batch_result
 
 
 @then('the submission packages are generated in the inbox')
@@ -68,10 +68,10 @@ def _(inbox_path):
 
 
 @then('the Collection Manager gets notified upon completion of the batch')
-def _(package_results):
+def _(batch_result):
     """the Collection Manager gets notified upon completion of the batch."""
 
-    assert package_results == [PackageResult(
+    assert batch_result.package_results == [PackageResult(
         package_identifier=f"00000000-0000-0000-0000-000000000001_19700101000000",
         success=True,
         message="Generated package successfully!"

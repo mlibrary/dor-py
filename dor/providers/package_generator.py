@@ -16,20 +16,8 @@ from dor.providers.models import (
     StructMapItem,
     StructMapType
 )
+from dor.providers.packager_models import DepositGroup, PackageFileMetadata, PackageMetadata, PackageResult
 from dor.settings import template_env
-
-
-@dataclass
-class DepositGroup:
-    identifier: str
-    date: datetime
-
-
-@dataclass
-class PackageResult:
-    package_identifier: str
-    success: bool
-    message: str
 
 
 class PackageMetadataError(Exception):
@@ -55,7 +43,7 @@ class PackageGenerator:
     def __init__(
         self,
         file_provider: FileProvider,
-        metadata: dict[str, Any],
+        metadata: PackageMetadata,
         deposit_group: DepositGroup,
         output_path: Path,
         file_set_path: Path,
@@ -68,18 +56,18 @@ class PackageGenerator:
         self.file_set_path = file_set_path
         self.timestamp = timestamp
 
-        self.root_resource_identifier: str = self.metadata["identifier"]
-        self.type: str = self.metadata["type"]
+        self.root_resource_identifier: str = self.metadata.identifier
+        self.type: str = self.metadata.type
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
 
     def clear_package_path(self):
         self.file_provider.delete_dir_and_contents(self.package_path)
 
-    def get_metadata_file_data(self, use: str) -> dict[str, Any]:
+    def get_metadata_file_data(self, use: str) -> PackageFileMetadata:
         matching_file_datas = [
-            metadata_file_data for metadata_file_data in self.metadata["md"]
-            if metadata_file_data["use"] == use
+            metadata_file_data for metadata_file_data in self.metadata.md
+            if metadata_file_data.use == use
         ]
         if len(matching_file_datas) != 1:
             raise PackageMetadataError(
@@ -94,14 +82,14 @@ class PackageGenerator:
         return locref
 
     @staticmethod
-    def get_file_metadata(file_path: Path, metadata_data: dict[str, Any]) -> FileMetadata:
+    def get_file_metadata(file_path: Path, metadata_data: PackageFileMetadata) -> FileMetadata:
         return FileMetadata(
             id="_" + str(uuid.uuid4()),
-            use=metadata_data["use"],
+            use=metadata_data.use,
             ref=FileReference(
                 locref=str(file_path),
-                mdtype=metadata_data.get("mdtype"),
-                mimetype=metadata_data["mimetype"]
+                mdtype=metadata_data.mdtype,
+                mimetype=metadata_data.mimetype
             )
         )
 
@@ -117,20 +105,20 @@ class PackageGenerator:
 
     def get_struct_maps(self) -> list[StructMap]:
         struct_maps = []
-        for structure in self.metadata["structure"]:
+        for structure in self.metadata.structure:
             items = [
                 StructMapItem(
-                    order=item["order"],
-                    label=item["orderlabel"],
-                    file_set_id="urn:dor:" + item["locref"],
-                    type=item.get("type")
+                    order=item.order,
+                    label=item.orderlabel,
+                    file_set_id="urn:dor:" + item.locref,
+                    type=item.type
                 )
-                for item in structure["items"]
+                for item in structure.items
             ]
             struct_maps.append(
                 StructMap(
                     id=str(uuid.uuid4()),
-                    type=StructMapType[structure["type"].upper()],
+                    type=StructMapType[structure.type.upper()],
                     items=items
                 )
             )
@@ -227,7 +215,7 @@ class PackageGenerator:
             descriptive_file_metadata = self.get_file_metadata(file_path=descriptive_file_path, metadata_data=descriptive_data)
             self.create_root_metadata_file(
                 file_path=descriptive_file_path,
-                data=descriptive_data["data"],
+                data=descriptive_data.data,
                 serializer=lambda x: json.dumps(x, indent=4)
             )
             metadata_file_metadatas.append(descriptive_file_metadata)
@@ -237,7 +225,7 @@ class PackageGenerator:
             common_file_metadata = self.get_file_metadata(file_path=common_file_path, metadata_data=common_data)
             self.create_root_metadata_file(
                 file_path=common_file_path,
-                data=common_data["data"],
+                data=common_data.data,
                 serializer=lambda x: json.dumps(x, indent=4)
             )
             metadata_file_metadatas.append(common_file_metadata)
@@ -247,7 +235,7 @@ class PackageGenerator:
             provenance_file_metadata = self.get_file_metadata(file_path=provenance_file_path, metadata_data=provenance_data)
             self.create_root_metadata_file(
                 file_path=provenance_file_path,
-                data=provenance_data["data"],
+                data=provenance_data.data,
                 serializer=serialize_provenance
             )
             metadata_file_metadatas.append(provenance_file_metadata)
@@ -259,7 +247,7 @@ class PackageGenerator:
                 message=error.message
             )
 
-        alternate_identifier = provenance_data["data"]["alternate_identifier"]
+        alternate_identifier = provenance_data.data["alternate_identifier"]
         resource = PackageResource(
             id=uuid.UUID(self.root_resource_identifier),
             type=self.type,
