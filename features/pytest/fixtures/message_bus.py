@@ -26,6 +26,7 @@ from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfW
 
 from utils.minter import minter
 
+
 @pytest.fixture
 def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
     translocator = Translocator(

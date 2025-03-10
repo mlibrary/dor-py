@@ -1,7 +1,5 @@
 import pytest
 
-from typing import Generator
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -14,7 +12,7 @@ from gateway.ocfl_repository_gateway import OcflRepositoryGateway
 
 
 @pytest.fixture
-def unit_of_work(path_data: PathData) -> Generator[AbstractUnitOfWork, None, None]:
+def unit_of_work(path_data: PathData) -> AbstractUnitOfWork:
     engine = create_engine(
         config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
     )
@@ -25,6 +23,4 @@ def unit_of_work(path_data: PathData) -> Generator[AbstractUnitOfWork, None, Non
 
     gateway = OcflRepositoryGateway(storage_path=path_data.storage)
 
-    yield SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
-
-    connection.close()
+    return SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
