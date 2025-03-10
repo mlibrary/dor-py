@@ -28,12 +28,13 @@ def test_revision_file_sets():
 
 
 @given(
-    parsers.parse(u'a preserved monograph with an alternate identifier of "{alt_id}"'),
+    parsers.parse(
+        u'a preserved monograph with an alternate identifier of "{alt_id}"'),
     target_fixture="revision"
 )
 def _(alt_id, unit_of_work: AbstractUnitOfWork):
     revision = Revision(
-        identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
+        identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"),
         alternate_identifiers=[alt_id],
         revision_number=1,
         created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
@@ -59,7 +60,8 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                     PreservationEvent(
                         identifier="abdcb901-721a-4be0-a981-14f514236633",
                         type="ingest",
-                        datetime=datetime(2016, 11, 29, 13, 51, 14, tzinfo=UTC),
+                        datetime=datetime(2016, 11, 29, 13,
+                                          51, 14, tzinfo=UTC),
                         detail="Middle president push visit information feel most.",
                         agent=Agent(
                             address="christopherpayne@example.org",
@@ -203,7 +205,8 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
 
 
 @when(
-    parsers.parse(u'the Collection Manager looks up the revision by "{alt_id}"'),
+    parsers.parse(
+        u'the Collection Manager looks up the revision by "{alt_id}"'),
     target_fixture="summary"
 )
 def _(alt_id, unit_of_work: AbstractUnitOfWork):
@@ -216,7 +219,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
 @then(u'the Collection Manager sees the summary of the revision.')
 def _(revision: Revision, summary):
     expected_summary = dict(
-        identifier="00000000-0000-0000-0000-000000000001", 
+        identifier="00000000-0000-0000-0000-000000000001",
         alternate_identifiers=revision.alternate_identifiers,
         revision_number=1,
         created_at="2025-02-05T12:00:00Z",
@@ -235,7 +238,8 @@ def _(revision: Revision, summary):
 
 
 @when(
-    parsers.parse(u'the Collection Manager lists the contents of the revision for "{alt_id}"'),
+    parsers.parse(
+        u'the Collection Manager lists the contents of the revision for "{alt_id}"'),
     target_fixture="file_sets"
 )
 def _(alt_id, unit_of_work):
@@ -248,7 +252,7 @@ def _(alt_id, unit_of_work):
 @then(u'the Collection Manager sees the file sets.')
 def _(revision: Revision, file_sets):
     expected_file_sets = [
-        to_jsonable_python(resource) 
+        to_jsonable_python(resource)
         for resource in revision.package_resources if resource.type == 'Asset'
     ]
     assert file_sets == expected_file_sets

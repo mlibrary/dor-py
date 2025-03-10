@@ -29,7 +29,7 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork, message_bus: Memory
     unit_of_work.gateway.create_repository()
 
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
-    tracking_identifier = "first-load" # str(uuid.uuid4())
+    tracking_identifier = "first-load"  # str(uuid.uuid4())
 
     event = PackageSubmitted(
         package_identifier=submission_id,
@@ -39,8 +39,8 @@ def _(path_data: PathData, unit_of_work: AbstractUnitOfWork, message_bus: Memory
 
 
 @when('the Collection Manager places the packaged resource in the incoming location',
-    target_fixture="tracking_identifier"
-)
+      target_fixture="tracking_identifier"
+      )
 def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     """the Collection Manager places the packaged resource in the incoming location."""
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
@@ -65,7 +65,8 @@ def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
         revision = unit_of_work.catalog.get(expected_identifier)
         assert revision is not None
 
-        workflow_events = unit_of_work.event_store.get_all_for_tracking_identifier(tracking_identifier)
+        workflow_events = unit_of_work.event_store.get_all_for_tracking_identifier(
+            tracking_identifier)
         assert len(workflow_events) != 0
         assert workflow_events[0].event_type == WorkflowEventType.REVISION_CATALOGED
 
@@ -89,7 +90,7 @@ def _(
     unit_of_work.gateway.create_repository()
 
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
-    tracking_identifier = "third-load" # str(uuid.uuid4())
+    tracking_identifier = "third-load"  # str(uuid.uuid4())
 
     event = PackageSubmitted(
         package_identifier=submission_id,
@@ -106,7 +107,7 @@ def _(
 def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     """the Collection Manager places the packaged resource in the incoming location."""
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v2"
-    tracking_identifier = "fourth-load" # str(uuid.uuid4())
+    tracking_identifier = "fourth-load"  # str(uuid.uuid4())
 
     event = PackageSubmitted(
         package_identifier=submission_id,
