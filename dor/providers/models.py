@@ -46,6 +46,7 @@ class FileMetadata:
 class StructMapType(Enum):
     PHYSICAL = "PHYSICAL"
     LOGICAL = "LOGICAL"
+    MANIFEST = "MANIFEST"
 
 
 @dataclass

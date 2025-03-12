@@ -9,7 +9,8 @@ def receive_package(event: PackageSubmitted, uow: AbstractUnitOfWork, translocat
     received_event = PackageReceived(
         package_identifier=event.package_identifier,
         tracking_identifier=event.tracking_identifier,
-        workspace_identifier = workspace.identifier
+        workspace_identifier = workspace.identifier,
+        update_flag=event.update_flag,
     )
     
     uow.add_event(received_event)

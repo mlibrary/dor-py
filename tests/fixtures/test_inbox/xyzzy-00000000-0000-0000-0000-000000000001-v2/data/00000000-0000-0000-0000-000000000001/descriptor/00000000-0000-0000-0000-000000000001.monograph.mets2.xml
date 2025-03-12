@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<METS:mets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:METS="http://www.loc.gov/METS/v2" xmlns:PREMIS="http://www.loc.gov/premis/v3" xmlns:dcam="http://purl.org/dc/dcam/" OBJID="00000000-0000-0000-0000-000000000001" xsi:schemaLocation="http://www.loc.gov/METS/v2 ../v2/mets.xsd http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/v3/premis.xsd">
+
+  <METS:metsHdr RECORDSTATUS="root" CREATEDATE="2014-06-03T23:31:26Z" ID="HDR1" TYPE="Monograph">
+    <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
+      <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
+    </METS:agent>
+    <METS:altRecordID TYPE="DLXS">xyzzy:00000001</METS:altRecordID>
+  </METS:metsHdr>
+
+  <METS:mdSec>
+
+    
+    <METS:md ID="_00000000-0000-0000-0000-000000000101" USE="EVENT">
+      <METS:mdRef LOCREF="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001-2.premis.event.xml" LOCTYPE="URL" MDTYPE="PREMIS" MIMETYPE="text/xml" />
+    </METS:md>
+    
+
+  </METS:mdSec>
+
+  <METS:structSec>
+    
+    <METS:structMap ID="SM1" TYPE="manifest">
+      <METS:div>
+        
+        <METS:div TYPE="page">
+          <METS:mptr LOCTYPE="URL" LOCREF="00000000-0000-0000-0000-000000001002/descriptor/00000000-0000-0000-0000-000000001002.file_set.mets2.xml" />
+        </METS:div>
+          
+      </METS:div>
+    </METS:structMap>
+    
+  </METS:structSec>
+
+</METS:mets>

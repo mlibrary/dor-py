@@ -1,6 +1,9 @@
 import uuid
-from enum import Enum
+
+from dataclasses import dataclass
 from datetime import datetime, UTC
+from enum import Enum
+from pathlib import Path
 from typing import Any
 
 from pydantic import field_validator

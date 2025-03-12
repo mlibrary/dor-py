@@ -72,6 +72,7 @@ DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
     config.get_database_engine_url(), json_serializer=_custom_json_serializer
 ))
 
+
 class SqlalchemyUnitOfWork(AbstractUnitOfWork):
 
     def __init__(self, gateway: RepositoryGateway, session_factory=DEFAULT_SESSION_FACTORY) -> None:
