@@ -77,6 +77,14 @@ class PackageGenerator:
     def clear_package_path(self):
         self.file_provider.delete_dir_and_contents(self.package_path)
 
+    def get_package_result(self, success: bool, message: str) -> PackageResult:
+        return PackageResult(
+            package_identifier=self.package_identifier,
+            deposit_group_identifier=self.deposit_group.identifier,
+            success=success,
+            message=message
+        )
+
     def get_metadata_file_data(self, use: str) -> dict[str, Any]:
         matching_file_datas = [
             metadata_file_data for metadata_file_data in self.metadata["md"]
@@ -196,9 +204,7 @@ class PackageGenerator:
         ]
         if len(physical_struct_maps) != 1:
             self.clear_package_path()
-            return PackageResult(
-                package_identifier=self.package_identifier,
-                deposit_group_identifier=self.deposit_group.identifier,
+            return self.get_package_result(
                 success=False,
                 message=(
                     "Expected to find a single \"PHYSICAL\" structure object " +
@@ -209,9 +215,7 @@ class PackageGenerator:
         incorporated_file_set_ids, missing_file_set_ids = self.incorporate_file_sets(physical_struct_map)
         if len(missing_file_set_ids) > 0:
             self.clear_package_path()
-            return PackageResult(
-                package_identifier=self.package_identifier,
-                deposit_group_identifier=self.deposit_group.identifier,
+            return self.get_package_result(
                 success=False,
                 message=f"The following file sets were not found: {", ".join(missing_file_set_ids)}"
             )
@@ -256,12 +260,7 @@ class PackageGenerator:
             metadata_file_metadatas.append(provenance_file_metadata)
         except PackageMetadataError as error:
             self.clear_package_path()
-            return PackageResult(
-                package_identifier=self.package_identifier,
-                deposit_group_identifier=self.deposit_group.identifier,
-                success=False,
-                message=error.message
-            )
+            return self.get_package_result(success=False, message=error.message)
 
         alternate_identifier = provenance_data["data"]["alternate_identifier"]
         resource = PackageResource(
@@ -288,9 +287,4 @@ class PackageGenerator:
         bag = BagAdapter.make(self.package_path, self.file_provider)
         bag.add_dor_info(dor_info=dor_info)
 
-        return PackageResult(
-            package_identifier=self.package_identifier,
-            deposit_group_identifier=self.deposit_group.identifier,
-            success=True,
-            message="Generated package successfully!"
-        )
+        return self.get_package_result(success=True, message="Generated package successfully!")
