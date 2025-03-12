@@ -11,7 +11,6 @@ class DatabaseConfig:
     user: str
     password: str
     database: str
-    test_database: str
 
 
 @dataclass
@@ -31,8 +30,7 @@ class Config:
                 user=os.getenv("POSTGRES_USER", "postgres"),
                 password=os.getenv("POSTGRES_PASSWORD", "postgres"),
                 host=os.getenv("POSTGRES_HOST", "db"),
-                database=os.getenv("POSTGRES_DATABASE", "dor_local"),
-                test_database=os.getenv("POSTGRES_TEST_DATABASE", "dor_test")
+                database=os.getenv("POSTGRES_DATABASE", "dor_local")
             )
         )
 
@@ -48,9 +46,6 @@ class Config:
 
     def get_database_engine_url(self):
         return self._make_database_engine_url(self.database.database)
-
-    def get_test_database_engine_url(self):
-        return self._make_database_engine_url(self.database.test_database)
 
 
 config = Config.from_env()
