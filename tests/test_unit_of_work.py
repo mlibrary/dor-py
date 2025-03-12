@@ -10,7 +10,7 @@ from dor.service_layer.unit_of_work import SqlalchemyUnitOfWork
 
 
 def setup_function() -> None:
-    engine = create_engine(config.get_test_database_engine_url())
+    engine = create_engine(config.get_database_engine_url())
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
@@ -18,7 +18,7 @@ def setup_function() -> None:
 @pytest.fixture
 def session_factory():
     return sessionmaker(bind=create_engine(
-        config.get_test_database_engine_url(), json_serializer=_custom_json_serializer
+        config.get_database_engine_url(), json_serializer=_custom_json_serializer
     ))
 
 
