@@ -5,9 +5,11 @@ from utils import minter
 
 app = typer.Typer()
 
+
 @app.command()
 def initialize():
     create_repo()
+
 
 @app.command()
 def store(

@@ -4,7 +4,7 @@ from typing import Callable
 
 from dor.providers.file_provider import FileProvider
 from gateway.bundle import Bundle
-from utils.minter import minter
+
 
 @dataclass
 class FakeWorkspace:
@@ -13,7 +13,7 @@ class FakeWorkspace:
 
     def package_directory(self) -> Path:
         return Path(self.identifier)
-    
+
     def object_data_directory(self) -> Path:
         if self.root_identifier is None:
             raise Exception()
@@ -25,14 +25,15 @@ class FakeWorkspace:
             entries=entries
         )
 
+
 @dataclass
 class Workspace:
     identifier: str
     root_identifier: str | None = None
-    
+
     def package_directory(self) -> Path:
         return Path(self.identifier)
-    
+
     def object_data_directory(self) -> Path:
         if self.root_identifier is None:
             raise Exception()

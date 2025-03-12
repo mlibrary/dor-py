@@ -27,6 +27,7 @@ from dor.service_layer.unit_of_work import SqlalchemyUnitOfWork
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
 from utils import minter
 
+
 def create_repo():
     gateway = OcflRepositoryGateway(storage_path=config.storage_path)
     gateway.create_repository()
@@ -36,9 +37,10 @@ def create_repo():
     )
     Base.metadata.create_all(engine)
 
+
 def workframe() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
     gateway = OcflRepositoryGateway(storage_path=config.storage_path)
- 
+
     engine = create_engine(
         config.get_database_engine_url(), json_serializer=_custom_json_serializer
     )
