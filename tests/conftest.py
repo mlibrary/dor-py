@@ -18,8 +18,8 @@ from dor.providers.models import (
 )
 
 pytest_plugins = [
-    "features.pytest.fixtures.message_bus",
-    "features.pytest.fixtures.unit_of_work",
+    "features.fixtures.message_bus",
+    "features.fixtures.unit_of_work",
 ]
 
 
