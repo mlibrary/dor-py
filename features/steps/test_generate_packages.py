@@ -73,6 +73,7 @@ def _(package_results):
 
     assert package_results == [PackageResult(
         package_identifier=f"00000000-0000-0000-0000-000000000001_19700101000000",
+        deposit_group_identifier="23312082-44d8-489e-97f4-383329de9ac5",
         success=True,
         message="Generated package successfully!"
     )]

@@ -70,6 +70,7 @@ def test_generator_generates_package(
     # Package result returned
     assert result == PackageResult(
         package_identifier=package_identifier,
+        deposit_group_identifier=deposit_group.identifier,
         success=True,
         message="Generated package successfully!"
     )
@@ -95,6 +96,7 @@ def test_generator_fails_when_metadata_references_missing_file_set(
     assert not (test_output_path / package_identifier).exists()
     assert result == PackageResult(
         package_identifier=package_identifier,
+        deposit_group_identifier=deposit_group.identifier,
         success=False,
         message="The following file sets were not found: 00000000-0000-0000-0000-000000001003"
     )
@@ -120,6 +122,7 @@ def test_generator_fails_when_metadata_is_missing_file_data(
     assert not (test_output_path / package_identifier).exists()
     assert result == PackageResult(
         package_identifier=package_identifier,
+        deposit_group_identifier=deposit_group.identifier,
         success=False,
         message=(
             "Expected to find a single instance of metadata file data for use \"PROVENANCE\" " +
@@ -148,6 +151,7 @@ def test_generator_fails_when_metadata_is_missing_struct_map(
     assert not (test_output_path / package_identifier).exists()
     assert result == PackageResult(
         package_identifier=package_identifier,
+        deposit_group_identifier=deposit_group.identifier,
         success=False,
         message="Expected to find a single \"PHYSICAL\" structure object but found 0"
     )
