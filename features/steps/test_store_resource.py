@@ -3,8 +3,9 @@ from functools import partial
 
 from pytest_bdd import scenario, given, when, then
 
+from dor.config import config
 from dor.domain.events import PackageSubmitted
-from dor.domain.models import PathData, WorkflowEventType
+from dor.domain.models import WorkflowEventType
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import AbstractUnitOfWork
@@ -19,12 +20,12 @@ def test_store_resource():
 
 
 @given(u'a package containing the scanned pages, OCR, and metadata')
-def _(path_data: PathData, unit_of_work: AbstractUnitOfWork):
+def _(unit_of_work: AbstractUnitOfWork):
     file_provider = FilesystemFileProvider()
-    file_provider.delete_dir_and_contents(path=path_data.scratch)
-    file_provider.create_directory(path_data.scratch)
-    file_provider.create_directory(path_data.storage)
-    file_provider.create_directory(path_data.workspaces)
+    file_provider.delete_dir_and_contents(path=config.storage_path)
+    file_provider.create_directory(path=config.storage_path)
+    file_provider.delete_dir_and_contents(path=config.workspaces_path)
+    file_provider.create_directory(path=config.workspaces_path)
 
     unit_of_work.gateway.create_repository()
 

@@ -19,7 +19,6 @@ from dor.providers.models import (
 
 pytest_plugins = [
     "features.pytest.fixtures.message_bus",
-    "features.pytest.fixtures.path_data",
     "features.pytest.fixtures.unit_of_work",
 ]
 

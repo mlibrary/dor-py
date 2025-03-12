@@ -31,7 +31,7 @@ class Config:
                 user=os.getenv("POSTGRES_USER", "postgres"),
                 password=os.getenv("POSTGRES_PASSWORD", "postgres"),
                 host=os.getenv("POSTGRES_HOST", "db"),
-                database=os.getenv("POSTGRES_DATABSE", "dor_local"),
+                database=os.getenv("POSTGRES_DATABASE", "dor_local"),
                 test_database=os.getenv("POSTGRES_TEST_DATABASE", "dor_test")
             )
         )

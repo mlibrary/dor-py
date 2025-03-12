@@ -1,7 +1,8 @@
 import pytest
-from typing import Callable, Type, Generator
+from typing import Callable, Type
 
 from dor.adapters.bag_adapter import BagAdapter
+from dor.config import config
 from dor.domain.events import (
     Event,
     PackageReceived,
@@ -12,7 +13,6 @@ from dor.domain.events import (
     RevisionCataloged
 )
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.domain.models import PathData
 from dor.providers.package_resource_provider import PackageResourceProvider
 from dor.providers.translocator import Translocator, Workspace
 from dor.service_layer.handlers.catalog_revision import catalog_revision
@@ -28,10 +28,10 @@ from utils.minter import minter
 
 
 @pytest.fixture
-def message_bus(path_data: PathData, unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
+def message_bus(unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
     translocator = Translocator(
-        inbox_path=path_data.inbox,
-        workspaces_path=path_data.workspaces,
+        inbox_path=config.inbox_path,
+        workspaces_path=config.workspaces_path,
         minter=minter,
         file_provider=FilesystemFileProvider()
     )

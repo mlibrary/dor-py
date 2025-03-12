@@ -13,14 +13,6 @@ from gateway.coordinator import Coordinator
 from dor.providers.models import PackageResource
 
 
-@dataclass
-class PathData:
-    scratch: Path
-    storage: Path
-    workspaces: Path
-    inbox: Path
-
-
 @dataclass(frozen=True)
 class VersionInfo():
     coordinator: Coordinator
