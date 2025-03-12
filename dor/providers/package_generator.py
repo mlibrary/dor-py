@@ -28,6 +28,7 @@ class DepositGroup:
 @dataclass
 class PackageResult:
     package_identifier: str
+    deposit_group_identifier: str
     success: bool
     message: str
 
@@ -197,6 +198,7 @@ class PackageGenerator:
             self.clear_package_path()
             return PackageResult(
                 package_identifier=self.package_identifier,
+                deposit_group_identifier=self.deposit_group.identifier,
                 success=False,
                 message=(
                     "Expected to find a single \"PHYSICAL\" structure object " +
@@ -209,6 +211,7 @@ class PackageGenerator:
             self.clear_package_path()
             return PackageResult(
                 package_identifier=self.package_identifier,
+                deposit_group_identifier=self.deposit_group.identifier,
                 success=False,
                 message=f"The following file sets were not found: {", ".join(missing_file_set_ids)}"
             )
@@ -255,6 +258,7 @@ class PackageGenerator:
             self.clear_package_path()
             return PackageResult(
                 package_identifier=self.package_identifier,
+                deposit_group_identifier=self.deposit_group.identifier,
                 success=False,
                 message=error.message
             )
@@ -286,6 +290,7 @@ class PackageGenerator:
 
         return PackageResult(
             package_identifier=self.package_identifier,
+            deposit_group_identifier=self.deposit_group.identifier,
             success=True,
             message="Generated package successfully!"
         )
