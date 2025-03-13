@@ -1,10 +1,10 @@
-from pydantic_core import to_jsonable_python
+from dor.adapters.converter import converter
 
 from dor.domain.models import Revision
 
 
 def summarize(revision: Revision):
-    return to_jsonable_python(dict(
+    return converter.unstructure(dict(
         identifier=revision.identifier,
         alternate_identifiers=revision.alternate_identifiers,
         revision_number=revision.revision_number,
@@ -14,6 +14,6 @@ def summarize(revision: Revision):
 
 def get_file_sets(revision: Revision):
     return [
-        to_jsonable_python(resource) 
+        converter.unstructure(resource)
         for resource in revision.package_resources if resource.type == 'File Set'
     ]
