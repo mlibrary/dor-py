@@ -11,7 +11,8 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.ext.mutable import MutableList
 
-from dor.adapters.sqlalchemy import Base, converter
+from dor.adapters.converter import converter
+from dor.adapters.sqlalchemy import Base
 from dor.domain import models
 from dor.providers.models import PackageResource
 
