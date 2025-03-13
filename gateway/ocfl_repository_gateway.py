@@ -5,6 +5,7 @@ from subprocess import CalledProcessError
 
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
+from gateway.enumerations import LogOrder
 from gateway.exceptions import (
     NoStagedChangesError,
     StagedObjectAlreadyExistsError,
@@ -162,10 +163,10 @@ class OcflRepositoryGateway(RepositoryGateway):
         ]
         return object_files
 
-    def log(self, id: str, reversed: bool = True) -> list[VersionInfo]:
+    def log(self, id: str, order: LogOrder = LogOrder.descending) -> list[VersionInfo]:
         version_log = []
         args: list[str | Path] = ["rocfl", "-r", self.storage_path, "log"]
-        if reversed:
+        if order == LogOrder.descending:
             args.append("-r")
         args.append(id)
 

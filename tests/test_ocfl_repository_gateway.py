@@ -9,6 +9,7 @@ import pytest
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
+from gateway.enumerations import LogOrder
 from gateway.exceptions import (
     NoStagedChangesError,
     ObjectDoesNotExistError,
@@ -17,7 +18,6 @@ from gateway.exceptions import (
 )
 from gateway.object_file import ObjectFile
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway, StorageLayout
-from utils.minter import minter
 
 
 class OcflRepositoryGatewayTest(TestCase):
@@ -491,6 +491,6 @@ class OcflRepositoryGatewayTest(TestCase):
             "Adding second version!",
         )
 
-        log = gateway.log("deposit_one", reversed=False)
+        log = gateway.log("deposit_one", order=LogOrder.ascending)
         assert log[0].version == 1
         assert log[1].version == 2
