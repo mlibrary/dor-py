@@ -5,7 +5,6 @@ from sqlalchemy.orm import sessionmaker
 
 from dor.adapters.catalog import Catalog, MemoryCatalog, SqlalchemyCatalog
 from dor.adapters.event_store import EventStore, MemoryEventStore, SqlalchemyEventStore
-from dor.adapters.sqlalchemy import _custom_json_serializer
 from dor.config import config
 from dor.domain.events import Event
 from gateway.repository_gateway import RepositoryGateway
@@ -69,7 +68,7 @@ class UnitOfWork(AbstractUnitOfWork):
 
 
 DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
-    config.get_database_engine_url(), json_serializer=_custom_json_serializer
+    config.get_database_engine_url()
 ))
 
 

@@ -7,7 +7,7 @@ import pytest
 import sqlalchemy
 from fastapi.testclient import TestClient
 
-from dor.adapters.sqlalchemy import Base, _custom_json_serializer
+from dor.adapters.sqlalchemy import Base
 from dor.config import config
 from dor.domain.models import Revision
 from dor.entrypoints.api.dependencies import get_db_session
@@ -26,9 +26,7 @@ pytest_plugins = [
 @pytest.fixture
 def db_session() -> Generator[sqlalchemy.orm.Session, None, None]:
     engine_url = config.get_database_engine_url()
-    engine = sqlalchemy.create_engine(
-        engine_url, echo=True, json_serializer=_custom_json_serializer
-    )
+    engine = sqlalchemy.create_engine(engine_url, echo=True)
 
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)

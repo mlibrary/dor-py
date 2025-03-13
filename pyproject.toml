@@ -24,6 +24,7 @@ psycopg = "^3.2.3"
 sqlalchemy = "^2.0.36"
 pydantic = "^2.10.5"
 fastapi = {extras = ["standard"], version = "^0.115.6"}
+cattrs = "^24.1.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"

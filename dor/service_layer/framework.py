@@ -2,7 +2,7 @@ from typing import Callable, Type, Tuple
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dor.adapters.bag_adapter import BagAdapter
-from dor.adapters.sqlalchemy import Base, _custom_json_serializer
+from dor.adapters.sqlalchemy import Base
 from dor.config import config
 from dor.domain.events import (
     Event,
@@ -32,18 +32,14 @@ def create_repo():
     gateway = OcflRepositoryGateway(storage_path=config.storage_path)
     gateway.create_repository()
 
-    engine = create_engine(
-        config.get_database_engine_url(), json_serializer=_custom_json_serializer
-    )
+    engine = create_engine(config.get_database_engine_url())
     Base.metadata.create_all(engine)
 
 
 def workframe() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
     gateway = OcflRepositoryGateway(storage_path=config.storage_path)
 
-    engine = create_engine(
-        config.get_database_engine_url(), json_serializer=_custom_json_serializer
-    )
+    engine = create_engine(config.get_database_engine_url())
     session_factory = sessionmaker(bind=engine)
     uow = SqlalchemyUnitOfWork(gateway=gateway, session_factory=session_factory)
 

@@ -129,7 +129,7 @@ def sample_resources():
                 ),
                 FileMetadata(
                     id="_0193d5f0-7e75-7803-8e41-71323b7b3284",
-                    group_id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
+                    groupid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="TECHNICAL",
                     ref=FileReference(
                         locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.mix.xml",
@@ -138,7 +138,7 @@ def sample_resources():
                 ),
                 FileMetadata(
                     id="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
-                    group_id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
+                    groupid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
                     use="TECHNICAL",
                     ref=FileReference(
                         locref="00000000-0000-0000-0000-000000001001/metadata/00000001.plaintext.txt.textmd.xml",

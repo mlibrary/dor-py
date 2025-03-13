@@ -11,8 +11,9 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.ext.mutable import MutableList
 
-from dor.adapters.sqlalchemy import Base
+from dor.adapters.sqlalchemy import Base, converter
 from dor.domain import models
+from dor.providers.models import PackageResource
 
 
 class Revision(Base):
@@ -93,6 +94,8 @@ class SqlalchemyCatalog(Catalog):
         self.session = session
 
     def add(self, revision: models.Revision) -> None:
+        package_resources_data = converter.unstructure(revision.package_resources)
+
         # Create new Revision record
         stored_revision = Revision(
             identifier=revision.identifier,
@@ -100,7 +103,7 @@ class SqlalchemyCatalog(Catalog):
             revision_number=revision.revision_number,
             created_at=revision.created_at,
             common_metadata=revision.common_metadata,
-            package_resources=revision.package_resources
+            package_resources=package_resources_data
         )
 
         # Update or create new CurrentRevision record
@@ -111,7 +114,7 @@ class SqlalchemyCatalog(Catalog):
             stored_current_revision.revision_number = revision.revision_number
             stored_current_revision.created_at = revision.created_at
             stored_current_revision.common_metadata = revision.common_metadata
-            stored_current_revision.package_resources = revision.package_resources
+            stored_current_revision.package_resources = package_resources_data
         except sqlalchemy.exc.NoResultFound:
             stored_current_revision = CurrentRevision(
                 identifier=revision.identifier,
@@ -119,7 +122,7 @@ class SqlalchemyCatalog(Catalog):
                 revision_number=revision.revision_number,
                 created_at=revision.created_at,
                 common_metadata=revision.common_metadata,
-                package_resources=revision.package_resources
+                package_resources=package_resources_data
             )
         self.session.add_all([stored_revision, stored_current_revision])
 
@@ -140,7 +143,7 @@ class SqlalchemyCatalog(Catalog):
                 revision_number=result.revision_number,
                 created_at=result.created_at,
                 common_metadata=result.common_metadata,
-                package_resources=result.package_resources
+                package_resources=converter.structure(result.package_resources, list[PackageResource])
             )
             return revision
         except sqlalchemy.exc.NoResultFound:
@@ -158,6 +161,6 @@ class SqlalchemyCatalog(Catalog):
                 revision_number=result.revision_number,
                 created_at=result.created_at,
                 common_metadata=result.common_metadata,
-                package_resources=result.package_resources
+                package_resources=converter.structure(result.package_resources, list[PackageResource])
             ))
         return revisions

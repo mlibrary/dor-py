@@ -1,14 +1,16 @@
-import json
+from uuid import UUID
+from datetime import datetime
 
-from pydantic_core import to_jsonable_python
+from cattrs import Converter
 from sqlalchemy.orm import DeclarativeBase
 
 
-def _custom_json_serializer(*args, **kwargs) -> str:
-    """
-    Encodes json in the same way that pydantic does.
-    """
-    return json.dumps(*args, default=to_jsonable_python, **kwargs)
+converter = Converter()
+converter.register_unstructure_hook(datetime, lambda d: d.strftime("%Y-%m-%dT%H:%M:%SZ"))
+converter.register_structure_hook(datetime, lambda d, datetime: datetime.fromisoformat(d))
+
+converter.register_unstructure_hook(UUID, lambda u: str(u))
+converter.register_structure_hook(UUID, lambda u, UUID: UUID(u))
 
 
 class Base(DeclarativeBase):
