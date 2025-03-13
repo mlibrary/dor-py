@@ -2,8 +2,8 @@ import uuid
 from datetime import datetime, UTC
 
 import pytest
-from pydantic_core import to_jsonable_python
 
+from dor.adapters.converter import converter
 from dor.service_layer.catalog_service import summarize, get_file_sets
 from dor.domain.models import Revision
 from dor.providers.models import (
@@ -13,7 +13,7 @@ from dor.providers.models import (
 
 @pytest.mark.usefixtures("sample_revision")
 def test_catalog_generates_summary(sample_revision):
-    expected_summary = to_jsonable_python(dict(
+    expected_summary = converter.unstructure(dict(
         identifier=sample_revision.identifier,
         revision_number=sample_revision.revision_number,
         created_at=sample_revision.created_at,
@@ -27,7 +27,7 @@ def test_catalog_generates_summary(sample_revision):
 def test_catalog_lists_file_sets(sample_revision):
     file_sets = get_file_sets(sample_revision)
     expected_file_sets = [
-        to_jsonable_python(resource) 
+        converter.unstructure(resource)
         for resource in sample_revision.package_resources if resource.type == 'File Set'
     ]
 

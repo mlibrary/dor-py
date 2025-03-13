@@ -1,7 +1,7 @@
 import pytest
-from pydantic_core import to_jsonable_python
 
 from dor.adapters.catalog import SqlalchemyCatalog
+from dor.adapters.converter import converter
 from dor.domain.models import Revision
 
 
@@ -17,7 +17,7 @@ def test_catalog_api_returns_200_and_summary(
     response = test_client.get(f"/api/v1/catalog/revisions/{sample_revision.identifier}/")
 
     assert response.status_code == 200
-    expected_summary = to_jsonable_python(dict(
+    expected_summary = converter.unstructure(dict(
         identifier=sample_revision.identifier,
         alternate_identifiers=sample_revision.alternate_identifiers,
         revision_number=sample_revision.revision_number,
@@ -39,5 +39,5 @@ def test_catalog_api_returns_200_and_file_sets(
     response = test_client.get(f"/api/v1/catalog/revisions/{sample_revision.identifier}/filesets")
 
     assert response.status_code == 200
-    expected_summary = to_jsonable_python([sample_revision.package_resources[1]])
-    assert response.json() == expected_summary
+    expected_file_sets = converter.unstructure([sample_revision.package_resources[1]])
+    assert response.json() == expected_file_sets

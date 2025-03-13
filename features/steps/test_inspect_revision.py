@@ -2,9 +2,9 @@ import uuid
 from datetime import datetime, UTC
 from functools import partial
 
-from pydantic_core import to_jsonable_python
 from pytest_bdd import scenario, given, when, then, parsers
 
+from dor.adapters.converter import converter
 from dor.domain.models import Revision
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
@@ -252,7 +252,7 @@ def _(alt_id, unit_of_work):
 @then(u'the Collection Manager sees the file sets.')
 def _(revision: Revision, file_sets):
     expected_file_sets = [
-        to_jsonable_python(resource)
+        converter.unstructure(resource)
         for resource in revision.package_resources if resource.type == 'File Set'
     ]
     assert file_sets == expected_file_sets
