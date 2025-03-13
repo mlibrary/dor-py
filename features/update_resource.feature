@@ -15,3 +15,9 @@ Feature: Update Resource
     Given a package containing updated resource metadata
     When the Collection Manager places the metadata packaged resource in the incoming location
     Then the Collection Manager can see that it was revised.
+  
+  Scenario: Updating a resource twice for immediate release
+    Given a package containing all the scanned pages, OCR, and metadata
+    When the Collection Manager places the packaged resource in the incoming location
+    And the Collection Manager places the packaged resource in the incoming location again
+    Then the Collection Manager can see that it was revised.

@@ -93,3 +93,25 @@ def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
     )
     message_bus.handle(event, unit_of_work)
     return tracking_identifier
+
+
+
+@scenario('Updating a resource twice for immediate release')
+def test_updating_a_resource_twice_for_immediate_release():
+    """Updating a resource for twice immediate release."""
+
+
+@when('the Collection Manager places the packaged resource in the incoming location again',
+      target_fixture="tracking_identifier"
+      )
+def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
+    """the Collection Manager places the packaged resource in the incoming location again."""
+    submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
+    tracking_identifier = "third-load"
+    event = PackageSubmitted(
+        package_identifier=submission_id,
+        tracking_identifier=tracking_identifier,
+        update_flag=True,
+    )
+    message_bus.handle(event, unit_of_work)
+    return tracking_identifier
