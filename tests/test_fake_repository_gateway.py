@@ -4,6 +4,7 @@ import pytest
 
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
+from gateway.enumerations import LogOrder
 from gateway.exceptions import ObjectDoesNotExistError, RepositoryGatewayError, StagedObjectAlreadyExistsError
 from gateway.fake_repository_gateway import FakeRepositoryGateway
 from gateway.object_file import ObjectFile
@@ -220,6 +221,6 @@ def test_gateway_log_optional_ascending_order(gateway_with_committed_bundle: Fak
     gateway.stage_object_files("A", bundle_a_update)
     gateway.commit_object_changes("A", Coordinator("test", "test@example.edu"), "Second version!")
 
-    log = gateway.log("A", reverse=False)
+    log = gateway.log("A", order=LogOrder.ascending)
     assert log[0].version == 1
     assert log[1].version == 2

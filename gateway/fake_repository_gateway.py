@@ -6,6 +6,7 @@ from typing import Set
 
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
+from gateway.enumerations import LogOrder
 from gateway.exceptions import ObjectDoesNotExistError, RepositoryGatewayError, StagedObjectAlreadyExistsError
 from gateway.object_file import ObjectFile
 from gateway.repository_gateway import RepositoryGateway
@@ -98,7 +99,7 @@ class FakeRepositoryGateway(RepositoryGateway):
         if id in self.store:
             self.store.pop(id)
 
-    def log(self, id: str, reverse: bool = True) -> list[VersionInfo]:
+    def log(self, id: str, order: LogOrder = LogOrder.descending) -> list[VersionInfo]:
         try:
             rvalue = []
 
@@ -106,7 +107,7 @@ class FakeRepositoryGateway(RepositoryGateway):
                 rvalue.append(VersionInfo(version=v.number, author=v.coordinator,
                               date=datetime.now(), message=v.message))
 
-            if reverse:
+            if order == LogOrder.descending:
                 rvalue = reversed(rvalue)
 
             rvalue = deque(rvalue)
