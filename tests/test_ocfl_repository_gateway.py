@@ -4,16 +4,20 @@ from pathlib import Path
 from typing import Any
 from unittest import TestCase
 
+import pytest
+
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.exceptions import (
     NoStagedChangesError,
     ObjectDoesNotExistError,
+    RepositoryGatewayError,
     StagedObjectAlreadyExistsError,
 )
 from gateway.object_file import ObjectFile
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway, StorageLayout
+from utils.minter import minter
 
 
 class OcflRepositoryGatewayTest(TestCase):
@@ -59,7 +63,7 @@ class OcflRepositoryGatewayTest(TestCase):
     ) -> Path:
         digest = hashlib.sha256(bytes(object_id, "utf-8")).hexdigest()
         n_tuple = tuple(
-            digest[i : i + tuple_size]
+            digest[i: i + tuple_size]
             for i in range(0, tuple_size * num_tuples, tuple_size)
         )
         return Path().joinpath(*n_tuple, digest)
@@ -403,3 +407,90 @@ class OcflRepositoryGatewayTest(TestCase):
 
         with self.assertRaises(ObjectDoesNotExistError):
             gateway.get_object_files("deposit_zero")
+
+    def test_gateway_log_raises_for_object_that_does_not_exist(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+
+        with pytest.raises(RepositoryGatewayError):
+            gateway.log("deposit_one")
+
+    def test_gateway_log_raises_for_a_staged_object(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
+
+        with pytest.raises(RepositoryGatewayError):
+            gateway.log("deposit_one")
+
+    def test_gateway_log_committed_object(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
+        gateway.commit_object_changes(
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
+        )
+
+        log = gateway.log("deposit_one")
+        assert len(log) == 1
+
+    def test_gateway_log_committed_staged_object(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
+        gateway.commit_object_changes(
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
+        )
+        gateway.stage_object_files("deposit_one", self.deposit_one_update_bundle)
+
+        log = gateway.log("deposit_one")
+        assert len(log) == 1
+
+    def test_gateway_log_default_descending_order(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
+        gateway.commit_object_changes(
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
+        )
+        gateway.stage_object_files("deposit_one", self.deposit_one_update_bundle)
+        gateway.commit_object_changes(
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding second version!",
+        )
+
+        log = gateway.log("deposit_one")
+        assert log[0].version == 2
+        assert log[1].version == 1
+
+    def test_gateway_log_optional_ascending_order(self):
+        gateway = OcflRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_staged_object("deposit_one")
+        gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
+        gateway.commit_object_changes(
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding first version!",
+        )
+        gateway.stage_object_files("deposit_one", self.deposit_one_update_bundle)
+        gateway.commit_object_changes(
+            "deposit_one",
+            Coordinator("test", "test@example.edu"),
+            "Adding second version!",
+        )
+
+        log = gateway.log("deposit_one", reversed=False)
+        assert log[0].version == 1
+        assert log[1].version == 2
