@@ -1,10 +1,12 @@
+from collections import deque
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Set
 
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
-from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
+from gateway.exceptions import ObjectDoesNotExistError, RepositoryGatewayError, StagedObjectAlreadyExistsError
 from gateway.object_file import ObjectFile
 from gateway.repository_gateway import RepositoryGateway
 from gateway.version_info import VersionInfo
@@ -96,8 +98,22 @@ class FakeRepositoryGateway(RepositoryGateway):
         if id in self.store:
             self.store.pop(id)
 
-    def log(self, id: str, reversed: bool = True) -> list[VersionInfo]:
-        return reversed([
-            VersionInfo(version=v.number, author=v.contributor, message=v.message)
-            for v in self.store[id]
-        ])
+    def log(self, id: str, reverse: bool = True) -> list[VersionInfo]:
+        try:
+            rvalue = []
+
+            for v in self.store[id].versions:
+                rvalue.append(VersionInfo(version=v.number, author=v.coordinator,
+                              date=datetime.now(), message=v.message))
+
+            if reverse:
+                rvalue = reversed(rvalue)
+
+            rvalue = deque(rvalue)
+
+            if len(rvalue) == 0:
+                raise RepositoryGatewayError
+
+            return deque(rvalue)
+        except KeyError as e:
+            raise RepositoryGatewayError() from e
