@@ -1,13 +1,8 @@
 import uuid
-
 from dataclasses import dataclass
 from datetime import datetime, UTC
 from enum import Enum
-from pathlib import Path
 from typing import Any
-
-from pydantic import field_validator
-from pydantic.dataclasses import dataclass
 
 from gateway.coordinator import Coordinator
 from dor.providers.models import PackageResource
@@ -27,11 +22,6 @@ class Revision:
     created_at: datetime
     common_metadata: dict[str, Any]
     package_resources: list[PackageResource]
-
-    @field_validator("package_resources", mode='before')
-    @classmethod
-    def coerce_to_instance(cls, values):
-        return [PackageResource(**v) if isinstance(v, dict) else v for v in values]
 
 
 class WorkflowEventType(Enum):
