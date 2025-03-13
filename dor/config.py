@@ -1,8 +1,8 @@
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 import sqlalchemy
-from pydantic.dataclasses import dataclass
 
 
 @dataclass
