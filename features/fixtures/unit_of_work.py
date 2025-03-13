@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from dor.adapters.sqlalchemy import Base, _custom_json_serializer
+from dor.adapters.sqlalchemy import Base
 from dor.config import config
 from dor.service_layer.unit_of_work import AbstractUnitOfWork, SqlalchemyUnitOfWork
 
@@ -12,9 +12,7 @@ from gateway.ocfl_repository_gateway import OcflRepositoryGateway
 
 @pytest.fixture
 def unit_of_work() -> AbstractUnitOfWork:
-    engine = create_engine(
-        config.get_database_engine_url(), json_serializer=_custom_json_serializer
-    )
+    engine = create_engine(config.get_database_engine_url())
     connection = engine.connect()
     session_factory = sessionmaker(bind=connection)
     Base.metadata.drop_all(engine)

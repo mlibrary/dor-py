@@ -1,5 +1,4 @@
-from dataclasses import field
-from pydantic.dataclasses import dataclass
+from dataclasses import field, dataclass
 
 import uuid
 from datetime import datetime
