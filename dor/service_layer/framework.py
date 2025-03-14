@@ -25,7 +25,7 @@ from dor.service_layer.handlers.verify_package import verify_package
 from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import SqlalchemyUnitOfWork
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway
-from utils import minter
+from utils.minter import minter
 
 
 def create_repo():

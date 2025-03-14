@@ -1,7 +1,7 @@
 import typer
 from dor.domain.events import PackageSubmitted
-from dor.service_layer import create_repo, workframe
-from utils import minter
+from dor.service_layer.framework import create_repo, workframe
+from utils.minter import minter
 
 app = typer.Typer()
 
