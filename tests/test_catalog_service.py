@@ -28,7 +28,7 @@ def test_catalog_lists_file_sets(sample_revision):
     file_sets = get_file_sets(sample_revision)
     expected_file_sets = [
         to_jsonable_python(resource) 
-        for resource in sample_revision.package_resources if resource.type == 'Asset'
+        for resource in sample_revision.package_resources if resource.type == 'File Set'
     ]
 
     assert file_sets == expected_file_sets

@@ -138,7 +138,7 @@ def sample_revision() -> Revision:
             ),
             PackageResource(
                 id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
-                type="Asset",
+                type="File Set",
                 alternate_identifier=AlternateIdentifier(
                     id="xyzzy:00000001:00000001", type="DLXS"
                 ),
