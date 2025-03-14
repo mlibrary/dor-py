@@ -112,7 +112,7 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
             ),
             PackageResource(
                 id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
-                type="Asset",
+                type="File Set",
                 alternate_identifier=AlternateIdentifier(
                     id="xyzzy:00000001:00000001", type="DLXS"
                 ),
@@ -253,6 +253,6 @@ def _(alt_id, unit_of_work):
 def _(revision: Revision, file_sets):
     expected_file_sets = [
         to_jsonable_python(resource)
-        for resource in revision.package_resources if resource.type == 'Asset'
+        for resource in revision.package_resources if resource.type == 'File Set'
     ]
     assert file_sets == expected_file_sets
