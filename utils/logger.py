@@ -126,7 +126,6 @@ class Logger:
         response = requests.post(url, json=log_data, headers=headers)
 
         if not response.status_code == 200:
-            print(response.text)
             raise Exception(
                 f"Failed to save logs: {response.status_code}, {response.text}"
             )

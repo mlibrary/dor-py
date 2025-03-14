@@ -8,7 +8,6 @@ from utils.logger import LogStatus, Logger
 class TestLoggerIntegration(TestCase):
 
     def setUp(self):
-        """Set up the Logger instance before each test"""
         self.collection_name = "test_logs"
         self.logger = Logger(collection_name=self.collection_name)
         self.pocket_base_url = "http://pocketbase:8080"
