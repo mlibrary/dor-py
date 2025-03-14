@@ -53,7 +53,7 @@ def _(unit_of_work: AbstractUnitOfWork, tracking_identifier: str):
 
     with unit_of_work:
         revision = unit_of_work.catalog.get(expected_identifier)
-        assert revision is not None
+        assert revision.revision_number == 1
 
         workflow_events = unit_of_work.event_store.get_all_for_tracking_identifier(
             tracking_identifier)
