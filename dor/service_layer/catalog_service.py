@@ -15,5 +15,5 @@ def summarize(revision: Revision):
 def get_file_sets(revision: Revision):
     return [
         to_jsonable_python(resource) 
-        for resource in revision.package_resources if resource.type == 'Asset'
+        for resource in revision.package_resources if resource.type == 'File Set'
     ]
