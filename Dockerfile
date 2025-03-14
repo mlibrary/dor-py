@@ -120,6 +120,3 @@ COPY pb_user_setup.sh /pb/pb_user_setup.sh
 RUN chmod +x /pb/pb_user_setup.sh
 
 EXPOSE 8080
-
-# # Set the command to run when the container starts
-# CMD ["/bin/sh", "-c", "/pb/pocketbase serve --http=0.0.0.0:8080 & /bin/sh /pb/pb_user_setup.sh && tail -f /dev/null"]
