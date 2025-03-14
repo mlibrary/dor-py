@@ -4,6 +4,13 @@ from datetime import datetime
 from typing import Any
 
 from dor.config import config
+from dor.providers.package_generator import PackageResult
+from enum import Enum
+
+
+class LogStatus(Enum):
+    SUCCESS = "Info"
+    FAILURE = "Error"
 
 
 class Logger:
@@ -81,15 +88,16 @@ class Logger:
             "name": self.collection_name,
             "type": "base",
             "fields": [
-                {"name": "message", "type": "text", "required": True},
-                {"name": "level", "type": "text", "required": True},
+                {"name": "PackageIdentifier", "type": "text"},
+                {"name": "DepositGroupIdentifier", "type": "text"},
+                {"name": "Level", "type": "text", "required": True},
+                {"name": "Message", "type": "text", "required": True},
                 {
-                    "name": "timestamp",
+                    "name": "Timestamp",
                     "type": "autodate",
                     "onCreate": True,
                     "onUpdate": False,
                 },
-                {"name": "packageIdentifier", "type": "text"},
             ],
             "system": False,
         }
@@ -105,7 +113,7 @@ class Logger:
         if not self.impersonate_token:
             return
 
-        log_data["timestamp"] = datetime.now().isoformat()
+        log_data["Timestamp"] = datetime.now().isoformat()
         if not self._collection_exists():
             self._create_log_collection()
 
@@ -118,29 +126,25 @@ class Logger:
         response = requests.post(url, json=log_data, headers=headers)
 
         if not response.status_code == 200:
+            print(response.text)
             raise Exception(
                 f"Failed to save logs: {response.status_code}, {response.text}"
             )
 
-    def _log(self, message: str, level: str, packageIdentifier: str):
+    def _log(self, package_result: PackageResult):
         try:
             log_entry: dict[str, Any] = {
-                "message": message,
-                "level": level,
-                "packageIdentifier": packageIdentifier,
+                "PackageIdentifier": package_result.package_identifier,
+                "DepositGroupIdentifier": package_result.deposit_group_identifier,
+                "Level": (
+                    LogStatus.SUCCESS if (package_result.success) else LogStatus.FAILURE
+                ).value,
+                "Message": package_result.message,
             }
             self._write_log(log_entry)
         except Exception as e:
             raise Exception(f"Failed to save logs: {e}")
 
-    def debug(self, message: str, packageIdentifier: str):
-        self._log(message, "debug", str(packageIdentifier))
-
-    def info(self, message: str, packageIdentifier: str):
-        self._log(message, "info", str(packageIdentifier))
-
-    def warn(self, message: str, packageIdentifier: str):
-        self._log(message, "warn", str(packageIdentifier))
-
-    def error(self, message: str, packageIdentifier: str):
-        self._log(message, "error", str(packageIdentifier))
+    def log_result(self, package_result: PackageResult):
+        self._log(package_result)
+        
