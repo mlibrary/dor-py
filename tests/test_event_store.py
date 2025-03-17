@@ -12,7 +12,7 @@ from dor.domain.models import WorkflowEvent, WorkflowEventType
 def workflow_event() -> WorkflowEvent:
     return WorkflowEvent(
         identifier=uuid.uuid4(),
-        package_identifier="xyzzy-0001-v1",
+        package_identifier="xyzzy-00000000-0000-0000-0000-000000000001-v1",
         tracking_identifier="some-tracking-id",
         event_type=WorkflowEventType.PACKAGE_STORED,
         timestamp=datetime.now(tz=UTC),
@@ -25,7 +25,7 @@ def workflow_events(workflow_event) -> list[WorkflowEvent]:
         workflow_event,
         WorkflowEvent(
             identifier=uuid.uuid4(),
-            package_identifier="xyzzy-0001-v1",
+            package_identifier="xyzzy-00000000-0000-0000-0000-000000000001-v1",
             tracking_identifier="some-tracking-id",
             event_type=WorkflowEventType.REVISION_CATALOGED,
             timestamp=datetime.now(tz=UTC) + timedelta(seconds=20),
