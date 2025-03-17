@@ -17,7 +17,7 @@ class ElementAdapterTest(TestCase):
         test_submission_package_path = fixtures_path / "test_submission_package"
         bag_path = (
             test_submission_package_path
-            / "xyzzy-0001-v1"
+            / "xyzzy-00000000-0000-0000-0000-000000000001-v1"
         )
         content_path = bag_path / "data" / "00000000-0000-0000-0000-000000000001"
         self.descriptor_path = (
@@ -36,7 +36,7 @@ class ElementAdapterTest(TestCase):
         ElementAdapter(self.item_metadata_tree, self.namespaces)
 
     def test_element_can_find(self):
-        result = self.elem.find(".//PREMIS:eventIdentifier")
+        result = self.elem.find(".//METS:mdSec")
         self.assertTrue(isinstance(result, ElementAdapter))
 
     def test_element_raises_when_no_element_is_found(self):
@@ -45,8 +45,8 @@ class ElementAdapterTest(TestCase):
 
     def test_element_returns_text(self):
         elem = ElementAdapter(self.item_metadata_tree, self.namespaces)
-        result = elem.find(".//PREMIS:significantPropertiesType")
-        self.assertEqual("scans count", result.text)
+        result = elem.find(".//METS:altRecordID")
+        self.assertEqual("xyzzy:00000001", result.text)
 
     def test_element_raises_when_no_text_is_found(self):
         mptr_elems = self.elem.findall(".//METS:mptr")
@@ -60,7 +60,7 @@ class ElementAdapterTest(TestCase):
         self.assertEqual("CREATOR", role)
 
     def test_element_raises_when_no_attribute_value_is_found(self):
-        mets_xml_elem = self.elem.find(".//METS:xmlData")
+        mets_xml_elem = self.elem.find(".//METS:metsHdr")
         with self.assertRaises(DataNotFoundError):
             mets_xml_elem.get("NOSUCHATTRIBUTE")
 
