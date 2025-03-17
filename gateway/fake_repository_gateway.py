@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Set
 
@@ -64,7 +64,7 @@ class FakeRepositoryGateway(RepositoryGateway):
         id: str,
         coordinator: Coordinator,
         message: str,
-        date: datetime,
+        date: datetime = datetime.now(timezone.utc).astimezone(),
     ) -> None:
         if id not in self.store:
             raise ObjectDoesNotExistError()

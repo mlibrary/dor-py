@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -18,6 +19,7 @@ from gateway.exceptions import (
 )
 from gateway.object_file import ObjectFile
 from gateway.ocfl_repository_gateway import OcflRepositoryGateway, StorageLayout
+from gateway.version_info import VersionInfo
 
 
 class OcflRepositoryGatewayTest(TestCase):
@@ -429,14 +431,19 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_repository()
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
+        date = datetime.now(timezone.utc).astimezone()
+        rfc7231ish = date.strftime("%a, %d %b %G %T +0000")
         gateway.commit_object_changes(
             "deposit_one",
             Coordinator("test", "test@example.edu"),
             "Adding first version!",
+            date,
         )
 
         log = gateway.log("deposit_one")
         assert len(log) == 1
+        assert log[0] == VersionInfo(version=1, author='test <mailto:test@example.edu>',
+                                     date=rfc7231ish, message='Adding first version!')
 
     def test_gateway_log_committed_staged_object(self):
         gateway = OcflRepositoryGateway(self.pres_storage)

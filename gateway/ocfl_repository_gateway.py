@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import subprocess
 from enum import Enum
 from pathlib import Path
@@ -83,7 +84,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             self._stage_object_file(id=id, source_path=source_path, dest_path=file_path)
 
     def commit_object_changes(
-        self, id: str, coordinator: Coordinator, message: str
+        self, id: str, coordinator: Coordinator, message: str, date: datetime = datetime.now(timezone.utc).astimezone()
     ) -> None:
         args: list[str | Path] = [
             "rocfl",
@@ -97,6 +98,8 @@ class OcflRepositoryGateway(RepositoryGateway):
             f"mailto:{coordinator.email}",
             "-m",
             message,
+            "-c",
+            date.isoformat(),
         ]
         try:
             subprocess.run(args, check=True, capture_output=True)
