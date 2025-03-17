@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -26,7 +27,7 @@ def gateway_with_committed_bundle(bundle_a: Bundle) -> FakeRepositoryGateway:
     gateway.create_staged_object("A")
     gateway.stage_object_files("A", bundle_a)
     gateway.commit_object_changes(
-        "A", Coordinator("test", "test@example.edu"), "First version!"
+        "A", Coordinator("test", "test@example.edu"), "First version!", datetime.now()
     )
     return gateway
 
@@ -66,7 +67,7 @@ def test_gateway_can_commit_changes(bundle_a: Bundle) -> None:
     gateway.create_staged_object("A")
     gateway.stage_object_files("A", bundle_a)
     gateway.commit_object_changes(
-        "A", Coordinator("test", "test@example.edu"), "First version!"
+        "A", Coordinator("test", "test@example.edu"), "First version!", datetime.now()
     )
     assert gateway.store["A"].staged_files == set()
     assert gateway.store["A"].versions[0].files == set([Path("some"), Path("some/path")])
@@ -76,7 +77,7 @@ def test_gateway_raises_when_committing_changes_when_no_object_exists() -> None:
     gateway = FakeRepositoryGateway()
     with pytest.raises(ObjectDoesNotExistError):
         gateway.commit_object_changes(
-            "A", Coordinator("test", "test@example.edu"), "First version!"
+            "A", Coordinator("test", "test@example.edu"), "First version!", datetime.now()
         )
 
 
@@ -190,7 +191,7 @@ def test_gateway_log_committed_object(bundle_a: Bundle):
     gateway.create_staged_object("A")
     gateway.stage_object_files("A", bundle_a)
     gateway.commit_object_changes(
-        "A", Coordinator("test", "test@example.edu"), "First version!"
+        "A", Coordinator("test", "test@example.edu"), "First version!", datetime.now()
     )
 
     log = gateway.log("A")
@@ -209,7 +210,7 @@ def test_gateway_log_committed_staged_object(gateway_with_committed_bundle: Fake
 def test_gateway_log_default_descending_order(gateway_with_committed_bundle: FakeRepositoryGateway, bundle_a_update: Bundle):
     gateway = gateway_with_committed_bundle
     gateway.stage_object_files("A", bundle_a_update)
-    gateway.commit_object_changes("A", Coordinator("test", "test@example.edu"), "Second version!")
+    gateway.commit_object_changes("A", Coordinator("test", "test@example.edu"), "Second version!", datetime.now())
 
     log = gateway.log("A")
     assert log[0].version == 2
@@ -219,7 +220,7 @@ def test_gateway_log_default_descending_order(gateway_with_committed_bundle: Fak
 def test_gateway_log_optional_ascending_order(gateway_with_committed_bundle: FakeRepositoryGateway, bundle_a_update: Bundle):
     gateway = gateway_with_committed_bundle
     gateway.stage_object_files("A", bundle_a_update)
-    gateway.commit_object_changes("A", Coordinator("test", "test@example.edu"), "Second version!")
+    gateway.commit_object_changes("A", Coordinator("test", "test@example.edu"), "Second version!", datetime.now())
 
     log = gateway.log("A", order=LogOrder.ascending)
     assert log[0].version == 1

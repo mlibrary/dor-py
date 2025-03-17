@@ -1,4 +1,3 @@
-from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -18,6 +17,7 @@ class Version():
     number: int
     coordinator: Coordinator
     message: str
+    date: datetime
     files: Set[Path]
 
 
@@ -63,7 +63,8 @@ class FakeRepositoryGateway(RepositoryGateway):
         self,
         id: str,
         coordinator: Coordinator,
-        message: str
+        message: str,
+        date: datetime,
     ) -> None:
         if id not in self.store:
             raise ObjectDoesNotExistError()
@@ -77,6 +78,7 @@ class FakeRepositoryGateway(RepositoryGateway):
             number=next_version_num,
             coordinator=coordinator,
             message=message,
+            date=date,
             files=files
         ))
         self.store[id].staged_files = set()
@@ -100,21 +102,19 @@ class FakeRepositoryGateway(RepositoryGateway):
             self.store.pop(id)
 
     def log(self, id: str, order: LogOrder = LogOrder.descending) -> list[VersionInfo]:
-        try:
-            rvalue = []
+        version_log = []
 
+        try:
             for v in self.store[id].versions:
-                rvalue.append(VersionInfo(version=v.number, author=v.coordinator,
-                              date=datetime.now(), message=v.message))
+                version_log.append(VersionInfo(version=v.number, author=v.coordinator,
+                                               date=v.date, message=v.message))
 
             if order == LogOrder.descending:
-                rvalue = reversed(rvalue)
+                version_log = list(reversed(version_log))
 
-            rvalue = deque(rvalue)
-
-            if len(rvalue) == 0:
+            if len(version_log) == 0:
                 raise RepositoryGatewayError
 
-            return deque(rvalue)
+            return version_log
         except KeyError as e:
             raise RepositoryGatewayError() from e

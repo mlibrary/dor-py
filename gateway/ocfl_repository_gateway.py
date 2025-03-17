@@ -175,22 +175,21 @@ class OcflRepositoryGateway(RepositoryGateway):
             result = subprocess.run(args, check=True, capture_output=True)
 
             for line in result.stdout.decode("utf-8").split("\n"):
-                stripped_line = line.strip()
-
-                if not stripped_line:
+                line = line.strip()
+                if not line:
                     if info:
                         version_log.append(VersionInfo(**info))
                         info = {}
                     continue
 
-                if stripped_line.startswith("Version "):
+                if line.startswith("Version "):
                     info['version'] = int(line.split(" ")[-1])
                 else:
-                    key, value = [ v.strip() for v in stripped_line.strip().split(":", 1) ]
+                    key, value = [v.strip() for v in line.strip().split(":", 1)]
                     info[key.lower()] = value
 
             if info:
-                version_log.append(VersionInfo(**info))                        
+                version_log.append(VersionInfo(**info))
 
             return version_log
         except CalledProcessError as e:
