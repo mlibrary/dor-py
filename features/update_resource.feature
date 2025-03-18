@@ -13,5 +13,5 @@ Feature: Update Resource
 
   Scenario: Updating only metadata of a resource for immediate release
     Given a package containing updated resource metadata
-    When the Collection Manager places the metadata packaged resource in the incoming location
+    When the Collection Manager places the packaged resource with the metadata in the incoming location
     Then the Collection Manager can see that it was revised.

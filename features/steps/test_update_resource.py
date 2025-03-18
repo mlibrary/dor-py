@@ -78,11 +78,11 @@ def test_updating_only_metadata_of_a_resource_for_immediate_release():
 
 
 @when(
-    "the Collection Manager places the metadata packaged resource in the incoming location",
+    "the Collection Manager places the packaged resource with the metadata in the incoming location",
     target_fixture="tracking_identifier",
 )
 def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
-    """the Collection Manager places the metadata packaged resource in the incoming location."""
+    """the Collection Manager places the packaged resource with the metadata in the incoming location."""
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v2"
     tracking_identifier = "second-load"
 
