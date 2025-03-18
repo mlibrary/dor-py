@@ -14,7 +14,6 @@ from gateway.enumerations import LogOrder
 from gateway.exceptions import (
     NoStagedChangesError,
     ObjectDoesNotExistError,
-    RepositoryGatewayError,
     StagedObjectAlreadyExistsError,
 )
 from gateway.object_file import ObjectFile
@@ -414,7 +413,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway = OcflRepositoryGateway(self.pres_storage)
         gateway.create_repository()
 
-        with pytest.raises(RepositoryGatewayError):
+        with pytest.raises(ObjectDoesNotExistError):
             gateway.log("deposit_one")
 
     def test_gateway_log_raises_for_a_staged_object(self):
@@ -423,7 +422,7 @@ class OcflRepositoryGatewayTest(TestCase):
         gateway.create_staged_object("deposit_one")
         gateway.stage_object_files("deposit_one", self.deposit_one_bundle)
 
-        with pytest.raises(RepositoryGatewayError):
+        with pytest.raises(ObjectDoesNotExistError):
             gateway.log("deposit_one")
 
     def test_gateway_log_committed_object(self):

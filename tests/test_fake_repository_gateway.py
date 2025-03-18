@@ -6,7 +6,7 @@ import pytest
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.enumerations import LogOrder
-from gateway.exceptions import ObjectDoesNotExistError, RepositoryGatewayError, StagedObjectAlreadyExistsError
+from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.fake_repository_gateway import FakeRepositoryGateway
 from gateway.object_file import ObjectFile
 from gateway.version_info import VersionInfo
@@ -174,7 +174,7 @@ def test_gateway_does_not_raise_when_purging_object_that_does_not_exist() -> Non
 def test_gateway_log_raises_for_object_that_does_not_exist(gateway_with_committed_bundle: FakeRepositoryGateway):
     gateway = gateway_with_committed_bundle
 
-    with pytest.raises(RepositoryGatewayError):
+    with pytest.raises(ObjectDoesNotExistError):
         gateway.log("Z")
 
 
@@ -183,7 +183,7 @@ def test_gateway_log_raises_for_a_staged_object(bundle_a: Bundle):
     gateway.create_staged_object("A")
     gateway.stage_object_files("A", bundle_a)
 
-    with pytest.raises(RepositoryGatewayError):
+    with pytest.raises(ObjectDoesNotExistError):
         gateway.log("A")
 
 

@@ -6,7 +6,7 @@ from typing import Set
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.enumerations import LogOrder
-from gateway.exceptions import ObjectDoesNotExistError, RepositoryGatewayError, StagedObjectAlreadyExistsError
+from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.object_file import ObjectFile
 from gateway.repository_gateway import RepositoryGateway
 from gateway.version_info import VersionInfo
@@ -113,8 +113,8 @@ class FakeRepositoryGateway(RepositoryGateway):
                 version_log = list(reversed(version_log))
 
             if len(version_log) == 0:
-                raise RepositoryGatewayError
+                raise ObjectDoesNotExistError()
 
             return version_log
         except KeyError as e:
-            raise RepositoryGatewayError() from e
+            raise ObjectDoesNotExistError() from e

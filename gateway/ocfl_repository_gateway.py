@@ -196,4 +196,6 @@ class OcflRepositoryGateway(RepositoryGateway):
 
             return version_log
         except CalledProcessError as e:
+            if "Not found: Object" in e.stderr.decode():
+                raise ObjectDoesNotExistError() from e
             raise RepositoryGatewayError() from e
