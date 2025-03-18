@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import subprocess
 from enum import Enum
 from pathlib import Path
@@ -5,6 +6,7 @@ from subprocess import CalledProcessError
 
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
+from gateway.enumerations import LogOrder
 from gateway.exceptions import (
     NoStagedChangesError,
     StagedObjectAlreadyExistsError,
@@ -82,7 +84,7 @@ class OcflRepositoryGateway(RepositoryGateway):
             self._stage_object_file(id=id, source_path=source_path, dest_path=file_path)
 
     def commit_object_changes(
-        self, id: str, coordinator: Coordinator, message: str
+        self, id: str, coordinator: Coordinator, message: str, date: datetime = datetime.now(timezone.utc).astimezone()
     ) -> None:
         args: list[str | Path] = [
             "rocfl",
@@ -96,6 +98,8 @@ class OcflRepositoryGateway(RepositoryGateway):
             f"mailto:{coordinator.email}",
             "-m",
             message,
+            "-c",
+            date.isoformat(),
         ]
         try:
             subprocess.run(args, check=True, capture_output=True)
@@ -162,30 +166,36 @@ class OcflRepositoryGateway(RepositoryGateway):
         ]
         return object_files
 
-    def log(self, id: str, reversed: bool = True) -> list[VersionInfo]:
+    def log(self, id: str, order: LogOrder = LogOrder.descending) -> list[VersionInfo]:
         version_log = []
-        args: list[str | Path] = ["rocfl", "-r", self.storage_path, "log", "-r", id]
+        args: list[str | Path] = ["rocfl", "-r", self.storage_path, "log"]
+        if order == LogOrder.descending:
+            args.append("-r")
+        args.append(id)
+
         info = {}
         try:
             result = subprocess.run(args, check=True, capture_output=True)
+
             for line in result.stdout.decode("utf-8").split("\n"):
-                if not line.strip():
+                line = line.strip()
+                if not line:
                     if info:
-                        version_log.append(VersionInfo(**info))                        
+                        version_log.append(VersionInfo(**info))
+                        info = {}
                     continue
 
                 if line.startswith("Version "):
-                    info = {}
                     info['version'] = int(line.split(" ")[-1])
                 else:
-                    key, value = [ v.strip() for v in line.strip().split(":", 1) ]
+                    key, value = [v.strip() for v in line.strip().split(":", 1)]
                     info[key.lower()] = value
+
+            if info:
+                version_log.append(VersionInfo(**info))
 
             return version_log
         except CalledProcessError as e:
-            staged_version_not_found_message = (
-                f"Not found: {id} does not have a staged version."
-            )
-            if staged_version_not_found_message in e.stderr.decode():
-                return False
+            if "Not found: Object" in e.stderr.decode():
+                raise ObjectDoesNotExistError() from e
             raise RepositoryGatewayError() from e

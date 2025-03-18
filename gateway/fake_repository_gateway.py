@@ -1,9 +1,11 @@
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Set
 
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
+from gateway.enumerations import LogOrder
 from gateway.exceptions import ObjectDoesNotExistError, StagedObjectAlreadyExistsError
 from gateway.object_file import ObjectFile
 from gateway.repository_gateway import RepositoryGateway
@@ -15,6 +17,7 @@ class Version():
     number: int
     coordinator: Coordinator
     message: str
+    date: datetime
     files: Set[Path]
 
 
@@ -60,7 +63,8 @@ class FakeRepositoryGateway(RepositoryGateway):
         self,
         id: str,
         coordinator: Coordinator,
-        message: str
+        message: str,
+        date: datetime = datetime.now(timezone.utc).astimezone(),
     ) -> None:
         if id not in self.store:
             raise ObjectDoesNotExistError()
@@ -74,6 +78,7 @@ class FakeRepositoryGateway(RepositoryGateway):
             number=next_version_num,
             coordinator=coordinator,
             message=message,
+            date=date,
             files=files
         ))
         self.store[id].staged_files = set()
@@ -96,8 +101,20 @@ class FakeRepositoryGateway(RepositoryGateway):
         if id in self.store:
             self.store.pop(id)
 
-    def log(self, id: str, reversed: bool = True) -> list[VersionInfo]:
-        return reversed([
-            VersionInfo(version=v.number, author=v.contributor, message=v.message)
-            for v in self.store[id]
-        ])
+    def log(self, id: str, order: LogOrder = LogOrder.descending) -> list[VersionInfo]:
+        version_log = []
+
+        try:
+            for v in self.store[id].versions:
+                version_log.append(VersionInfo(version=v.number, author=v.coordinator,
+                                               date=v.date, message=v.message))
+
+            if order == LogOrder.descending:
+                version_log = list(reversed(version_log))
+
+            if len(version_log) == 0:
+                raise ObjectDoesNotExistError()
+
+            return version_log
+        except KeyError as e:
+            raise ObjectDoesNotExistError() from e

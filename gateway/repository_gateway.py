@@ -1,9 +1,11 @@
 from abc import ABCMeta, abstractmethod
+from datetime import datetime, timezone
 
 from gateway.bundle import Bundle
 from gateway.coordinator import Coordinator
 from gateway.object_file import ObjectFile
 from gateway.version_info import VersionInfo
+
 
 class RepositoryGateway(metaclass=ABCMeta):
 
@@ -24,7 +26,8 @@ class RepositoryGateway(metaclass=ABCMeta):
         self,
         id: str,
         coordinator: Coordinator,
-        message: str
+        message: str,
+        date: datetime = datetime.now(timezone.utc).astimezone()
     ) -> None:
         pass
 
