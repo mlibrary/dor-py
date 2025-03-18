@@ -1,52 +1,55 @@
 import requests
 
-from datetime import datetime
 from typing import Any
 
-from dor.config import config
 from dor.providers.package_generator import PackageResult
 from enum import Enum
 
 
-class LogStatus(Enum):
-    SUCCESS = "Info"
-    FAILURE = "Error"
+class LogLevel(Enum):
+    INFO = "Info"
+    ERROR = "Error"
+
+
+class LoggerException(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
 
 
 class Logger:
-    def __init__(self, collection_name: str):
+    def __init__(self, collection_name: str, pb_username: str, pb_password: str, pb_url: str):
         self.collection_name = collection_name
         self.token = None
         self.impersonate_token = None
         self.user_id = None
-        self.url = config.pocket_base_url
-        self.pocket_base_username = config.pocket_base_username
-        self.pocket_base_password = config.pocket_base_password
+        self.pb_url = pb_url
+        self.pb_username = pb_username
+        self.pb_password = pb_password
         self._authenticate()
 
     def _authenticate(self):
-        url = f"{self.url}/api/collections/_superusers/auth-with-password"
+        url = f"{self.pb_url}/api/collections/_superusers/auth-with-password"
         payload = {
-            "identity": self.pocket_base_username,
-            "password": self.pocket_base_password,
+            "identity": self.pb_username,
+            "password": self.pb_password,
         }
         response = requests.post(url, data=payload)
 
-        if response.status_code == 200:
+        if response.ok:
             auth_data = response.json()
             self.token = auth_data["token"]
             self.user_id = auth_data["record"]["id"]
             self._impersonate_user()
         else:
-            raise Exception(
+            raise LoggerException(
                 f"Failed to save logs: {response.status_code}, {response.text}"
             )
 
     def _impersonate_user(self):
         if not self.token:
-            return
+            raise LoggerException("Impersonate token is missing")
 
-        url = f"{self.url}/api/collections/_superusers/impersonate/{self.user_id}"
+        url = f"{self.pb_url}/api/collections/_superusers/impersonate/{self.user_id}"
         headers = {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json",
@@ -60,25 +63,27 @@ class Logger:
             self.impersonate_token = impersonate_data["token"]
 
         except requests.exceptions.HTTPError as err:
-            raise Exception(f"Failed to impersonate: {err}")
+            raise LoggerException(f"Failed to impersonate: {err}")
 
     def _collection_exists(self):
         if not self.impersonate_token:
-            return False
+            raise LoggerException("Impersonate token is missing")
 
-        url = f"{self.url}/api/collections/{self.collection_name}"
+        url = f"{self.pb_url}/api/collections/{self.collection_name}"
         headers = {
             "Authorization": f"Bearer {self.impersonate_token}",
             "Content-Type": "application/json",
         }
         response = requests.get(url, headers=headers)
-        return response.status_code == 200
+        if not response.ok:
+            return False # Collection does not exist
+        return True # Collection exists
 
     def _create_log_collection(self):
         if not self.impersonate_token:
-            return
+            raise LoggerException("Impersonate token is missing")
 
-        url = f"{self.url}/api/collections"
+        url = f"{self.pb_url}/api/collections"
         headers = {
             "Authorization": f"Bearer {self.impersonate_token}",
             "Content-Type": "application/json",
@@ -104,20 +109,19 @@ class Logger:
 
         response = requests.post(url, json=collection_data, headers=headers)
 
-        if not response.status_code == 200:
-            raise Exception(
+        if not response.ok:
+            raise LoggerException(
                 f"Failed to save logs: {response.status_code}, {response.text}"
             )
 
     def _write_log(self, log_data: dict[str, Any]):
         if not self.impersonate_token:
-            return
+            raise LoggerException("Impersonate token is missing")
 
-        log_data["Timestamp"] = datetime.now().isoformat()
         if not self._collection_exists():
             self._create_log_collection()
 
-        url = f"{self.url}/api/collections/{self.collection_name}/records"
+        url = f"{self.pb_url}/api/collections/{self.collection_name}/records"
         headers = {
             "Authorization": f"Bearer {self.impersonate_token}",
             "Content-Type": "application/json",
@@ -125,8 +129,8 @@ class Logger:
 
         response = requests.post(url, json=log_data, headers=headers)
 
-        if not response.status_code == 200:
-            raise Exception(
+        if not response.ok:
+            raise LoggerException(
                 f"Failed to save logs: {response.status_code}, {response.text}"
             )
 
@@ -136,13 +140,13 @@ class Logger:
                 "PackageIdentifier": package_result.package_identifier,
                 "DepositGroupIdentifier": package_result.deposit_group_identifier,
                 "Level": (
-                    LogStatus.SUCCESS if (package_result.success) else LogStatus.FAILURE
+                    LogLevel.INFO if (package_result.success) else LogLevel.ERROR
                 ).value,
                 "Message": package_result.message,
             }
             self._write_log(log_entry)
-        except Exception as e:
-            raise Exception(f"Failed to save logs: {e}")
+        except LoggerException as e:
+            raise LoggerException(f"Failed to save logs: {e}")
 
     def log_result(self, package_result: PackageResult):
         self._log(package_result)

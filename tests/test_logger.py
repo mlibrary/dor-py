@@ -2,17 +2,14 @@ from typing import Any
 from unittest import TestCase
 import requests
 from dor.providers.package_generator import PackageResult
-from utils.logger import LogStatus, Logger
+from utils.logger import LogLevel, Logger
 
 
 class TestLoggerIntegration(TestCase):
 
     def setUp(self):
         self.collection_name = "test_logs"
-        self.logger = Logger(collection_name=self.collection_name)
-        self.pocket_base_url = "http://pocketbase:8080"
-        self.pocket_base_username = "test@umich.edu"
-        self.pocket_base_password = "testumich"
+        self.logger = Logger(collection_name=self.collection_name, pb_username="test@umich.edu", pb_password="testumich", pb_url="http://pocketbase:8080")
         self.package_identifier = "package_123"
         self.deposit_group_identifier = "group_123"
         self.success = True
@@ -33,12 +30,10 @@ class TestLoggerIntegration(TestCase):
             params: dict[str, Any] = {
                 "page": 1,
                 "perPage": 1,
-                "filter": f"PackageIdentifier='{self.package_identifier}' && Level='{LogStatus.SUCCESS.value}'",
+                "filter": f"PackageIdentifier='{self.package_identifier}' && Level='{LogLevel.INFO.value}'",
                 "sort": "-Timestamp",
             }
-            url = (
-                f"{self.pocket_base_url}/api/collections/{self.collection_name}/records"
-            )
+            url = f"{self.logger.pb_url}/api/collections/{self.collection_name}/records"
 
             response = requests.get(
                 url,
@@ -52,7 +47,7 @@ class TestLoggerIntegration(TestCase):
             logs = data.get("items", [])
             self.assertGreater(len(logs), 0)
             self.assertEqual(logs[0]["Message"], "Test package success")
-            self.assertEqual(logs[0]["Level"], LogStatus.SUCCESS.value)
+            self.assertEqual(logs[0]["Level"], LogLevel.INFO.value)
 
         except Exception as e:
             self.fail(f"test_log_success_result test failed: {e}")
@@ -70,11 +65,11 @@ class TestLoggerIntegration(TestCase):
             params: dict[str, Any] = {
                 "page": 1,
                 "perPage": 1,
-                "filter": f"PackageIdentifier='{self.package_identifier}' && Level='{LogStatus.FAILURE.value}'",
+                "filter": f"PackageIdentifier='{self.package_identifier}' && Level='{LogLevel.ERROR.value}'",
                 "sort": "-Timestamp",
             }
             url = (
-                f"{self.pocket_base_url}/api/collections/{self.collection_name}/records"
+                f"{self.logger.pb_url}/api/collections/{self.collection_name}/records"
             )
             response = requests.get(
                 url,
@@ -86,7 +81,7 @@ class TestLoggerIntegration(TestCase):
             logs = data.get("items", [])
             self.assertGreater(len(logs), 0)
             self.assertEqual(logs[0]["Message"], "Test package Error")
-            self.assertEqual(logs[0]["Level"], LogStatus.FAILURE.value)
+            self.assertEqual(logs[0]["Level"], LogLevel.ERROR.value)
 
         except Exception as e:
             self.fail(f"test_log_error_result test failed: {e}")
