@@ -13,6 +13,12 @@ class DatabaseConfig:
     database: str
     test_database: str
 
+@dataclass
+class PocketbaseConfig:
+    pb_username: str
+    pb_password: str
+    pb_url: str
+
 
 @dataclass
 class Config:
@@ -20,9 +26,8 @@ class Config:
     inbox_path: Path
     workspaces_path: Path
     database: DatabaseConfig
-    pocket_base_username: str
-    pocket_base_password: str
-    pocket_base_url: str
+    pocketbase: PocketbaseConfig
+
 
     @classmethod
     def from_env(cls):
@@ -37,9 +42,11 @@ class Config:
                 database=os.getenv("POSTGRES_DATABSE", "dor_local"),
                 test_database=os.getenv("POSTGRES_TEST_DATABASE", "dor_test")
             ),
-            pocket_base_username=os.getenv("POCKET_BASE_USERNAME", "test@umich.edu"),
-            pocket_base_password=os.getenv("POCKET_BASE_PASSWORD", "testumich"),
-            pocket_base_url=os.getenv("POCKET_BASE_URL", "http://pocketbase:8080")
+            pocketbase=PocketbaseConfig( 
+                pb_username=os.getenv("POCKET_BASE_USERNAME", "test@umich.edu"),
+                pb_password=os.getenv("POCKET_BASE_PASSWORD", "testumich"),
+                pb_url=os.getenv("POCKET_BASE_URL", "http://pocketbase:8080")
+            )
         )
 
     def _make_database_engine_url(self, database: str):
