@@ -74,7 +74,6 @@ def _(inbox_path: Path, logger: Logger):
 
     for package_result in package_results:
         logger.log_result(package_result)
-    return logger
 
 
 @then('the submission packages are generated in the inbox')
