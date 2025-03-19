@@ -14,6 +14,7 @@ from dor.adapters.bag_adapter import BagAdapter
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.packager import Packager
 from dor.providers.package_generator import PackageResult
+from utils.logger import Logger
 
 
 scenario = partial(scenario, '../generate_packages.feature')
@@ -36,10 +37,10 @@ def _():
     return inbox_path
 
 
-@when('the Collection Manager invokes the packager', target_fixture="package_results")
+@when('the Collection Manager invokes the packager', target_fixture="logger")
 def _(inbox_path):
     """the Collection Manager invokes the packager."""
-    
+
     packager_fixtures_path = Path("features/fixtures/packager/")
     jsonl_dump_file_path = packager_fixtures_path / "sample-dump-1.jsonl"
     config_file_path = packager_fixtures_path / "config.json"
@@ -53,7 +54,18 @@ def _(inbox_path):
         timestamper=lambda: datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     package_results = packager.generate()
-    return package_results
+
+    collection_name = "test_generate_packages"
+    logger = Logger(
+        collection_name=collection_name,
+        pb_username="test@umich.edu",
+        pb_password="testumich",
+        pb_url="http://pocketbase:8080"
+    )
+    logger.reset_log_collection()
+    for package_result in package_results:
+        logger.log_result(package_result)
+    return logger
 
 
 @then('the submission packages are generated in the inbox')
@@ -68,12 +80,15 @@ def _(inbox_path):
 
 
 @then('the Collection Manager gets notified upon completion of the batch')
-def _(package_results):
+def _(logger):
     """the Collection Manager gets notified upon completion of the batch."""
+    expected_package_identifier = "00000000-0000-0000-0000-000000000001_19700101000000"
 
-    assert package_results == [PackageResult(
-        package_identifier=f"00000000-0000-0000-0000-000000000001_19700101000000",
+    package_result = logger.search(expected_package_identifier)
+
+    assert package_result == PackageResult(
+        package_identifier=expected_package_identifier,
         deposit_group_identifier="23312082-44d8-489e-97f4-383329de9ac5",
         success=True,
         message="Generated package successfully!"
-    )]
+    )

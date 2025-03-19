@@ -119,7 +119,7 @@ class Logger:
             raise LoggerException("Impersonate token is missing")
 
         if not self._collection_exists():
-            self._create_log_collection()
+            raise LoggerException(f"Log collection {self.collection_name} does not exist.")
 
         url = f"{self.pb_url}/api/collections/{self.collection_name}/records"
         headers = {
@@ -150,4 +150,46 @@ class Logger:
 
     def log_result(self, package_result: PackageResult):
         self._log(package_result)
-        
+
+    def search(self, package_identifier: str) -> PackageResult | None:
+        params: dict[str, Any] = {
+            "page": 1,
+            "perPage": 1,
+            "filter": f"PackageIdentifier='{package_identifier}'",
+            "sort": "-Timestamp",
+        }
+        url = f"{self.pb_url}/api/collections/{self.collection_name}/records"
+
+        response = requests.get(
+            url,
+            params=params,
+            headers={"Authorization": f"Bearer {self.impersonate_token}"},
+        )
+
+        data = response.json()
+        items = data["items"]
+        if len(items) == 0:
+            return None
+
+        item = items[0]
+        return PackageResult(
+            package_identifier=item["PackageIdentifier"],
+            deposit_group_identifier=item["DepositGroupIdentifier"],
+            success=item["Level"] == LogLevel.INFO.value,
+            message=item["Message"]
+        )
+
+
+    def _delete_log_collection(self) -> None:
+        url = f"{self.pb_url}/api/collections/{self.collection_name}"
+
+        response = requests.delete(
+            url,
+            headers={"Authorization": f"Bearer {self.impersonate_token}"},
+        )
+        response.raise_for_status()
+
+    def reset_log_collection(self) -> None:
+        if self._collection_exists():
+            self._delete_log_collection()
+        self._create_log_collection()
