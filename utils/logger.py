@@ -179,7 +179,6 @@ class Logger:
             message=item["Message"]
         )
 
-
     def _delete_log_collection(self) -> None:
         url = f"{self.pb_url}/api/collections/{self.collection_name}"
 
@@ -187,7 +186,10 @@ class Logger:
             url,
             headers={"Authorization": f"Bearer {self.impersonate_token}"},
         )
-        response.raise_for_status()
+        if not response.ok:
+            raise LoggerException(
+                f"Failed to delete collection {self.collection_name}: {response.status_code}, {response.text}"
+            )
 
     def reset_log_collection(self) -> None:
         if self._collection_exists():
