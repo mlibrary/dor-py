@@ -95,4 +95,59 @@ class TestLoggerIntegration(TestCase):
 
         except Exception as e:
             self.fail(f"test_log_error_result test failed: {e}")
+    def test_search_success_result(self):
+        try:
+            test_package_result: PackageResult = PackageResult(
+                package_identifier=self.package_identifier,
+                deposit_group_identifier=self.deposit_group_identifier,
+                success=self.success,
+                message=self.success_message,
+            )
+            self.logger.log_result(test_package_result)
+
+            result = self.logger.search(self.package_identifier)
+            self.assertIsNotNone(result)
+            self.assertEqual(result.package_identifier, self.package_identifier)
+            self.assertEqual(result.deposit_group_identifier, self.deposit_group_identifier)
+            self.assertTrue(result.success)
+            self.assertEqual(result.message, self.success_message)
+
+        except Exception as e:
+            self.fail(f"test_search_success_result test failed: {e}")
+
+    def test_search_error_result(self):
+        try:
+            test_package_result: PackageResult = PackageResult(
+                package_identifier=self.package_identifier,
+                deposit_group_identifier=self.deposit_group_identifier,
+                success=self.error,
+                message=self.error_message,
+            )
+            self.logger.log_result(test_package_result)
+
+            result = self.logger.search(self.package_identifier)
+            self.assertIsNotNone(result)
+            self.assertEqual(result.package_identifier, self.package_identifier)
+            self.assertEqual(result.deposit_group_identifier, self.deposit_group_identifier)
+            self.assertFalse(result.success)
+            self.assertEqual(result.message, self.error_message)
+
+        except Exception as e:
+            self.fail(f"test_search_error_result test failed: {e}")
+
+    def test_search_no_result(self):
+        try:
+            result = self.logger.search("non_existent_package")
+            self.assertIsNone(result)
+
+        except Exception as e:
+            self.fail(f"test_search_no_result test failed: {e}")
+            
+    def test_delete_log_collection(self):
+        try:
+            self.logger.reset_log_collection()
+            result = self.logger.search(self.package_identifier)
+            self.assertIsNone(result)           
+        except Exception as e:
+            self.fail(f"test_delete_log_collection test failed: {e}")
             
