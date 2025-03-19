@@ -151,8 +151,8 @@ class TestLoggerIntegration(TestCase):
             test_package_result: PackageResult = PackageResult(
                 package_identifier=self.package_identifier,
                 deposit_group_identifier=self.deposit_group_identifier,
-                success=self.error,
-                message=self.error_message,
+                success=self.success,
+                message=self.success_message,
             )
             self.logger.log_result(test_package_result)
 
