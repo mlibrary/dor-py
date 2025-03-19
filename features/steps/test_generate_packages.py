@@ -54,7 +54,7 @@ def _(logger: Logger):
     return inbox_path
 
 
-@when('the Collection Manager invokes the packager', target_fixture="logger")
+@when('the Collection Manager invokes the packager')
 def _(inbox_path: Path, logger: Logger):
     """the Collection Manager invokes the packager."""
 
