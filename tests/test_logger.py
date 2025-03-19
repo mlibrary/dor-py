@@ -17,6 +17,8 @@ class TestLoggerIntegration(TestCase):
         self.error = False
         self.error_message = "Test package Error"
 
+        self.logger.reset_log_collection()
+
     def test_log_success_result(self):
         try:
             test_package_result: PackageResult = PackageResult(
