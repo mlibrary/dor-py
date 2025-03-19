@@ -1,6 +1,9 @@
 from typing import Any
 from unittest import TestCase
+
 import requests
+
+from dor.config import config
 from dor.providers.package_generator import PackageResult
 from utils.logger import LogLevel, Logger
 
@@ -9,7 +12,12 @@ class TestLoggerIntegration(TestCase):
 
     def setUp(self):
         self.collection_name = "test_logs"
-        self.logger = Logger(collection_name=self.collection_name, pb_username="test@umich.edu", pb_password="testumich", pb_url="http://pocketbase:8080")
+        self.logger = Logger(
+            collection_name=self.collection_name,
+            pb_username=config.pocketbase.pb_username,
+            pb_password=config.pocketbase.pb_password,
+            pb_url=config.pocketbase.pb_url
+        )
         self.package_identifier = "package_123"
         self.deposit_group_identifier = "group_123"
         self.success = True
