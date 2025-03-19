@@ -12,6 +12,7 @@ class DatabaseConfig:
     password: str
     database: str
 
+
 @dataclass
 class PocketbaseConfig:
     pb_username: str
