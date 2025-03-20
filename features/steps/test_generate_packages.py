@@ -43,10 +43,10 @@ def _(logger: Logger):
     """a JSONL dump file and file sets in pending."""
 
     file_provider = FilesystemFileProvider()
-    scratch_path = Path("features/packager_scratch")
-    inbox_path = scratch_path / Path("inbox")
+    test_path = Path("tests/test_packager")
+    inbox_path = test_path / Path("inbox")
 
-    file_provider.delete_dir_and_contents(path=scratch_path)
+    file_provider.delete_dir_and_contents(path=test_path)
     file_provider.create_directories(inbox_path)
 
     logger.reset_log_collection()
@@ -57,8 +57,8 @@ def _(logger: Logger):
 @when('the Collection Manager invokes the packager')
 def _(inbox_path: Path, logger: Logger):
     """the Collection Manager invokes the packager."""
-
-    packager_fixtures_path = Path("features/fixtures/packager/")
+    
+    packager_fixtures_path = Path("tests/fixtures/packager/")
     jsonl_dump_file_path = packager_fixtures_path / "sample-dump-1.jsonl"
     config_file_path = packager_fixtures_path / "config.json"
     pending_path = packager_fixtures_path / "pending"
