@@ -7,7 +7,8 @@ import hashlib
 from dor.settings import S, text_font, template_env
 
 from .parts import (
-    FileUses,
+    UseFormats,
+    UseFunctions,
     Identifier,
     Md,
     File,
@@ -19,6 +20,7 @@ from .parts import (
     make_paths,
     get_faker,
     get_datetime,
+    flatten_use,
 )
 from .premis import build_event
 
@@ -26,8 +28,8 @@ IMAGE_WIDTH = 680
 IMAGE_HEIGHT = 1024
 
 IMAGE_COLORS = {
-    FileUses.access: {"background": "#eeeeee", "text": "#666666"},
-    FileUses.source: {"background": "#666666", "text": "#eeeeee"},
+    UseFunctions.service: {"background": "#eeeeee", "text": "#666666"},
+    UseFunctions.source: {"background": "#666666", "text": "#eeeeee"},
 }
 
 def build_image(use, seq, version):
@@ -88,7 +90,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     padded_seq = f"{seq:08d}"
 
     # source
-    image = build_image(use=FileUses.source, seq=seq, version=version)
+    image = build_image(use=UseFunctions.source, seq=seq, version=version)
     image_filename = f"{padded_seq}.source.jpg"
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
     image_pathname = file_set_pathname.joinpath("data", image_filename)
@@ -101,7 +103,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use="TECHNICAL",
+            use=flatten_use(UseFunctions.technical),
             mdtype="NISOIMG",
             locref=f"{identifier}/metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
@@ -114,7 +116,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     )
     file = File(
         id=generate_md5(image_filename),
-        use=str(FileUses.source.value),
+        use=flatten_use(UseFunctions.source, UseFormats.image),
         mdid=mdsec_items[-1].id,
         locref=f"{identifier}/data/{image_filename}",
         mimetype="image/jpeg",
@@ -124,8 +126,8 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     source_file_identifier = file.id
 
     # access
-    image = build_image(use=FileUses.access, seq=seq, version=version)
-    image_filename = f"{padded_seq}.access.jpg"
+    image = build_image(use=UseFunctions.service, seq=seq, version=version)
+    image_filename = f"{padded_seq}.service.jpg"
 
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
     image_pathname = file_set_pathname.joinpath("data", image_filename)
@@ -138,7 +140,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use="TECHNICAL",
+            use=flatten_use(UseFunctions.technical),
             mdtype="NISOIMG",
             locref=f"{identifier}/metadata/{image_filename}.mix.xml",
             checksum=calculate_checksum(metadata_pathname),
@@ -148,7 +150,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     file = File(
         id=generate_md5(image_filename),
         group_id=source_file_identifier,
-        use=str(FileUses.access.value),
+        use=flatten_use(UseFunctions.service, UseFormats.image),
         mdid=mdsec_items[-1].id,
         locref=f"{identifier}/data/{image_filename}",
         mimetype="image/jpeg",
@@ -160,7 +162,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use="EVENT",
+            use=flatten_use(UseFunctions.event),
             mdtype="PREMIS",
             locref=f"{identifier}/metadata/{image_filename}.premis.event.xml",
             mimetype="text/xml",
@@ -172,7 +174,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
         )
     )
 
-    plaintext = build_plaintext(use=FileUses.source, seq=seq, version=version)
+    plaintext = build_plaintext(use=UseFunctions.service, seq=seq, version=version)
     text_filename = f"{padded_seq}.plaintext.txt"
     text_pathname = file_set_pathname.joinpath("data", text_filename)
     metadata_pathname = file_set_pathname.joinpath("metadata", f"{text_filename}.textmd.xml")
@@ -185,7 +187,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use="TECHNICAL",
+            use=flatten_use(UseFunctions.technical),
             mdtype="TEXTMD",
             locref=f"{identifier}/metadata/{text_filename}.textmd.xml",
             checksum=calculate_checksum(metadata_pathname),
@@ -195,7 +197,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     file = File(
         id=generate_md5(text_filename),
         group_id=source_file_identifier,
-        use=str(FileUses.source.value),
+        use=flatten_use(UseFunctions.service, UseFormats.text_plain),
         mdid=mdsec_items[-1].id,
         locref=f"{identifier}/data/{text_filename}",
         mimetype="text/plain",
@@ -207,7 +209,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use="EVENT",
+            use=flatten_use(UseFunctions.event),
             mdtype="PREMIS",
             locref=f"{identifier}/metadata/{text_filename}.premis.event.xml",
             mimetype="text/xml",

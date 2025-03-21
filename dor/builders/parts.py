@@ -23,12 +23,19 @@ class Fakish:
 
     def get_datetime(self, start_date=None):
         if start_date:
-            return self.fakers["en_US"].date_time_between(start_date=start_date)\
+            return (
+                self.fakers["en_US"]
+                .date_time_between(start_date=start_date)
                 .strftime("%Y-%m-%dT00:00:00Z")
-        return self.fakers["en_US"].date_time_between_dates(
-            datetime_start=datetime(1991, 1, 1, 0, 0, 0),
-            datetime_end=datetime(2027, 12, 31, 23, 59, 59),
-        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+            )
+        return (
+            self.fakers["en_US"]
+            .date_time_between_dates(
+                datetime_start=datetime(1991, 1, 1, 0, 0, 0),
+                datetime_end=datetime(2027, 12, 31, 23, 59, 59),
+            )
+            .strftime("%Y-%m-%dT%H:%M:%SZ")
+        )
 
     def __getitem__(self, locale):
         return self.fakers[locale]
@@ -41,9 +48,31 @@ class Fakish:
             f"'{type(self).__name__}' object has no attribute '{name}'"
         )
 
-class FileUses(str, Enum):
-    access = "ACCESS"
-    source = "SOURCE"
+
+class UseFunctions(str, Enum):
+    service = "function:service"
+    source = "function:source"
+    provenance = "function:provenance"
+    preservation = "function:preservation"
+    event = "function:event"
+    technical = "function:technical"
+
+
+class UseFormats(str, Enum):
+    image = "format:image"
+    audiovidual = "format:audiovisual"
+    audio = "format:audio"
+    text_coordinates = "format:text-coordinate"
+    text_plain = "format:text-plain"
+    text_annotations = "format:text-annotation"
+    text_encoded = "format:text-encoded"
+
+
+class StructureTypes(str, Enum):
+    physical = "structure:physical"
+    contents = "structure:contents"
+    grid = "structure:grid"
+
 
 @dataclass
 class Md:
@@ -80,11 +109,12 @@ class FileGrp:
     use: str
     files: list[File] = field(default_factory=list)
 
+
 # utility class so asset identifiers can
 # build on the start value
 @dataclass
 class Identifier:
-    collid: str = 'dlxs'
+    collid: str = "dlxs"
     start: int = -1
     uuid: uuid6.UUID = None
 
@@ -123,16 +153,20 @@ def calculate_checksum(pathname):
         digest = hashlib.file_digest(f, "sha512")
     return digest.hexdigest()
 
+
 def generate_uuid(base=None):
     if base:
         return str(uuid6.UUID(int=base))
     return str(uuid6.uuid7())
 
+
 def generate_ulid():
     return str(ULID())
 
+
 def generate_md5(s):
-    return hashlib.md5(s.encode('utf-8')).hexdigest()
+    return hashlib.md5(s.encode("utf-8")).hexdigest()
+
 
 def make_paths(pathname):
     pathname.mkdir()
@@ -141,11 +175,14 @@ def make_paths(pathname):
         d_pathname.mkdir()
     return pathname
 
+
 _fakers = {}
+
 
 def reset_fakers():
     global _fakers
     _fakers.clear()
+
 
 def get_faker(role="default"):
     global _fakers
@@ -160,3 +197,7 @@ def get_datetime():
         datetime_start=datetime(1991, 1, 1, 0, 0, 0),
         datetime_end=datetime(2027, 12, 31, 23, 59, 59),
     ).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def flatten_use(*uses):
+    return " ".join([u.value for u in uses])
