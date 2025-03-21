@@ -5,6 +5,8 @@ from ulid import ULID
 import hashlib
 from enum import Enum
 
+from pathlib import Path
+
 from datetime import datetime
 
 from faker.factory import Factory
@@ -57,6 +59,9 @@ class UseFunctions(str, Enum):
     event = "function:event"
     technical = "function:technical"
 
+    def __str__(self):
+        return self.value
+
 
 class UseFormats(str, Enum):
     image = "format:image"
@@ -67,11 +72,17 @@ class UseFormats(str, Enum):
     text_annotations = "format:text-annotation"
     text_encoded = "format:text-encoded"
 
+    def __str__(self):
+        return self.value
+
 
 class StructureTypes(str, Enum):
     physical = "structure:physical"
     contents = "structure:contents"
     grid = "structure:grid"
+
+    def __str__(self):
+        return self.value
 
 
 @dataclass
@@ -148,6 +159,85 @@ class IdGenerator:
         return generate_uuid(base=16 * 16 * self.identifier.start + self.counter)
 
 
+@dataclass
+class F:
+    identifier: str
+    basename: str
+    uses: list[UseFunctions | UseFormats]
+    mimetype: str
+
+    @property
+    def place(self):
+        return "data"
+
+    @property
+    def ext(self):
+        match self.mimetype:
+            case "image/jpeg":
+                return "jpg"
+            case "text/plain":
+                return "txt"
+            case "text/xml+premis":
+                return "premis.xml"
+            case "text/xml+nisoimg":
+                return "mix.xml"
+            case "text/xml+textmd":
+                return "textmd.xml"
+            case "application/json+schema":
+                return "json"
+            case "application/json":
+                return "json"
+            case "_":
+                return "bin"
+
+    @property
+    def filename(self):
+        return f"{self.basename}.{flatten_use(*self.uses, delim='.')}.{self.ext}"
+
+    @property
+    def locref(self):
+        return f"{self.identifier}/{self.place}/{self.filename}"
+
+    def __str__(self):
+        return self.filename
+
+    def encode(self, encoding):
+        return self.filename.encode(encoding)
+
+    def md(self, use, mimetype):
+        return FMD(
+            identifier=self.identifier,
+            basename=self.filename,
+            uses=[use],
+            mimetype=mimetype,
+        )
+
+    @property
+    def path(self):
+        return Path(self.place, self.filename)
+
+
+class FMD(F):
+
+    @property
+    def place(self):
+        return "metadata"
+
+    @property
+    def mdtype(self):
+        match self.mimetype:
+            case "text/xml+premis":
+                return "PREMIS"
+            case "text/xml+nisoimg":
+                return "NISOIMG"
+            case "text/xml+textmd":
+                return "TEXTMD"
+            case "application/json":
+                return "DOR:SCHEMA"
+            case "_":
+                return "UNKNOWN"
+
+
 def calculate_checksum(pathname):
     with pathname.open("rb") as f:
         digest = hashlib.file_digest(f, "sha512")
@@ -199,5 +289,6 @@ def get_datetime():
     ).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def flatten_use(*uses):
-    return " ".join([u.value for u in uses])
+def flatten_use(*uses, delim=" "):
+    # this is shameless pea green
+    return delim.join([u.value for u in uses])
