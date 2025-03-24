@@ -51,7 +51,11 @@ class Fakish:
         )
 
 
-class UseFunctions(str, Enum):
+class _Enum(Enum):
+    def __str__(self):
+        return self.value
+
+class UseFunctions(str, _Enum):
     service = "function:service"
     source = "function:source"
     provenance = "function:provenance"
@@ -59,11 +63,8 @@ class UseFunctions(str, Enum):
     event = "function:event"
     technical = "function:technical"
 
-    def __str__(self):
-        return self.value
 
-
-class UseFormats(str, Enum):
+class UseFormats(str, _Enum):
     image = "format:image"
     audiovidual = "format:audiovisual"
     audio = "format:audio"
@@ -72,17 +73,12 @@ class UseFormats(str, Enum):
     text_annotations = "format:text-annotation"
     text_encoded = "format:text-encoded"
 
-    def __str__(self):
-        return self.value
 
-
-class StructureTypes(str, Enum):
+class StructureTypes(str, _Enum):
     physical = "structure:physical"
     contents = "structure:contents"
     grid = "structure:grid"
-
-    def __str__(self):
-        return self.value
+    page = "structure:page"
 
 
 @dataclass
@@ -160,7 +156,7 @@ class IdGenerator:
 
 
 @dataclass
-class F:
+class FileInfo:
     identifier: str
     basename: str
     uses: list[UseFunctions | UseFormats]
@@ -179,7 +175,7 @@ class F:
                 return "txt"
             case "text/xml+premis":
                 return "premis.xml"
-            case "text/xml+nisoimg":
+            case "text/xml+mix":
                 return "mix.xml"
             case "text/xml+textmd":
                 return "textmd.xml"
@@ -204,8 +200,8 @@ class F:
     def encode(self, encoding):
         return self.filename.encode(encoding)
 
-    def md(self, use, mimetype):
-        return FMD(
+    def metadata(self, use, mimetype):
+        return MetadataFileInfo(
             identifier=self.identifier,
             basename=self.filename,
             uses=[use],
@@ -217,7 +213,9 @@ class F:
         return Path(self.place, self.filename)
 
 
-class FMD(F):
+@dataclass
+class MetadataFileInfo(FileInfo):
+    mdtype_: str = None
 
     @property
     def place(self):
@@ -225,17 +223,19 @@ class FMD(F):
 
     @property
     def mdtype(self):
+        if self.mdtype_:
+            return self.mdtype_
         match self.mimetype:
             case "text/xml+premis":
                 return "PREMIS"
-            case "text/xml+nisoimg":
+            case "text/xml+mix":
                 return "NISOIMG"
             case "text/xml+textmd":
                 return "TEXTMD"
             case "application/json":
-                return "DOR:SCHEMA"
+                return "schema:generic"
             case "_":
-                return "UNKNOWN"
+                return "OTHER"
 
 
 def calculate_checksum(pathname):

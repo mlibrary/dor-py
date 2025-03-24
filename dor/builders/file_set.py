@@ -23,7 +23,8 @@ from .parts import (
     get_faker,
     get_datetime,
     flatten_use,
-    F,
+    FileInfo,
+    MetadataFileInfo,
 )
 from .premis import build_event
 
@@ -100,10 +101,10 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     image = build_image(use=UseFunctions.source, seq=seq, version=version)
     # image_filename = f"{padded_seq}.{UseFunctions.source}-{UseFormats.image}.jpg"
 
-    image_filename = F(
+    image_filename = FileInfo(
         identifier, padded_seq, [UseFunctions.source, UseFormats.image], "image/jpeg"
     )
-    metadata_filename = image_filename.md(UseFunctions.technical, "text/xml+nisoimg")
+    metadata_filename = image_filename.metadata(UseFunctions.technical, "text/xml+mix")
 
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
 
@@ -136,12 +137,12 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     file_group.files.append(file)
     source_file_identifier = file.id
 
-    # access
+    # service
     image = build_image(use=UseFunctions.service, seq=seq, version=version)
-    image_filename = F(
+    image_filename = FileInfo(
         identifier, padded_seq, [UseFunctions.service, UseFormats.image], "image/jpeg"
     )
-    metadata_pathname = image_filename.md(UseFunctions.technical, "text/xml+nisoimg")
+    metadata_pathname = image_filename.metadata(UseFunctions.technical, "text/xml+mix")
 
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
     image_pathname = file_set_pathname / image_filename.path
@@ -173,9 +174,9 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     file_group.files.append(file)
 
     premis_event = build_event(
-        event_type="generate access derivative", linking_agent_type="image processing"
+        event_type="generate service derivative", linking_agent_type="image processing"
     )
-    premis_filename = image_filename.md(UseFunctions.event, "text/xml+premis")
+    premis_filename = image_filename.metadata(UseFunctions.event, "text/xml+premis")
     mdsec_items.append(
         Md(
             id=id_generator(),
@@ -190,14 +191,14 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     )
 
     plaintext = build_plaintext(use=UseFunctions.service, seq=seq, version=version)
-    text_filename = F(
+    text_filename = FileInfo(
         identifier,
         padded_seq,
         [UseFunctions.service, UseFormats.text_plain],
         "text/plain",
     )
     text_pathname = file_set_pathname / text_filename.path
-    metadata_filename = text_filename.md(UseFunctions.technical, "text/xml+textmd")
+    metadata_filename = text_filename.metadata(UseFunctions.technical, "text/xml+textmd")
     metadata_pathname = file_set_pathname / metadata_filename.path
 
     text_pathname.open("w").write(plaintext)
@@ -228,7 +229,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     premis_event = build_event(
         event_type="extract text", linking_agent_type="ocr processing"
     )
-    premis_filename = text_filename.md(UseFunctions.event, "text/xml+premis")
+    premis_filename = text_filename.metadata(UseFunctions.event, "text/xml+premis")
     mdsec_items.append(
         Md(
             id=id_generator(),

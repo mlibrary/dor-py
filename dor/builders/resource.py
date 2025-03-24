@@ -20,8 +20,8 @@ from .parts import (
     get_faker,
     get_datetime,
     flatten_use,
-    F,
-    FMD,
+    FileInfo,
+    MetadataFileInfo,
 )
 from .file_set import build_file_set
 from .premis import build_event
@@ -58,16 +58,24 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         premis_event = build_event(
             event_type="ingest", linking_agent_type="collection manager"
         )
-        resource_pathname.joinpath(
-            "metadata", f"{resource_identifier}-{version}.premis.event.xml"
-        ).open("w").write(premis_event_template.render(event=premis_event))
+
+        premis_filename = MetadataFileInfo(
+            resource_identifier,
+            f"{resource_identifier}-{version}",
+            [UseFunctions.event],
+            "text/xml+premis",
+        )
+        (resource_pathname / premis_filename.path).open("w").write(
+            premis_event_template.render(event=premis_event)
+        )
+
         mdsec_items.append(
             Md(
                 id=generate_md_identifier(),
                 use=flatten_use(UseFunctions.event),
-                mdtype="PREMIS",
-                locref=f"{resource_identifier}/metadata/{resource_identifier}-{version}.premis.event.xml",
-                mimetype="text/xml",
+                mdtype=premis_filename.mdtype,
+                locref=premis_filename.locref,
+                mimetype=premis_filename.mimetype,
             )
         )
 
@@ -104,11 +112,12 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         metadata_fake["en_US"].organism_latin() for _ in range(5)
     ]
 
-    metadata_filename = FMD(
+    metadata_filename = MetadataFileInfo(
         resource_identifier,
         resource_identifier,
         [UseFunctions.source],
         "application/json+schema",
+        "schema:monograph"
     )
 
     # metadata_pathname = resource_pathname.joinpath(
@@ -125,11 +134,12 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         "subjects": metadata["places"] + metadata["identification"],
     }
 
-    common_filename = FMD(
+    common_filename = MetadataFileInfo(
         resource_identifier,
         resource_identifier,
         [UseFunctions.service],
         "application/json+schema",
+        "schema:common"
     )
 
     common_pathname = resource_pathname / common_filename.path
@@ -157,7 +167,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         )
     )
 
-    premis_filename = FMD(
+    premis_filename = MetadataFileInfo(
         resource_identifier,
         resource_identifier,
         [UseFunctions.provenance],
@@ -185,7 +195,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         event_type="ingest", linking_agent_type="collection manager"
     )
 
-    premis_filename = FMD(
+    premis_filename = MetadataFileInfo(
         resource_identifier,
         resource_identifier,
         [UseFunctions.event],

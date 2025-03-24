@@ -10,7 +10,7 @@
 
   <METS:mdSec>
     {% for md in mdsec_items %}
-    <METS:md USE="{{ md.use }}" ID="_{{ md.id }}"{% if md.mimetype %} MIMETYPE="{{ md.mimetype }}{% endif %}"><METS:mdRef LOCREF="{{ md.locref }}" LOCTYPE="URL" MDTYPE="{{ md.mdtype }}" {% if md.checksum %}CHECKSUM="{{ md.checksum }}" CHECKSUMTYPE="SHA-512"{% endif %} /></METS:md>
+    <METS:md USE="{{ md.use }}" ID="_{{ md.id }}"{% if md.mimetype %} MIMETYPE="{{ md.mimetype }}"{% endif %}><METS:mdRef LOCREF="{{ md.locref }}" LOCTYPE="URL" MDTYPE="{{ md.mdtype }}" {% if md.checksum %}CHECKSUM="{{ md.checksum }}" CHECKSUMTYPE="SHA-512"{% endif %} /></METS:md>
     {% endfor %}
   </METS:mdSec>
 
