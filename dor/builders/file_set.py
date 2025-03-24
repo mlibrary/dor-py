@@ -142,7 +142,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     image_filename = FileInfo(
         identifier, padded_seq, [UseFunctions.service, UseFormats.image], "image/jpeg"
     )
-    metadata_pathname = image_filename.metadata(UseFunctions.technical, "text/xml+mix")
+    metadata_filename = image_filename.metadata(UseFunctions.technical, "text/xml+mix")
 
     metadata["object_identifier"] = f"{identifier}:{image_filename}"
     image_pathname = file_set_pathname / image_filename.path

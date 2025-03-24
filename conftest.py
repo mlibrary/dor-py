@@ -54,7 +54,7 @@ def test_client(db_session) -> Generator[TestClient, None, None]:
 @pytest.fixture
 def sample_revision() -> Revision:
     return Revision(
-        identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"), 
+        identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"),
         alternate_identifiers=["xyzzy:00000001"],
         revision_number=1,
         created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
@@ -66,14 +66,16 @@ def sample_revision() -> Revision:
             "subjects": [
                 "Liechtenstein",
                 "Vietnam",
-            ]
+            ],
         },
         package_resources=[
             PackageResource(
                 id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 type="Monograph",
                 root=True,
-                alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
+                alternate_identifier=AlternateIdentifier(
+                    id="xyzzy:00000001", type="DLXS"
+                ),
                 events=[
                     PreservationEvent(
                         identifier="abdcb901-721a-4be0-a981-14f514236633",
@@ -81,54 +83,47 @@ def sample_revision() -> Revision:
                         datetime=datetime(2016, 11, 29, 13, 51, 14, tzinfo=UTC),
                         detail="Middle president push visit information feel most.",
                         agent=Agent(
-                            address="christopherpayne@example.org", role="collection manager"
+                            address="christopherpayne@example.org",
+                            role="collection manager",
                         ),
                     )
                 ],
                 metadata_files=[
                     FileMetadata(
                         id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
-                        use="DESCRIPTIVE/COMMON",
+                        use="function:service",
                         ref=FileReference(
-                            locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
-                            mdtype="DOR:SCHEMA",
-                            mimetype="application/json",
+                            locref="../metadata/00000000-0000-0000-0000-000000000001.function:service.json",
+                            mdtype="schema:common",
+                            mimetype="application/json+schema",
                         ),
                     ),
                     FileMetadata(
                         id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
-                        use="DESCRIPTIVE",
+                        use="function:source",
                         ref=FileReference(
-                            locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
-                            mdtype="DOR:SCHEMA",
-                            mimetype="application/json",
-                        ),
-                    ),
-                    FileMetadata(
-                        id="RIGHTS1",
-                        use="RIGHTS",
-                        ref=FileReference(
-                            locref="https://creativecommons.org/publicdomain/zero/1.0/",
-                            mdtype="OTHER",
+                            locref="../metadata/00000000-0000-0000-0000-000000000001.function:source.json",
+                            mdtype="schema:common",
+                            mimetype="application/json+schema",
                         ),
                     ),
                 ],
                 struct_maps=[
                     StructMap(
                         id="SM1",
-                        type=StructMapType.PHYSICAL,
+                        type=StructMapType.physical,
                         items=[
                             StructMapItem(
                                 order=1,
-                                type="page",
+                                type="structure:page",
                                 label="Page 1",
-                                file_set_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                                file_set_id="00000000-0000-0000-0000-000000001001",
                             ),
                             StructMapItem(
                                 order=2,
-                                type="page",
+                                type="structure:page",
                                 label="Page 2",
-                                file_set_id="urn:dor:00000000-0000-0000-0000-000000001002",
+                                file_set_id="00000000-0000-0000-0000-000000001002",
                             ),
                         ],
                     )
@@ -146,38 +141,42 @@ def sample_revision() -> Revision:
                         type="generate access derivative",
                         datetime=datetime(1993, 6, 11, 4, 44, 7, tzinfo=UTC),
                         detail="Night wonder three him family structure simple.",
-                        agent=Agent(address="arroyoalan@example.net", role="image processing"),
+                        agent=Agent(
+                            address="arroyoalan@example.net", role="image processing"
+                        ),
                     ),
                     PreservationEvent(
                         identifier="3bdcb1e3-4674-4b9c-83c8-4f9f9fe50812",
                         type="extract text",
                         datetime=datetime(1988, 5, 26, 18, 33, 46, tzinfo=UTC),
                         detail="Player center road attorney speak wait partner.",
-                        agent=Agent(address="jonathanjones@example.net", role="ocr processing"),
+                        agent=Agent(
+                            address="jonathanjones@example.net", role="ocr processing"
+                        ),
                     ),
                 ],
                 metadata_files=[
                     FileMetadata(
                         id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
-                        use="TECHNICAL",
+                        use="function:technical",
                         ref=FileReference(
-                            locref="../metadata/00000001.source.jpg.mix.xml",
+                            locref="../metadata/00000001.function:source.format:image.jpg.function:technical.mix.xml",
                             mdtype="NISOIMG",
                         ),
                     ),
                     FileMetadata(
                         id="_0193d5f0-7e75-7803-8e41-71323b7b3284",
-                        use="TECHNICAL",
+                        use="function:technical",
                         ref=FileReference(
-                            locref="../metadata/00000001.access.jpg.mix.xml",
+                            locref="../metadata/00000001.function:service.format:image.jpg.function:technical.mix.xml",
                             mdtype="NISOIMG",
                         ),
                     ),
                     FileMetadata(
                         id="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
-                        use="TECHNICAL",
+                        use="function:technical",
                         ref=FileReference(
-                            locref="../metadata/00000001.plaintext.txt.textmd.xml",
+                            locref="../metadata/00000001.function:service.format:text-plain.txt.function:technical.textmd.xml",
                             mdtype="TEXTMD",
                         ),
                     ),
@@ -186,9 +185,9 @@ def sample_revision() -> Revision:
                     FileMetadata(
                         id="_be653ff450ae7f3520312a53e56c00bc",
                         mdid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
-                        use="SOURCE",
+                        use="function:source",
                         ref=FileReference(
-                            locref="../data/00000001.source.jpg",
+                            locref="../data/00000001.function:source.format:image.jpg",
                             mimetype="image/jpeg",
                         ),
                     ),
@@ -196,9 +195,9 @@ def sample_revision() -> Revision:
                         id="_7e923d9c33b3859e1327fa53a8e609a1",
                         groupid="_be653ff450ae7f3520312a53e56c00bc",
                         mdid="_0193d5f0-7e75-7803-8e41-71323b7b3284",
-                        use="ACCESS",
+                        use="function:service",
                         ref=FileReference(
-                            locref="../data/00000001.access.jpg",
+                            locref="../data/00000001.function:service.format:image.jpg",
                             mimetype="image/jpeg",
                         ),
                     ),
@@ -206,15 +205,15 @@ def sample_revision() -> Revision:
                         id="_764ba9761fbc6cbf0462d28d19356148",
                         groupid="_be653ff450ae7f3520312a53e56c00bc",
                         mdid="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
-                        use="SOURCE",
+                        use="function:service",
                         ref=FileReference(
-                            locref="../data/00000001.plaintext.txt",
+                            locref="../data/00000001.function:service.format:text-plain.txt",
                             mimetype="text/plain",
                         ),
                     ),
                 ],
-            )
-        ]
+            ),
+        ],
     )
 
 

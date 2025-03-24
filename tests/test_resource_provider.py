@@ -61,57 +61,57 @@ class ResourceProviderTest(TestCase):
             metadata_files=[
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000000101",
-                    use="DESCRIPTIVE/COMMON",
+                    use="function:service",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
-                        mdtype="DOR:SCHEMA",
-                        mimetype="application/json",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:service.json",
+                        mdtype="schema:common",
+                        mimetype="application/json+schema",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000000102",
-                    use="DESCRIPTIVE",
+                    use="function:source",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
-                        mdtype="DOR:SCHEMA",
-                        mimetype="application/json",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:source.json",
+                        mdtype="schema:monograph",
+                        mimetype="application/json+schema",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000000103",
-                    use="PROVENANCE",
+                    use="function:provenance",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.object.xml",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:provenance.premis.xml",
                         mdtype="PREMIS",
-                        mimetype="text/xml",
+                        mimetype="text/xml+premis",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000000104",
-                    use="EVENT",
+                    use="function:event",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:event.premis.xml",
                         mdtype="PREMIS",
-                        mimetype="text/xml",
+                        mimetype="text/xml+premis",
                     ),
                 ),
             ],
             struct_maps=[
                 StructMap(
                     id="SM1",
-                    type=StructMapType.PHYSICAL,
+                    type=StructMapType.physical,
                     items=[
                         StructMapItem(
                             order=1,
-                            type="page",
+                            type="structure:page",
                             label="Page 1",
-                            file_set_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                            file_set_id="00000000-0000-0000-0000-000000001001",
                         ),
                         StructMapItem(
                             order=2,
-                            type="page",
+                            type="structure:page",
                             label="Page 2",
-                            file_set_id="urn:dor:00000000-0000-0000-0000-000000001002",
+                            file_set_id="00000000-0000-0000-0000-000000001002",
                         ),
                     ],
                 )
@@ -131,7 +131,7 @@ class ResourceProviderTest(TestCase):
             events=[
                 PreservationEvent(
                     identifier="e88b7591-31db-4e32-98dc-b35f94c662cd",
-                    type="generate access derivative",
+                    type="generate service derivative",
                     datetime=datetime(2026, 9, 18, 9, 40, 58, tzinfo=UTC),
                     detail="Level professional Democrat develop eye realize.",
                     agent=Agent(
@@ -153,72 +153,72 @@ class ResourceProviderTest(TestCase):
             metadata_files=[
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100101",
-                    use="TECHNICAL",
+                    use="function:technical",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.source.jpg.mix.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:source.format:image.jpg.function:technical.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100102",
-                    use="TECHNICAL",
+                    use="function:technical",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.mix.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:service.format:image.jpg.function:technical.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100103",
-                    use="EVENT",
+                    use="function:event",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.premis.event.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:service.format:image.jpg.function:event.premis.xml",
                         mdtype="PREMIS",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100104",
-                    use="TECHNICAL",
+                    use="function:technical",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.plaintext.txt.textmd.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:service.format:text-plain.txt.function:technical.textmd.xml",
                         mdtype="TEXTMD",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100105",
-                    use="EVENT",
+                    use="function:event",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.plaintext.txt.premis.event.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:service.format:text-plain.txt.function:event.premis.xml",
                         mdtype="PREMIS",
                     ),
                 ),
             ],
             data_files=[
                 FileMetadata(
-                    id="_be653ff450ae7f3520312a53e56c00bc",
+                    id="_36f8b6397d7defc7b0477671e7f1c562",
                     mdid="_00000000-0000-0000-0000-000000100101",
-                    use="SOURCE",
+                    use="function:source format:image",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/data/00000001.source.jpg",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.function:source.format:image.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
                 FileMetadata(
-                    id="_7e923d9c33b3859e1327fa53a8e609a1",
-                    groupid="_be653ff450ae7f3520312a53e56c00bc",
+                    id="_79edd2750da9507bdfb0682d10bda694",
+                    groupid="_36f8b6397d7defc7b0477671e7f1c562",
                     mdid="_00000000-0000-0000-0000-000000100102",
-                    use="ACCESS",
+                    use="function:service format:image",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/data/00000001.access.jpg",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.function:service.format:image.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
                 FileMetadata(
-                    id="_764ba9761fbc6cbf0462d28d19356148",
-                    groupid="_be653ff450ae7f3520312a53e56c00bc",
+                    id="_f235434ccd54adabca960b775f54449e",
+                    groupid="_36f8b6397d7defc7b0477671e7f1c562",
                     mdid="_00000000-0000-0000-0000-000000100104",
-                    use="SOURCE",
+                    use="function:service format:text-plain",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/data/00000001.plaintext.txt",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.function:service.format:text-plain.txt",
                         mimetype="text/plain",
                     ),
                 ),
@@ -226,4 +226,6 @@ class ResourceProviderTest(TestCase):
         )
 
         resource = ResourceProvider(self.file_provider, self.file_set_resource_path).get_resource()
+        import pprint
+        pprint.pp(resource)
         self.assertEqual(expected_resource, resource)

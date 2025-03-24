@@ -12,7 +12,7 @@
     
     <METS:md USE="function:technical" ID="_00000000-0000-0000-0000-000000100201"><METS:mdRef LOCREF="00000000-0000-0000-0000-000000001002/metadata/00000002.function:source.format:image.jpg.function:technical.mix.xml" LOCTYPE="URL" MDTYPE="NISOIMG" CHECKSUM="24f494ac5fadfa0700f63b8fd46e1b75e7b5cfc6859801a5ea2c2ca45cb9f5b23672b938e1da944c7f0afede3333e1242aefc2f889a875ef13cbfb7dfc759369" CHECKSUMTYPE="SHA-512" /></METS:md>
     
-    <METS:md USE="function:technical" ID="_00000000-0000-0000-0000-000000100202" MIMETYPE="text/xml+mix"><METS:mdRef LOCREF="00000000-0000-0000-0000-000000001002/metadata/00000002.function:source.format:image.jpg.function:technical.mix.xml" LOCTYPE="URL" MDTYPE="NISOIMG" CHECKSUM="a1869ff5fbc819c98a7e971d7011e571d9b75509381136032ee538961237a4d998431ad8788f7c83111f144c847ac67d73613f8fb064aa970b31577104ffece3" CHECKSUMTYPE="SHA-512" /></METS:md>
+    <METS:md USE="function:technical" ID="_00000000-0000-0000-0000-000000100202" MIMETYPE="text/xml+mix"><METS:mdRef LOCREF="00000000-0000-0000-0000-000000001002/metadata/00000002.function:service.format:image.jpg.function:technical.mix.xml" LOCTYPE="URL" MDTYPE="NISOIMG" CHECKSUM="24f494ac5fadfa0700f63b8fd46e1b75e7b5cfc6859801a5ea2c2ca45cb9f5b23672b938e1da944c7f0afede3333e1242aefc2f889a875ef13cbfb7dfc759369" CHECKSUMTYPE="SHA-512" /></METS:md>
     
     <METS:md USE="function:event" ID="_00000000-0000-0000-0000-000000100203" MIMETYPE="text/xml+premis"><METS:mdRef LOCREF="00000000-0000-0000-0000-000000001002/metadata/00000002.function:service.format:image.jpg.function:event.premis.xml" LOCTYPE="URL" MDTYPE="PREMIS"  /></METS:md>
     
