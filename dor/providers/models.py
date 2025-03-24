@@ -5,6 +5,11 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
+class _Enum(Enum):
+    def __str__(self):
+        return self.value
+
+
 @dataclass
 class AlternateIdentifier:
     type: str
@@ -42,10 +47,12 @@ class FileMetadata:
     groupid: str | None = None
 
 
-class StructMapType(Enum):
-    PHYSICAL = "PHYSICAL"
-    LOGICAL = "LOGICAL"
-    MANIFEST = "MANIFEST"
+class StructMapType(_Enum):
+    physical = "structure:physical"
+    contents = "structure:contents"
+    manifest = "structure:manifest"
+    grid = "structure:grid"
+    page = "structure:page"
 
 
 @dataclass

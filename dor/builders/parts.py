@@ -103,9 +103,8 @@ class MdGrp:
 class File:
     use: str = None
     id: uuid6.UUID = field(default_factory=lambda: uuid6.uuid7())
-    group_id: uuid6.UUID = None
+    groupid: uuid6.UUID = None
     mdid: str = None
-    group_id: str = None
     locref: str = None
     mimetype: str = None
     checksum: str = None

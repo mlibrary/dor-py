@@ -164,7 +164,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
 
     file = File(
         id=generate_md5(image_filename),
-        group_id=source_file_identifier,
+        groupid=source_file_identifier,
         use=flatten_use(UseFunctions.service, UseFormats.image),
         mdid=mdsec_items[-1].id,
         locref=image_filename.locref,
@@ -217,7 +217,7 @@ def build_file_set(item_identifier, seq, package_pathname, version):
 
     file = File(
         id=generate_md5(text_filename),
-        group_id=source_file_identifier,
+        groupid=source_file_identifier,
         use=flatten_use(UseFunctions.service, UseFormats.text_plain),
         mdid=mdsec_items[-1].id,
         locref=text_filename.locref,

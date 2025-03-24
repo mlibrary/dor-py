@@ -70,7 +70,7 @@ class DescriptorFileParser:
 
     def get_preservation_event_paths(self) -> list[str]:
         locrefs = []
-        for elem in self.tree.findall(".//METS:md[@USE='EVENT']/METS:mdRef"):
+        for elem in self.tree.findall(".//METS:md[@USE='function:event']/METS:mdRef"):
             locrefs.append(elem.get('LOCREF'))
         return locrefs
 
@@ -130,7 +130,11 @@ class DescriptorFileParser:
             for order_elem in order_elems:
                 order_number = int(order_elem.get("ORDER"))
                 label = order_elem.get("LABEL")
-                file_set_id = order_elem.get("ID")
+                mptr = order_elem.find("METS:mptr")
+                locref_path = Path(mptr.get("LOCREF"))
+                file_set_id = locref_path.parts[0]
+
+                # file_set_id = order_elem.get("ID")
                 order_elem_type = order_elem.get_optional("TYPE")
                 struct_map_items.append(
                     StructMapItem(
@@ -144,7 +148,7 @@ class DescriptorFileParser:
             struct_maps.append(
                 StructMap(
                     id=struct_map_id,
-                    type=StructMapType[struct_map_type.upper()],
+                    type=StructMapType(struct_map_type),
                     items=struct_map_items,
                 )
             )
