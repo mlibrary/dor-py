@@ -80,7 +80,7 @@ def test_catalog_has_empty_file_sets():
                         id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
                         use="function:source",
                         ref=FileReference(
-                            locref="../metadata/00000000-0000-0000-0000-000000000001.function:srouce.json",
+                            locref="../metadata/00000000-0000-0000-0000-000000000001.function:source.json",
                             mdtype="schema:monograph",
                             mimetype="application/json+schema",
                         ),
