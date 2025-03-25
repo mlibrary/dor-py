@@ -6,7 +6,7 @@
         </mix:FormatDesignation>
         <mix:ObjectIdentifier>
             <mix:objectIdentiferType>dor:prep</mix:objectIdentiferType>
-            <mix:objectIdentiferValue>00000000-0000-0000-0000-000000001002:00000002.access.jpg</mix:objectIdentiferValue>
+            <mix:objectIdentiferValue>00000000-0000-0000-0000-000000001001:00000001.function:source.format:image.jpg</mix:objectIdentiferValue>
         </mix:ObjectIdentifier>
         <mix:byteOrder>big endian</mix:byteOrder>
         <mix:Compression>

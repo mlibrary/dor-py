@@ -11,8 +11,8 @@
   <METS:mdSec>
 
     
-    <METS:md ID="_00000000-0000-0000-0000-000000000101" USE="EVENT">
-      <METS:mdRef LOCREF="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001-2.premis.event.xml" LOCTYPE="URL" MDTYPE="PREMIS" MIMETYPE="text/xml" />
+    <METS:md ID="_00000000-0000-0000-0000-000000000101" USE="function:event">
+      <METS:mdRef LOCREF="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001-2.function:event.premis.xml" LOCTYPE="URL" MDTYPE="PREMIS" MIMETYPE="text/xml+premis" />
     </METS:md>
     
 
@@ -20,10 +20,10 @@
 
   <METS:structSec>
     
-    <METS:structMap ID="SM1" TYPE="manifest">
+    <METS:structMap ID="SM1" TYPE="structure:manifest">
       <METS:div>
         
-        <METS:div TYPE="page">
+        <METS:div TYPE="structure:page">
           <METS:mptr LOCTYPE="URL" LOCREF="00000000-0000-0000-0000-000000001002/descriptor/00000000-0000-0000-0000-000000001002.file_set.mets2.xml" />
         </METS:div>
           
