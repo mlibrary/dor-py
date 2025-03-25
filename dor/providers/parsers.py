@@ -133,8 +133,6 @@ class DescriptorFileParser:
                 mptr = order_elem.find("METS:mptr")
                 locref_path = Path(mptr.get("LOCREF"))
                 file_set_id = locref_path.parts[0]
-
-                # file_set_id = order_elem.get("ID")
                 order_elem_type = order_elem.get_optional("TYPE")
                 struct_map_items.append(
                     StructMapItem(

@@ -226,6 +226,4 @@ class ResourceProviderTest(TestCase):
         )
 
         resource = ResourceProvider(self.file_provider, self.file_set_resource_path).get_resource()
-        import pprint
-        pprint.pp(resource)
         self.assertEqual(expected_resource, resource)

@@ -13,8 +13,8 @@ from .parts import (
     File,
     FileGrp,
     IdGenerator,
-    UseFunctions,
-    StructureTypes,
+    UseFunction,
+    StructureType,
     calculate_checksum,
     make_paths,
     get_faker,
@@ -59,23 +59,23 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
             event_type="ingest", linking_agent_type="collection manager"
         )
 
-        premis_filename = MetadataFileInfo(
+        premis_file_info = MetadataFileInfo(
             resource_identifier,
             f"{resource_identifier}-{version}",
-            [UseFunctions.event],
+            [UseFunction.event],
             "text/xml+premis",
         )
-        (resource_pathname / premis_filename.path).open("w").write(
+        (resource_pathname / premis_file_info.path).open("w").write(
             premis_event_template.render(event=premis_event)
         )
 
         mdsec_items.append(
             Md(
                 id=generate_md_identifier(),
-                use=flatten_use(UseFunctions.event),
-                mdtype=premis_filename.mdtype,
-                locref=premis_filename.locref,
-                mimetype=premis_filename.mimetype,
+                use=flatten_use(UseFunction.event),
+                mdtype=premis_file_info.mdtype,
+                locref=premis_file_info.locref,
+                mimetype=premis_file_info.mimetype,
             )
         )
 
@@ -112,18 +112,15 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         metadata_fake["en_US"].organism_latin() for _ in range(5)
     ]
 
-    metadata_filename = MetadataFileInfo(
+    metadata_file_info = MetadataFileInfo(
         resource_identifier,
         resource_identifier,
-        [UseFunctions.source],
+        [UseFunction.source],
         "application/json+schema",
         "schema:monograph"
     )
 
-    # metadata_pathname = resource_pathname.joinpath(
-    #     "metadata", resource_identifier + ".metadata.json"
-    # )
-    metadata_pathname = resource_pathname / metadata_filename.path
+    metadata_pathname = resource_pathname / metadata_file_info.path
     metadata_pathname.open("w").write(json.dumps(metadata, indent=4))
 
     metadata = {
@@ -134,46 +131,46 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         "subjects": metadata["places"] + metadata["identification"],
     }
 
-    common_filename = MetadataFileInfo(
+    common_file_info = MetadataFileInfo(
         resource_identifier,
         resource_identifier,
-        [UseFunctions.service],
+        [UseFunction.service],
         "application/json+schema",
         "schema:common"
     )
 
-    common_pathname = resource_pathname / common_filename.path
+    common_pathname = resource_pathname / common_file_info.path
     common_pathname.open("w").write(json.dumps(metadata, indent=4))
 
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use=flatten_use(UseFunctions.service),
-            mdtype=common_filename.mdtype,
-            locref=common_filename.locref,
+            use=flatten_use(UseFunction.service),
+            mdtype=common_file_info.mdtype,
+            locref=common_file_info.locref,
             checksum=calculate_checksum(common_pathname),
-            mimetype=common_filename.mimetype,
+            mimetype=common_file_info.mimetype,
         )
     )
 
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use=flatten_use(UseFunctions.source),
-            mdtype=metadata_filename.mdtype,
-            locref=metadata_filename.locref,
+            use=flatten_use(UseFunction.source),
+            mdtype=metadata_file_info.mdtype,
+            locref=metadata_file_info.locref,
             checksum=calculate_checksum(metadata_pathname),
-            mimetype=metadata_filename.mimetype,
+            mimetype=metadata_file_info.mimetype,
         )
     )
 
-    premis_filename = MetadataFileInfo(
+    premis_file_info = MetadataFileInfo(
         resource_identifier,
         resource_identifier,
-        [UseFunctions.provenance],
+        [UseFunction.provenance],
         "text/xml+premis",
     )
-    (resource_pathname / premis_filename.path).open("w").write(
+    (resource_pathname / premis_file_info.path).open("w").write(
         premis_object_template.render(
             alternate_identifier=alternate_identifier,
             scans_count=len(file_set_identifiers),
@@ -184,10 +181,10 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use=flatten_use(UseFunctions.provenance),
-            mdtype=premis_filename.mdtype,
-            locref=premis_filename.locref,
-            mimetype=premis_filename.mimetype,
+            use=flatten_use(UseFunction.provenance),
+            mdtype=premis_file_info.mdtype,
+            locref=premis_file_info.locref,
+            mimetype=premis_file_info.mimetype,
         )
     )
 
@@ -195,22 +192,22 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         event_type="ingest", linking_agent_type="collection manager"
     )
 
-    premis_filename = MetadataFileInfo(
+    premis_file_info = MetadataFileInfo(
         resource_identifier,
         resource_identifier,
-        [UseFunctions.event],
+        [UseFunction.event],
         "text/xml+premis",
     )
-    (resource_pathname / premis_filename.path).open("w").write(
+    (resource_pathname / premis_file_info.path).open("w").write(
         premis_event_template.render(event=premis_event)
     )
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use=flatten_use(UseFunctions.event),
-            mdtype=premis_filename.mdtype,
-            locref=premis_filename.locref,
-            mimetype=premis_filename.mimetype,
+            use=flatten_use(UseFunction.event),
+            mdtype=premis_file_info.mdtype,
+            locref=premis_file_info.locref,
+            mimetype=premis_file_info.mimetype,
         )
     )
 

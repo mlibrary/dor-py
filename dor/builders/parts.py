@@ -55,7 +55,7 @@ class _Enum(Enum):
     def __str__(self):
         return self.value
 
-class UseFunctions(str, _Enum):
+class UseFunction(str, _Enum):
     service = "function:service"
     source = "function:source"
     provenance = "function:provenance"
@@ -64,7 +64,7 @@ class UseFunctions(str, _Enum):
     technical = "function:technical"
 
 
-class UseFormats(str, _Enum):
+class UseFormat(str, _Enum):
     image = "format:image"
     audiovidual = "format:audiovisual"
     audio = "format:audio"
@@ -74,7 +74,7 @@ class UseFormats(str, _Enum):
     text_encoded = "format:text-encoded"
 
 
-class StructureTypes(str, _Enum):
+class StructureType(str, _Enum):
     physical = "structure:physical"
     contents = "structure:contents"
     grid = "structure:grid"
@@ -158,7 +158,7 @@ class IdGenerator:
 class FileInfo:
     identifier: str
     basename: str
-    uses: list[UseFunctions | UseFormats]
+    uses: list[UseFunction | UseFormat]
     mimetype: str
 
     @property

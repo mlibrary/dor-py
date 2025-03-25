@@ -155,7 +155,7 @@ class PackageGenerator:
         incorporated_file_set_ids = []
         missing_file_set_ids = []
         for struct_map_item in physical_struct_map.items:
-            file_set_id = struct_map_item.file_set_id # .replace("urn:dor:", "")
+            file_set_id = struct_map_item.file_set_id
             if file_set_id in file_set_directories:
                 self.file_provider.clone_directory_structure(
                     self.file_set_path / file_set_id,

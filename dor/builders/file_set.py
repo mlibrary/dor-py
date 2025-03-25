@@ -3,14 +3,11 @@ from pathlib import Path
 from faker import Faker
 from PIL import Image, ImageDraw
 
-from datetime import datetime, UTC
-import hashlib
-
 from dor.settings import S, text_font, template_env
 
 from .parts import (
-    UseFormats,
-    UseFunctions,
+    UseFormat,
+    UseFunction,
     Identifier,
     Md,
     File,
@@ -32,8 +29,8 @@ IMAGE_WIDTH = 680
 IMAGE_HEIGHT = 1024
 
 IMAGE_COLORS = {
-    UseFunctions.service: {"background": "#eeeeee", "text": "#666666"},
-    UseFunctions.source: {"background": "#666666", "text": "#eeeeee"},
+    UseFunction.service: {"background": "#eeeeee", "text": "#666666"},
+    UseFunction.source: {"background": "#666666", "text": "#eeeeee"},
 }
 
 
@@ -98,18 +95,17 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     padded_seq = f"{seq:08d}"
 
     # source
-    image = build_image(use=UseFunctions.source, seq=seq, version=version)
-    # image_filename = f"{padded_seq}.{UseFunctions.source}-{UseFormats.image}.jpg"
+    image = build_image(use=UseFunction.source, seq=seq, version=version)
 
-    image_filename = FileInfo(
-        identifier, padded_seq, [UseFunctions.source, UseFormats.image], "image/jpeg"
+    image_file_info = FileInfo(
+        identifier, padded_seq, [UseFunction.source, UseFormat.image], "image/jpeg"
     )
-    metadata_filename = image_filename.metadata(UseFunctions.technical, "text/xml+mix")
+    metadata_file_info = image_file_info.metadata(UseFunction.technical, "text/xml+mix")
 
-    metadata["object_identifier"] = f"{identifier}:{image_filename}"
+    metadata["object_identifier"] = f"{identifier}:{image_file_info}"
 
-    image_pathname = file_set_pathname / image_filename.path
-    metadata_pathname = file_set_pathname / metadata_filename.path
+    image_pathname = file_set_pathname / image_file_info.path
+    metadata_pathname = file_set_pathname / metadata_file_info.path
 
     image.save(image_pathname)
     metadata_pathname.open("w").write(mix_template.render(**metadata))
@@ -117,36 +113,36 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use=flatten_use(UseFunctions.technical),
-            mdtype=metadata_filename.mdtype,
-            locref=metadata_filename.locref,
+            use=flatten_use(UseFunction.technical),
+            mdtype=metadata_file_info.mdtype,
+            locref=metadata_file_info.locref,
             checksum=calculate_checksum(metadata_pathname),
         )
     )
 
-    metadata["object_identifier"] = f"{identifier}:{image_filename}"
+    metadata["object_identifier"] = f"{identifier}:{image_file_info}"
     metadata_pathname.open("w").write(mix_template.render(**metadata))
     file = File(
-        id=generate_md5(image_filename),
-        use=flatten_use(UseFunctions.source, UseFormats.image),
+        id=generate_md5(image_file_info),
+        use=flatten_use(UseFunction.source, UseFormat.image),
         mdid=mdsec_items[-1].id,
-        locref=image_filename.locref,
-        mimetype=image_filename.mimetype,
+        locref=image_file_info.locref,
+        mimetype=image_file_info.mimetype,
         checksum=calculate_checksum(image_pathname),
     )
     file_group.files.append(file)
     source_file_identifier = file.id
 
     # service
-    image = build_image(use=UseFunctions.service, seq=seq, version=version)
-    image_filename = FileInfo(
-        identifier, padded_seq, [UseFunctions.service, UseFormats.image], "image/jpeg"
+    image = build_image(use=UseFunction.service, seq=seq, version=version)
+    image_file_info = FileInfo(
+        identifier, padded_seq, [UseFunction.service, UseFormat.image], "image/jpeg"
     )
-    metadata_filename = image_filename.metadata(UseFunctions.technical, "text/xml+mix")
+    metadata_file_info = image_file_info.metadata(UseFunction.technical, "text/xml+mix")
 
-    metadata["object_identifier"] = f"{identifier}:{image_filename}"
-    image_pathname = file_set_pathname / image_filename.path
-    metadata_pathname = file_set_pathname / metadata_filename.path
+    metadata["object_identifier"] = f"{identifier}:{image_file_info}"
+    image_pathname = file_set_pathname / image_file_info.path
+    metadata_pathname = file_set_pathname / metadata_file_info.path
 
     image.save(image_pathname)
     metadata_pathname.open("w").write(mix_template.render(**metadata))
@@ -154,21 +150,21 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use=flatten_use(UseFunctions.technical),
-            mdtype=metadata_filename.mdtype,
-            locref=metadata_filename.locref,
-            mimetype=metadata_filename.mimetype,
+            use=flatten_use(UseFunction.technical),
+            mdtype=metadata_file_info.mdtype,
+            locref=metadata_file_info.locref,
+            mimetype=metadata_file_info.mimetype,
             checksum=calculate_checksum(metadata_pathname),
         )
     )
 
     file = File(
-        id=generate_md5(image_filename),
+        id=generate_md5(image_file_info),
         groupid=source_file_identifier,
-        use=flatten_use(UseFunctions.service, UseFormats.image),
+        use=flatten_use(UseFunction.service, UseFormat.image),
         mdid=mdsec_items[-1].id,
-        locref=image_filename.locref,
-        mimetype=image_filename.mimetype,
+        locref=image_file_info.locref,
+        mimetype=image_file_info.mimetype,
         checksum=calculate_checksum(image_pathname),
     )
     file_group.files.append(file)
@@ -176,30 +172,30 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     premis_event = build_event(
         event_type="generate service derivative", linking_agent_type="image processing"
     )
-    premis_filename = image_filename.metadata(UseFunctions.event, "text/xml+premis")
+    premis_file_info = image_file_info.metadata(UseFunction.event, "text/xml+premis")
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use=flatten_use(UseFunctions.event),
-            mdtype=premis_filename.mdtype,
-            locref=premis_filename.locref,
-            mimetype=premis_filename.mimetype,
+            use=flatten_use(UseFunction.event),
+            mdtype=premis_file_info.mdtype,
+            locref=premis_file_info.locref,
+            mimetype=premis_file_info.mimetype,
         )
     )
-    (file_set_pathname / premis_filename.path).open("w").write(
+    (file_set_pathname / premis_file_info.path).open("w").write(
         premis_event_template.render(event=premis_event)
     )
 
-    plaintext = build_plaintext(use=UseFunctions.service, seq=seq, version=version)
-    text_filename = FileInfo(
+    plaintext = build_plaintext(use=UseFunction.service, seq=seq, version=version)
+    text_file_info = FileInfo(
         identifier,
         padded_seq,
-        [UseFunctions.service, UseFormats.text_plain],
+        [UseFunction.service, UseFormat.text_plain],
         "text/plain",
     )
-    text_pathname = file_set_pathname / text_filename.path
-    metadata_filename = text_filename.metadata(UseFunctions.technical, "text/xml+textmd")
-    metadata_pathname = file_set_pathname / metadata_filename.path
+    text_pathname = file_set_pathname / text_file_info.path
+    metadata_file_info = text_file_info.metadata(UseFunction.technical, "text/xml+textmd")
+    metadata_pathname = file_set_pathname / metadata_file_info.path
 
     text_pathname.open("w").write(plaintext)
     metadata_pathname.open("w").write(textmd_template.render(**metadata))
@@ -207,21 +203,21 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use=flatten_use(UseFunctions.technical),
-            mdtype=metadata_filename.mdtype,
-            locref=metadata_filename.locref,
-            mimetype=metadata_filename.mimetype,
+            use=flatten_use(UseFunction.technical),
+            mdtype=metadata_file_info.mdtype,
+            locref=metadata_file_info.locref,
+            mimetype=metadata_file_info.mimetype,
             checksum=calculate_checksum(metadata_pathname),
         )
     )
 
     file = File(
-        id=generate_md5(text_filename),
+        id=generate_md5(text_file_info),
         groupid=source_file_identifier,
-        use=flatten_use(UseFunctions.service, UseFormats.text_plain),
+        use=flatten_use(UseFunction.service, UseFormat.text_plain),
         mdid=mdsec_items[-1].id,
-        locref=text_filename.locref,
-        mimetype=text_filename.mimetype,
+        locref=text_file_info.locref,
+        mimetype=text_file_info.mimetype,
         checksum=calculate_checksum(text_pathname),
     )
     file_group.files.append(file)
@@ -229,17 +225,17 @@ def build_file_set(item_identifier, seq, package_pathname, version):
     premis_event = build_event(
         event_type="extract text", linking_agent_type="ocr processing"
     )
-    premis_filename = text_filename.metadata(UseFunctions.event, "text/xml+premis")
+    premis_file_info = text_file_info.metadata(UseFunction.event, "text/xml+premis")
     mdsec_items.append(
         Md(
             id=id_generator(),
-            use=flatten_use(UseFunctions.event),
-            mdtype=premis_filename.mdtype,
-            locref=premis_filename.locref,
-            mimetype=premis_filename.mimetype,
+            use=flatten_use(UseFunction.event),
+            mdtype=premis_file_info.mdtype,
+            locref=premis_file_info.locref,
+            mimetype=premis_file_info.mimetype,
         )
     )
-    (file_set_pathname / premis_filename.path).open("w").write(
+    (file_set_pathname / premis_file_info.path).open("w").write(
         premis_event_template.render(event=premis_event)
     )
 
