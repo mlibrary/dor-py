@@ -103,7 +103,7 @@ def sample_revision() -> Revision:
                         use="function:source",
                         ref=FileReference(
                             locref="../metadata/00000000-0000-0000-0000-000000000001.function:source.json",
-                            mdtype="schema:common",
+                            mdtype="schema:monograph",
                             mimetype="application/json+schema",
                         ),
                     ),
