@@ -200,14 +200,14 @@ class PackageGenerator:
         struct_maps = self.get_struct_maps()
         physical_struct_maps = [
             struct_map for struct_map in struct_maps
-            if struct_map.type == StructMapType.PHYSICAL
+            if struct_map.type == StructMapType.physical
         ]
         if len(physical_struct_maps) != 1:
             self.clear_package_path()
             return self.get_package_result(
                 success=False,
                 message=(
-                    "Expected to find a single \"PHYSICAL\" structure object " +
+                    "Expected to find a single \"structure:physical\" structure object " +
                     f"but found {len(physical_struct_maps)}"
                 )
             )

@@ -52,7 +52,7 @@ class PackageResourcesMerger:
             incoming_resource.data_files,
         )
 
-        if incoming_resource.struct_maps and incoming_resource.struct_maps[0].type == StructMapType.PHYSICAL:
+        if incoming_resource.struct_maps and incoming_resource.struct_maps[0].type == StructMapType.physical:
             merged_struct_maps = self._merge_lists(
                 current_resource.struct_maps,
                 incoming_resource.struct_maps,
