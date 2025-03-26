@@ -20,7 +20,10 @@ services:
     stdin_open: true
   api:
     depends_on:
-      - db
+      db:
+        condition: service_started
+      fix_ownership:
+        condition: service_completed_successfully
     build: 
       context: .
       target: development
@@ -34,11 +37,17 @@ services:
       - .env
     volumes:
       - .:/app
+      - fileset-data:/data/filesets
     tty: true
     stdin_open: true
     command: ["poetry", "run", "fastapi", "dev", "dor/entrypoints/api/main.py", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - ${API_PORT:-8000}:8000
+  fix_ownership:
+    image: alpine
+    volumes:
+      - fileset-data:/data/filesets
+    command: chown -R ${UID:-1000}:${GID:-1000} /data/filesets
   db:
     ports:
       - "5432:5432"
@@ -59,5 +68,39 @@ services:
       - ./data:/pb/data 
       - ./pb_user_setup.sh:/pb/pb_user_setup.sh
     command: /bin/sh -c "/pb/pocketbase serve --http=0.0.0.0:8080 & /bin/sh /pb/pb_user_setup.sh && tail -f /dev/null"
+
+  redis:
+    image: redis:7-bookworm
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+
+  jobs:
+    depends_on:
+      db:
+        condition: service_started
+      fix_ownership:
+        condition: service_completed_successfully
+    build: 
+      context: .
+      target: development
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        DEV: ${DEV:-false}
+        POETRY_VERSION: ${POETRY_VERSION:-1.8.4}
+    env_file:
+      - .env
+    command: ["poetry", "run", "python", "generic-worker.py"]
+    volumes:
+      - .:/app
+      - fileset-data:/data/filesets
+
+
 volumes:
   db-data:
+  redis-data:
+  fileset-data:

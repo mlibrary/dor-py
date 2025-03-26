@@ -19,14 +19,21 @@ class PocketbaseConfig:
     pb_password: str
     pb_url: str
 
+@dataclass
+class RedisConfig:
+    host: str
+    port: int
+    db: int
 
 @dataclass
 class Config:
     storage_path: Path
     inbox_path: Path
     workspaces_path: Path
+    filesets_path: Path
     database: DatabaseConfig
     pocketbase: PocketbaseConfig
+    redis: RedisConfig
 
 
     @classmethod
@@ -35,6 +42,7 @@ class Config:
             storage_path=Path(os.getenv("STORAGE_PATH", "")),
             inbox_path=Path(os.getenv("INBOX_PATH", "")),
             workspaces_path=Path(os.getenv("WORKSPACES_PATH", "")),
+            filesets_path=Path(os.getenv("FILESETS_PATH", "/data/filesets")),
             database=DatabaseConfig(
                 user=os.getenv("POSTGRES_USER", "postgres"),
                 password=os.getenv("POSTGRES_PASSWORD", "postgres"),
@@ -45,7 +53,12 @@ class Config:
                 pb_username=os.getenv("POCKET_BASE_USERNAME", "test@umich.edu"),
                 pb_password=os.getenv("POCKET_BASE_PASSWORD", "testumich"),
                 pb_url=os.getenv("POCKET_BASE_URL", "http://pocketbase:8080")
-            )
+            ),
+            redis=RedisConfig(
+                host=os.getenv("REDIS_HOST", "redis"),
+                port=int(os.getenv("REDIS_PORT", "6379")),
+                db=int(os.getenv("REDIS_DB", "0")),
+            ),
         )
 
     def _make_database_engine_url(self, database: str):
