@@ -27,6 +27,7 @@ cattrs = "^24.1.2"
 requests = "^2.26.0"
 pytesseract = "^0.3.13"
 python-multipart = "^0.0.20"
+rq = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
