@@ -1,5 +1,5 @@
 ---
-  name: Build Latest
+  name: SCRATCH Build Latest
   
   on:
     workflow_dispatch:  # This allows to kick-off the action manually from GitHub Actions
