@@ -52,9 +52,9 @@ def test_generator_generates_package(
 
     # Metadata files were created
     root_resource_metadata_path = package_data_path / root_identifier / "metadata"
-    assert (root_resource_metadata_path / f"{root_identifier}.common.json").exists()
-    assert (root_resource_metadata_path / f"{root_identifier}.metadata.json").exists()
-    assert (root_resource_metadata_path / f"{root_identifier}.premis.object.xml").exists()
+    assert (root_resource_metadata_path / f"{root_identifier}.function:service.json").exists()
+    assert (root_resource_metadata_path / f"{root_identifier}.function:source.json").exists()
+    assert (root_resource_metadata_path / f"{root_identifier}.function:provenance.premis.xml").exists()
 
     # File sets were incorporated
     file_set_one_path = package_data_path / "00000000-0000-0000-0000-000000001001"
@@ -125,7 +125,7 @@ def test_generator_fails_when_metadata_is_missing_file_data(
         deposit_group_identifier=deposit_group.identifier,
         success=False,
         message=(
-            "Expected to find a single instance of metadata file data for use \"PROVENANCE\" " +
+            "Expected to find a single instance of metadata file data for use \"function:provenance\" " +
             "but found 0"
         )
     )
@@ -153,5 +153,5 @@ def test_generator_fails_when_metadata_is_missing_struct_map(
         package_identifier=package_identifier,
         deposit_group_identifier=deposit_group.identifier,
         success=False,
-        message="Expected to find a single \"PHYSICAL\" structure object but found 0"
+        message="Expected to find a single \"structure:physical\" structure object but found 0"
     )

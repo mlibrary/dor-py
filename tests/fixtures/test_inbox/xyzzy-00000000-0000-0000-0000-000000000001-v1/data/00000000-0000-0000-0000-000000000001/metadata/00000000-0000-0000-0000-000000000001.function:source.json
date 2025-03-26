@@ -1,0 +1,23 @@
+{
+    "@schema": "urn:umich.edu:dor:schema:xyzzy",
+    "title": "Suggest training much grow any me own true.",
+    "author": "Dr. Gary Kim",
+    "author_ja": "\u7530\u4e2d \u9999\u7e54",
+    "description": "Hand line for PM identify decade involve. Deep present person forget teach. House here institution identify protect. The describe behind. He growth energy.",
+    "description_ja": "\u30b8\u30e3\u30fc\u30ca\u30eb\u4fdd\u8a3c\u91d1\u98a8\u666f\u3002\u4fdd\u6301\u3059\u308b\u30b7\u30e5\u30ac\u30fc\u7d30\u304b\u3044\u30af\u30fc\u30eb\u30bf\u30ef\u30fc\u4e0d\u81ea\u7136\u306a\u3002\u547c\u3076\u30c8\u30fc\u30b9\u30c8\u30c7\u30c3\u30c9\u4fdd\u6301\u3059\u308b\u96a0\u3059\u30bd\u30fc\u30b9\u30b3\u30fc\u30e9\u30b9\u3002",
+    "publication_date": "1989-02-04",
+    "places": [
+        "Yemen",
+        "Reunion",
+        "Turkey",
+        "Kenya",
+        "Taiwan"
+    ],
+    "identification": [
+        "Mus musculus",
+        "Danio Rerio",
+        "Caenorhabditis elegans",
+        "Caenorhabditis elegans",
+        "Rattus norvegicus"
+    ]
+}

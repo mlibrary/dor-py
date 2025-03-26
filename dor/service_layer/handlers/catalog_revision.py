@@ -9,7 +9,8 @@ from dor.service_layer.unit_of_work import AbstractUnitOfWork
 def catalog_revision(event: PackageStored, uow: AbstractUnitOfWork) -> None:
     root_resource = [resource for resource in event.resources if resource.type == 'Monograph'][0]
     common_metadata_file = [
-        metadata_file for metadata_file in root_resource.metadata_files if "common" in metadata_file.ref.locref
+        metadata_file for metadata_file in root_resource.metadata_files
+            if metadata_file.use == 'function:service' and metadata_file.ref.mdtype == 'schema:common'
     ][0]
     common_metadata_file_path = Path(common_metadata_file.ref.locref)
     object_files = uow.gateway.get_object_files(event.identifier)

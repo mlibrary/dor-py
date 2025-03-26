@@ -131,7 +131,7 @@ class PackageGenerator:
                 StructMapItem(
                     order=item["order"],
                     label=item["orderlabel"],
-                    file_set_id="urn:dor:" + item["locref"],
+                    file_set_id=item["locref"],
                     type=item.get("type")
                 )
                 for item in structure["items"]
@@ -139,7 +139,7 @@ class PackageGenerator:
             struct_maps.append(
                 StructMap(
                     id=str(uuid.uuid4()),
-                    type=StructMapType[structure["type"].upper()],
+                    type=StructMapType(structure["type"]),
                     items=items
                 )
             )
@@ -155,7 +155,7 @@ class PackageGenerator:
         incorporated_file_set_ids = []
         missing_file_set_ids = []
         for struct_map_item in physical_struct_map.items:
-            file_set_id = struct_map_item.file_set_id.replace("urn:dor:", "")
+            file_set_id = struct_map_item.file_set_id
             if file_set_id in file_set_directories:
                 self.file_provider.clone_directory_structure(
                     self.file_set_path / file_set_id,
@@ -200,14 +200,14 @@ class PackageGenerator:
         struct_maps = self.get_struct_maps()
         physical_struct_maps = [
             struct_map for struct_map in struct_maps
-            if struct_map.type == StructMapType.PHYSICAL
+            if struct_map.type == StructMapType.physical
         ]
         if len(physical_struct_maps) != 1:
             self.clear_package_path()
             return self.get_package_result(
                 success=False,
                 message=(
-                    "Expected to find a single \"PHYSICAL\" structure object " +
+                    "Expected to find a single \"structure:physical\" structure object " +
                     f"but found {len(physical_struct_maps)}"
                 )
             )
@@ -229,8 +229,8 @@ class PackageGenerator:
             self.package_path / self.root_resource_identifier / "metadata"
         )
         try:
-            descriptive_data = self.get_metadata_file_data(use="DESCRIPTIVE")
-            descriptive_file_path = self.get_metadata_file_path(".metadata.json")
+            descriptive_data = self.get_metadata_file_data(use="function:source")
+            descriptive_file_path = self.get_metadata_file_path(".function:source.json")
             descriptive_file_metadata = self.get_file_metadata(file_path=descriptive_file_path, metadata_data=descriptive_data)
             self.create_root_metadata_file(
                 file_path=descriptive_file_path,
@@ -239,8 +239,8 @@ class PackageGenerator:
             )
             metadata_file_metadatas.append(descriptive_file_metadata)
 
-            common_data = self.get_metadata_file_data(use="DESCRIPTIVE/COMMON")
-            common_file_path = self.get_metadata_file_path(".common.json")
+            common_data = self.get_metadata_file_data(use="function:service")
+            common_file_path = self.get_metadata_file_path(".function:service.json")
             common_file_metadata = self.get_file_metadata(file_path=common_file_path, metadata_data=common_data)
             self.create_root_metadata_file(
                 file_path=common_file_path,
@@ -249,8 +249,8 @@ class PackageGenerator:
             )
             metadata_file_metadatas.append(common_file_metadata)
 
-            provenance_data = self.get_metadata_file_data(use="PROVENANCE")
-            provenance_file_path = self.get_metadata_file_path(".premis.object.xml")
+            provenance_data = self.get_metadata_file_data(use="function:provenance")
+            provenance_file_path = self.get_metadata_file_path(".function:provenance.premis.xml")
             provenance_file_metadata = self.get_file_metadata(file_path=provenance_file_path, metadata_data=provenance_data)
             self.create_root_metadata_file(
                 file_path=provenance_file_path,

@@ -20,20 +20,20 @@
 
   <METS:structSec>
     {% if version == 1 %}
-    <METS:structMap ID="SM1" TYPE="physical">
+    <METS:structMap ID="SM1" TYPE="structure:physical">
       <METS:div>
         {% for file_set_identifier in file_set_identifiers %}
-        <METS:div ORDERLABEL="{{ loop.index }}" TYPE="page" ORDER="{{ loop.index }}" LABEL="Page {{ loop.index }}" ID="urn:dor:{{ file_set_identifier }}">
+        <METS:div ORDERLABEL="{{ loop.index }}" TYPE="structure:page" ORDER="{{ loop.index }}" LABEL="Page {{ loop.index }}">
           <METS:mptr LOCTYPE="URL" LOCREF="{{ file_set_identifier }}/descriptor/{{ file_set_identifier }}.file_set.mets2.xml" />
         </METS:div>
         {% endfor %}  
       </METS:div>
     </METS:structMap>
     {% else %}
-    <METS:structMap ID="SM1" TYPE="manifest">
+    <METS:structMap ID="SM1" TYPE="structure:manifest">
       <METS:div>
         {% for file_set_identifier in file_set_identifiers %}
-        <METS:div TYPE="page">
+        <METS:div TYPE="structure:page">
           <METS:mptr LOCTYPE="URL" LOCREF="{{ file_set_identifier }}/descriptor/{{ file_set_identifier }}.file_set.mets2.xml" />
         </METS:div>
         {% endfor %}  

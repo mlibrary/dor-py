@@ -61,9 +61,14 @@ class DescriptorFileParserTest(TestCase):
     def test_parser_can_get_preservation_event_paths(self):
         parser = DescriptorFileParser(self.descriptor_path)
         pres_event_paths = parser.get_preservation_event_paths()
-        self.assertSetEqual(set([
-            "00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
-        ]), set(pres_event_paths))
+        self.assertSetEqual(
+            set(
+                [
+                    "00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:event.premis.xml",
+                ]
+            ),
+            set(pres_event_paths),
+        )
 
     def test_parser_can_get_metadata_files(self):
 
@@ -71,38 +76,38 @@ class DescriptorFileParserTest(TestCase):
         expected_file_metadata = [
             FileMetadata(
                 id="_00000000-0000-0000-0000-000000000101",
-                use="DESCRIPTIVE/COMMON",
+                use="function:service",
                 ref=FileReference(
-                    locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
-                    mdtype="DOR:SCHEMA",
-                    mimetype="application/json",
+                    locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:service.json",
+                    mdtype="schema:common",
+                    mimetype="application/json+schema",
                 ),
             ),
             FileMetadata(
                 id="_00000000-0000-0000-0000-000000000102",
-                use="DESCRIPTIVE",
+                use="function:source",
                 ref=FileReference(
-                    locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
-                    mdtype="DOR:SCHEMA",
-                    mimetype="application/json",
+                    locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:source.json",
+                    mdtype="schema:monograph",
+                    mimetype="application/json+schema",
                 ),
             ),
             FileMetadata(
                 id="_00000000-0000-0000-0000-000000000103",
-                use="PROVENANCE",
+                use="function:provenance",
                 ref=FileReference(
-                    locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.object.xml",
+                    locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:provenance.premis.xml",
                     mdtype="PREMIS",
-                    mimetype="text/xml",
+                    mimetype="text/xml+premis",
                 ),
             ),
             FileMetadata(
                 id="_00000000-0000-0000-0000-000000000104",
-                use="EVENT",
+                use="function:event",
                 ref=FileReference(
-                    locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
+                    locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:event.premis.xml",
                     mdtype="PREMIS",
-                    mimetype="text/xml",
+                    mimetype="text/xml+premis",
                 ),
             ),
         ]
@@ -115,19 +120,19 @@ class DescriptorFileParserTest(TestCase):
         expected_struct_maps = [
             StructMap(
                 id="SM1",
-                type=StructMapType.PHYSICAL,
+                type=StructMapType.physical,
                 items=[
                     StructMapItem(
                         order=1,
-                        type="page",
+                        type="structure:page",
                         label="Page 1",
-                        file_set_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                        file_set_id="00000000-0000-0000-0000-000000001001",
                     ),
                     StructMapItem(
                         order=2,
-                        type="page",
+                        type="structure:page",
                         label="Page 2",
-                        file_set_id="urn:dor:00000000-0000-0000-0000-000000001002",
+                        file_set_id="00000000-0000-0000-0000-000000001002",
                     ),
                 ],
             )

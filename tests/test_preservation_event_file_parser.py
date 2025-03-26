@@ -16,7 +16,7 @@ class PreservationEventFileParserTest(TestCase):
             / "data"
             / "00000000-0000-0000-0000-000000000001"
             / "metadata"
-            / "00000000-0000-0000-0000-000000000001.premis.event.xml"
+            / "00000000-0000-0000-0000-000000000001.function:event.premis.xml"
         )
 
     def test_parser_can_get_preservation_event(self):

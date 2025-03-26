@@ -3,8 +3,9 @@
     "type": "Monograph",
     "md": [
         {
-            "use": "DESCRIPTIVE",
-            "mimetype": "application/json",
+            "use": "function:source",
+            "mimetype": "application/json+schema",
+            "mdtype": "schema:monograph",
             "data": {
                 "title": [
                     "Elizabeth Camp Journal, Volume 1, June 20, 1819 - June 17, 1821"
@@ -34,8 +35,9 @@
             }
         },
         {
-            "use": "DESCRIPTIVE/COMMON",
-            "mimetype": "application/json",
+            "use": "function:service",
+            "mimetype": "application/json+schema",
+            "mdtype": "schema:common",
             "data": {
                 "title": [
                     "Elizabeth Camp Journal, Volume 1, June 20, 1819 - June 17, 1821"
@@ -56,8 +58,8 @@
             }
         },
         {
-            "use": "PROVENANCE",
-            "mimetype": "text/xml",
+            "use": "function:provenance",
+            "mimetype": "text/xml+premis",
             "mdtype": "PREMIS",
             "data": {
                 "alternate_identifier": "campe.0001.001",
@@ -68,24 +70,24 @@
     ],
     "structure": [
         {
-            "type": "physical",
+            "type": "structure:physical",
             "items": [
                 {
                     "order": "1",
                     "orderlabel": "1",
-                    "type": "page",
+                    "type": "structure:page",
                     "locref": "00000000-0000-0000-0000-000000001001"
                 },
                 {
                     "order": "2",
                     "orderlabel": "2",
-                    "type": "page",
+                    "type": "structure:page",
                     "locref": "00000000-0000-0000-0000-000000001002"
                 },
                 {
                     "order": "3",
                     "orderlabel": "3",
-                    "type": "page",
+                    "type": "structure:page",
                     "locref": "00000000-0000-0000-0000-000000001003"
                 }
             ]

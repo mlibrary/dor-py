@@ -42,51 +42,51 @@ def sample_resources():
             metadata_files=[
                 FileMetadata(
                     id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
-                    use="DESCRIPTIVE/COMMON",
+                    use="function:service",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.common.json",
-                        mdtype="DOR:SCHEMA",
-                        mimetype="application/json",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:service.json",
+                        mdtype="schema:common",
+                        mimetype="application/json+schema",
                     ),
                 ),
                 FileMetadata(
                     id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
-                    use="DESCRIPTIVE",
+                    use="function:source",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.metadata.json",
-                        mdtype="DOR:SCHEMA",
-                        mimetype="application/json",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:source.json",
+                        mdtype="schema:monograph",
+                        mimetype="application/json+schema",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000000103",
-                    use="PROVENANCE",
+                    use="function:provenance",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.object.xml",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:provenance.premis.xml",
                         mdtype="PREMIS",
-                        mimetype="text/xml",
+                        mimetype="text/xml+premis",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000000104",
-                    use="EVENT",
+                    use="function:event",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.premis.event.xml",
+                        locref="00000000-0000-0000-0000-000000000001/metadata/00000000-0000-0000-0000-000000000001.function:event.premis.xml",
                         mdtype="PREMIS",
-                        mimetype="text/xml",
+                        mimetype="text/xml+premis",
                     ),
                 ),
             ],
             struct_maps=[
                 StructMap(
                     id="SM1",
-                    type=StructMapType.PHYSICAL,
+                    type=StructMapType.physical,
                     items=[
                         StructMapItem(
                             order=1,
-                            type="page",
+                            type="structure:page",
                             label="Page 1",
-                            file_set_id="urn:dor:00000000-0000-0000-0000-000000001001",
+                            file_set_id="00000000-0000-0000-0000-000000001001",
                         )
                     ],
                 )
@@ -121,35 +121,35 @@ def sample_resources():
             metadata_files=[
                 FileMetadata(
                     id="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
-                    use="TECHNICAL",
+                    use="function:technical",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.source.jpg.mix.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:source.format:image.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
                 FileMetadata(
                     id="_0193d5f0-7e75-7803-8e41-71323b7b3284",
                     groupid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
-                    use="TECHNICAL",
+                    use="function:technical",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.mix.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:service.format:image.jpg.mix.xml",
                         mdtype="NISOIMG",
                     ),
                 ),
                 FileMetadata(
                     id="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
                     groupid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
-                    use="TECHNICAL",
+                    use="function:technical",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.plaintext.txt.textmd.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:service.format:text-plain.txt.textmd.xml",
                         mdtype="TEXTMD",
                     ),
                 ),
                 FileMetadata(
                     id="_00000000-0000-0000-0000-000000100103",
-                    use="EVENT",
+                    use="function:event",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.access.jpg.premis.event.xml",
+                        locref="00000000-0000-0000-0000-000000001001/metadata/00000001.function:service.format:image.jpg.function:event.premis.xml",
                         mdtype="PREMIS",
                     ),
                 ),
@@ -158,9 +158,9 @@ def sample_resources():
                 FileMetadata(
                     id="_be653ff450ae7f3520312a53e56c00bc",
                     mdid="_0193d5f0-7e72-7481-b6fd-0f916c30b396",
-                    use="SOURCE",
+                    use="function:source format:image",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/data/00000001.source.jpg",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.function:source.format:image.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -168,9 +168,9 @@ def sample_resources():
                     id="_7e923d9c33b3859e1327fa53a8e609a1",
                     groupid="_be653ff450ae7f3520312a53e56c00bc",
                     mdid="_0193d5f0-7e75-7803-8e41-71323b7b3284",
-                    use="ACCESS",
+                    use="function:service format:image",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/data/00000001.access.jpg",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.function:service.format:image.jpg",
                         mimetype="image/jpeg",
                     ),
                 ),
@@ -178,9 +178,9 @@ def sample_resources():
                     id="_764ba9761fbc6cbf0462d28d19356148",
                     groupid="_be653ff450ae7f3520312a53e56c00bc",
                     mdid="_0193d5f0-7f54-7268-b9b1-821085acdcf7",
-                    use="SOURCE",
+                    use="function:service format:text-plain",
                     ref=FileReference(
-                        locref="00000000-0000-0000-0000-000000001001/data/00000001.plaintext.txt",
+                        locref="00000000-0000-0000-0000-000000001001/data/00000001.function:service.format:text-plain.txt",
                         mimetype="text/plain",
                     ),
                 ),

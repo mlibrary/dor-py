@@ -69,45 +69,37 @@ def test_catalog_has_empty_file_sets():
                 metadata_files=[
                     FileMetadata(
                         id="_0193d5f0-7f64-7ac8-8f94-85c55c7313e4",
-                        use="DESCRIPTIVE/COMMON",
+                        use="function:service",
                         ref=FileReference(
-                            locref="../metadata/00000000-0000-0000-0000-000000000001.common.json",
-                            mdtype="DOR:SCHEMA",
-                            mimetype="application/json",
+                            locref="../metadata/00000000-0000-0000-0000-000000000001.function:service.json",
+                            mdtype="schema:common",
+                            mimetype="application/json+schema",
                         ),
                     ),
                     FileMetadata(
                         id="_0193d5f0-7f65-783e-b7b4-485b6f6b24d0",
-                        use="DESCRIPTIVE",
+                        use="function:source",
                         ref=FileReference(
-                            locref="../metadata/00000000-0000-0000-0000-000000000001.metadata.json",
-                            mdtype="DOR:SCHEMA",
-                            mimetype="application/json",
-                        ),
-                    ),
-                    FileMetadata(
-                        id="RIGHTS1",
-                        use="RIGHTS",
-                        ref=FileReference(
-                            locref="https://creativecommons.org/publicdomain/zero/1.0/",
-                            mdtype="OTHER",
+                            locref="../metadata/00000000-0000-0000-0000-000000000001.function:source.json",
+                            mdtype="schema:monograph",
+                            mimetype="application/json+schema",
                         ),
                     ),
                 ],
                 struct_maps=[
                     StructMap(
                         id="SM1",
-                        type=StructMapType.PHYSICAL,
+                        type=StructMapType.physical,
                         items=[
                             StructMapItem(
                                 order=1,
-                                type="page",
+                                type="structure:page",
                                 label="Page 1",
                                 file_set_id="urn:dor:00000000-0000-0000-0000-000000001001",
                             ),
                             StructMapItem(
                                 order=2,
-                                type="page",
+                                type="structure:page",
                                 label="Page 2",
                                 file_set_id="urn:dor:00000000-0000-0000-0000-000000001002",
                             ),

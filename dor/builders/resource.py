@@ -7,7 +7,22 @@ import json
 import random
 
 from dor.settings import S, template_env
-from .parts import Md, MdGrp, File, FileGrp, IdGenerator, calculate_checksum, make_paths, get_faker, get_datetime
+from .parts import (
+    Md,
+    MdGrp,
+    File,
+    FileGrp,
+    IdGenerator,
+    UseFunction,
+    StructureType,
+    calculate_checksum,
+    make_paths,
+    get_faker,
+    get_datetime,
+    flatten_use,
+    FileInfo,
+    MetadataFileInfo,
+)
 from .file_set import build_file_set
 from .premis import build_event
 
@@ -17,7 +32,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
 
     alternate_identifier = resource_identifier.alternate_identifier
 
-    fake = get_faker(role='resource')
+    fake = get_faker(role="resource")
 
     resource_template = template_env.get_template("mets_resource.xml")
     premis_event_template = template_env.get_template("premis_event.xml")
@@ -30,7 +45,8 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
     sequences = range(1, num_scans + 1)
     if version > 1 and partial:
         sequences = random.sample(
-            sequences, random.randint(1, min(len(sequences) - 1, 2)))
+            sequences, random.randint(1, min(len(sequences) - 1, 2))
+        )
 
     for seq in sequences:
         identifier = build_file_set(resource_identifier, seq, package_pathname, version)
@@ -39,19 +55,27 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
     if version > 1 and partial:
 
         mdsec_items = []
-        premis_event = build_event(event_type="ingest", linking_agent_type="collection manager")
-        resource_pathname.joinpath("metadata", f"{resource_identifier}-{version}.premis.event.xml").open("w").write(
-            premis_event_template.render(
-                event=premis_event
-            )
+        premis_event = build_event(
+            event_type="ingest", linking_agent_type="collection manager"
         )
+
+        premis_file_info = MetadataFileInfo(
+            resource_identifier,
+            f"{resource_identifier}-{version}",
+            [UseFunction.event],
+            "text/xml+premis",
+        )
+        (resource_pathname / premis_file_info.path).open("w").write(
+            premis_event_template.render(event=premis_event)
+        )
+
         mdsec_items.append(
             Md(
                 id=generate_md_identifier(),
-                use="EVENT",
-                mdtype="PREMIS",
-                locref=f"{resource_identifier}/metadata/{resource_identifier}-{version}.premis.event.xml",
-                mimetype="text/xml",
+                use=flatten_use(UseFunction.event),
+                mdtype=premis_file_info.mdtype,
+                locref=premis_file_info.locref,
+                mimetype=premis_file_info.mimetype,
             )
         )
 
@@ -72,7 +96,7 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
 
     mdsec_items = []
 
-    metadata_fake = get_faker('metadata')
+    metadata_fake = get_faker("metadata")
     metadata_fake["en_US"].add_provider(ModelOrganism)
 
     metadata = {}
@@ -88,9 +112,15 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         metadata_fake["en_US"].organism_latin() for _ in range(5)
     ]
 
-    metadata_pathname = resource_pathname.joinpath(
-        "metadata", resource_identifier + ".metadata.json"
+    metadata_file_info = MetadataFileInfo(
+        resource_identifier,
+        resource_identifier,
+        [UseFunction.source],
+        "application/json+schema",
+        "schema:monograph"
     )
+
+    metadata_pathname = resource_pathname / metadata_file_info.path
     metadata_pathname.open("w").write(json.dumps(metadata, indent=4))
 
     metadata = {
@@ -100,36 +130,47 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
         "publication_date": metadata["publication_date"],
         "subjects": metadata["places"] + metadata["identification"],
     }
-    common_pathname = resource_pathname.joinpath(
-        "metadata", resource_identifier + ".common.json"
+
+    common_file_info = MetadataFileInfo(
+        resource_identifier,
+        resource_identifier,
+        [UseFunction.service],
+        "application/json+schema",
+        "schema:common"
     )
+
+    common_pathname = resource_pathname / common_file_info.path
     common_pathname.open("w").write(json.dumps(metadata, indent=4))
 
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use="DESCRIPTIVE/COMMON",
-            mdtype="DOR:SCHEMA",
-            locref=f"{resource_identifier}/metadata/{resource_identifier}.common.json",
+            use=flatten_use(UseFunction.service),
+            mdtype=common_file_info.mdtype,
+            locref=common_file_info.locref,
             checksum=calculate_checksum(common_pathname),
-            mimetype="application/json",
+            mimetype=common_file_info.mimetype,
         )
     )
 
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use="DESCRIPTIVE",
-            mdtype="DOR:SCHEMA",
-            locref=f"{resource_identifier}/metadata/{resource_identifier}.metadata.json",
+            use=flatten_use(UseFunction.source),
+            mdtype=metadata_file_info.mdtype,
+            locref=metadata_file_info.locref,
             checksum=calculate_checksum(metadata_pathname),
-            mimetype="application/json",
+            mimetype=metadata_file_info.mimetype,
         )
     )
 
-    resource_pathname.joinpath(
-        "metadata", resource_identifier + ".premis.object.xml"
-    ).open("w").write(
+    premis_file_info = MetadataFileInfo(
+        resource_identifier,
+        resource_identifier,
+        [UseFunction.provenance],
+        "text/xml+premis",
+    )
+    (resource_pathname / premis_file_info.path).open("w").write(
         premis_object_template.render(
             alternate_identifier=alternate_identifier,
             scans_count=len(file_set_identifiers),
@@ -140,26 +181,33 @@ def build_resource(package_pathname, resource_identifier, version=1, partial=Tru
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use="PROVENANCE",
-            mdtype="PREMIS",
-            locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.object.xml",
-            mimetype="text/xml",
+            use=flatten_use(UseFunction.provenance),
+            mdtype=premis_file_info.mdtype,
+            locref=premis_file_info.locref,
+            mimetype=premis_file_info.mimetype,
         )
     )
 
-    premis_event = build_event(event_type="ingest", linking_agent_type="collection manager")
-    resource_pathname.joinpath("metadata", resource_identifier + ".premis.event.xml").open("w").write(
-        premis_event_template.render(
-            event=premis_event
-        )
+    premis_event = build_event(
+        event_type="ingest", linking_agent_type="collection manager"
+    )
+
+    premis_file_info = MetadataFileInfo(
+        resource_identifier,
+        resource_identifier,
+        [UseFunction.event],
+        "text/xml+premis",
+    )
+    (resource_pathname / premis_file_info.path).open("w").write(
+        premis_event_template.render(event=premis_event)
     )
     mdsec_items.append(
         Md(
             id=generate_md_identifier(),
-            use="EVENT",
-            mdtype="PREMIS",
-            locref=f"{resource_identifier}/metadata/{resource_identifier}.premis.event.xml",
-            mimetype="text/xml",
+            use=flatten_use(UseFunction.event),
+            mdtype=premis_file_info.mdtype,
+            locref=premis_file_info.locref,
+            mimetype=premis_file_info.mimetype,
         )
     )
 
