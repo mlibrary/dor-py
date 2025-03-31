@@ -50,8 +50,70 @@ def serialize_provenance(data: Any) -> str:
     )
     return xmldata
 
+@dataclass
+class MetadataFile():
+    use: str
+    file_ending: str
+    root_resource_identifier: str
+    metadata_data: dict[str, Any]
+    serializer: Callable[[Any], str]
+
+    @property
+    def path(self) -> Path:
+        file_name = self.root_resource_identifier + self.file_ending
+        locref = Path(self.root_resource_identifier) / "metadata" / file_name
+        return locref
+
+    @property
+    def data(self) -> Any:
+        return self.metadata_data["data"]
+
+    def serialize(self) -> str:
+        return self.serializer(self.data)
+
+    def to_file_metadata(self) -> FileMetadata:
+        return FileMetadata(
+            id="_" + str(uuid.uuid4()),
+            use=self.metadata_data["use"],
+            ref=FileReference(
+                locref=str(self.path),
+                mdtype=self.metadata_data.get("mdtype"),
+                mimetype=self.metadata_data["mimetype"]
+            )
+        )
+
 
 class PackageGenerator:
+
+    @staticmethod
+    def create_metadata_file_obj(metadata_data: dict[str, Any], root_resource_identifier: str) -> MetadataFile:
+        match metadata_data["use"]:
+            case "function:source":
+                return MetadataFile(
+                    use="function:source",
+                    file_ending=".function:source.json",
+                    root_resource_identifier=root_resource_identifier,
+                    metadata_data=metadata_data,
+                    serializer=lambda x: json.dumps(x, indent=4)
+                )
+            case "function:service":
+                return MetadataFile(
+                    use="function:service",
+                    file_ending=".function:service.json",
+                    root_resource_identifier=root_resource_identifier,
+                    metadata_data=metadata_data,
+                    serializer=lambda x: json.dumps(x, indent=4)
+                )
+            case "function:provenance":
+                return MetadataFile(
+                    use="function:provenance",
+                    file_ending=".function:provenance.premis.xml",
+                    root_resource_identifier=root_resource_identifier,
+                    metadata_data=metadata_data,
+                    serializer=serialize_provenance
+                )
+            case _:
+                raise PackageMetadataError(f"Metadata file with use \"{metadata_data["use"]}\" was not recognized")
 
     def __init__(
         self,
@@ -73,6 +135,11 @@ class PackageGenerator:
         self.type: str = self.metadata["type"]
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
+
+        self.metadata_files = [
+            self.create_metadata_file_obj(metadata_data, self.root_resource_identifier)
+            for metadata_data in self.metadata["md"]
+        ]
 
     def clear_package_path(self):
         self.file_provider.delete_dir_and_contents(self.package_path)
@@ -97,32 +164,10 @@ class PackageGenerator:
             )
         return matching_file_datas[0]
 
-    def get_metadata_file_path(self, file_ending: str) -> Path:
-        file_name = self.root_resource_identifier + file_ending
-        locref = Path(self.root_resource_identifier) / "metadata" / file_name
-        return locref
-
-    @staticmethod
-    def get_file_metadata(file_path: Path, metadata_data: dict[str, Any]) -> FileMetadata:
-        return FileMetadata(
-            id="_" + str(uuid.uuid4()),
-            use=metadata_data["use"],
-            ref=FileReference(
-                locref=str(file_path),
-                mdtype=metadata_data.get("mdtype"),
-                mimetype=metadata_data["mimetype"]
-            )
-        )
-
-    def create_root_metadata_file(
-        self,
-        file_path: Path,
-        data: Any,
-        serializer: Callable[[Any], str]
-    ) -> None:
+    def create_root_metadata_file(self, file_path: Path, data: Any) -> None:
         metadata_path = self.package_path / file_path
         with open(metadata_path, "w") as descriptive_file:
-            descriptive_file.write(serializer(data))
+            descriptive_file.write(data)
 
     def get_struct_maps(self) -> list[StructMap]:
         struct_maps = []
@@ -228,41 +273,30 @@ class PackageGenerator:
         self.file_provider.create_directory(
             self.package_path / self.root_resource_identifier / "metadata"
         )
-        try:
-            descriptive_data = self.get_metadata_file_data(use="function:source")
-            descriptive_file_path = self.get_metadata_file_path(".function:source.json")
-            descriptive_file_metadata = self.get_file_metadata(file_path=descriptive_file_path, metadata_data=descriptive_data)
-            self.create_root_metadata_file(
-                file_path=descriptive_file_path,
-                data=descriptive_data["data"],
-                serializer=lambda x: json.dumps(x, indent=4)
-            )
-            metadata_file_metadatas.append(descriptive_file_metadata)
 
-            common_data = self.get_metadata_file_data(use="function:service")
-            common_file_path = self.get_metadata_file_path(".function:service.json")
-            common_file_metadata = self.get_file_metadata(file_path=common_file_path, metadata_data=common_data)
+        for metadata_file in self.metadata_files:
             self.create_root_metadata_file(
-                file_path=common_file_path,
-                data=common_data["data"],
-                serializer=lambda x: json.dumps(x, indent=4)
+                file_path=metadata_file.path,
+                data=metadata_file.serialize()
             )
-            metadata_file_metadatas.append(common_file_metadata)
+            metadata_file_metadatas.append(metadata_file.to_file_metadata())
 
-            provenance_data = self.get_metadata_file_data(use="function:provenance")
-            provenance_file_path = self.get_metadata_file_path(".function:provenance.premis.xml")
-            provenance_file_metadata = self.get_file_metadata(file_path=provenance_file_path, metadata_data=provenance_data)
-            self.create_root_metadata_file(
-                file_path=provenance_file_path,
-                data=provenance_data["data"],
-                serializer=serialize_provenance
-            )
-            metadata_file_metadatas.append(provenance_file_metadata)
-        except PackageMetadataError as error:
+        provenance_metadata_files = [
+            metadata_file for metadata_file in self.metadata_files
+            if metadata_file.use == "function:provenance"
+        ]
+        if len(provenance_metadata_files) != 1:
             self.clear_package_path()
-            return self.get_package_result(success=False, message=error.message)
+            return self.get_package_result(
+                success=False,
+                message=(
+                    f"Expected to find a single instance of metadata file data for use \"function:provenance\" " +
+                    f"but found {len(provenance_metadata_files)}"
+                )
+            )
+        provenance_metadata_file = provenance_metadata_files[0]
+        alternate_identifier = provenance_metadata_file.data["alternate_identifier"]
 
-        alternate_identifier = provenance_data["data"]["alternate_identifier"]
         resource = PackageResource(
             id=uuid.UUID(self.root_resource_identifier),
             type=self.type,
