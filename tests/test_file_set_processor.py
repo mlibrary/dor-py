@@ -22,7 +22,7 @@ def output_path() -> Path:
 
 def test_process_basic_copy_copies_input_file_to_output_file(input_path, output_path):
     identifier = "uuid"
-    copy_of_source_file = output_path/identifier/"data"/(identifier + ".function:source.known")
+    copy_of_source_file = output_path / identifier / "data" / ("test_image.function:source.known")
 
     assert process_basic_image(identifier, input_path, output_path)
     assert copy_of_source_file.exists()
@@ -30,7 +30,7 @@ def test_process_basic_copy_copies_input_file_to_output_file(input_path, output_
 
 def test_process_basic_image_creates_technical_metadata(input_path, output_path):
     identifier = "uuid"
-    technical_metadata_file = output_path/identifier/"metadata" / \
-        (identifier + ".function:service.format:image.jpg.function:technical.mix.xml")
+    technical_metadata_file = output_path / identifier / "metadata" / \
+        ("test_image.function:service.format:image.jpg.function:technical.mix.xml")
     assert process_basic_image(identifier, input_path, output_path)
     assert technical_metadata_file.exists()
