@@ -50,6 +50,7 @@ def serialize_provenance(data: Any) -> str:
     )
     return xmldata
 
+
 @dataclass
 class MetadataFile():
     use: str
@@ -240,7 +241,21 @@ class PackageGenerator:
     def generate(self) -> PackageResult:        
         # Validate metadata?
 
-        self.file_provider.create_directory(self.package_path)
+        provenance_metadata_files = [
+            metadata_file for metadata_file in self.metadata_files
+            if metadata_file.use == "function:provenance"
+        ]
+        if len(provenance_metadata_files) != 1:
+            return self.get_package_result(
+                success=False,
+                message=(
+                    f"Expected to find a single metadata file object " +
+                    f"for use \"function:provenance\" " +
+                    f"but found {len(provenance_metadata_files)}"
+                )
+            )
+        provenance_metadata_file = provenance_metadata_files[0]
+        alternate_identifier = provenance_metadata_file.data["alternate_identifier"]
 
         struct_maps = self.get_struct_maps()
         physical_struct_maps = [
@@ -248,7 +263,6 @@ class PackageGenerator:
             if struct_map.type == StructMapType.physical
         ]
         if len(physical_struct_maps) != 1:
-            self.clear_package_path()
             return self.get_package_result(
                 success=False,
                 message=(
@@ -257,6 +271,9 @@ class PackageGenerator:
                 )
             )
         physical_struct_map = physical_struct_maps[0]
+
+        self.file_provider.create_directory(self.package_path)
+
         incorporated_file_set_ids, missing_file_set_ids = self.incorporate_file_sets(physical_struct_map)
         if len(missing_file_set_ids) > 0:
             self.clear_package_path()
@@ -267,35 +284,17 @@ class PackageGenerator:
 
         root_resource_path = self.package_path / self.root_resource_identifier
         self.file_provider.create_directory(root_resource_path)
-
-        # Create root metadata files
-        metadata_file_metadatas: list[FileMetadata] = []
         self.file_provider.create_directory(
             self.package_path / self.root_resource_identifier / "metadata"
         )
 
+        metadata_file_metadatas: list[FileMetadata] = []
         for metadata_file in self.metadata_files:
             self.create_root_metadata_file(
                 file_path=metadata_file.path,
                 data=metadata_file.serialize()
             )
             metadata_file_metadatas.append(metadata_file.to_file_metadata())
-
-        provenance_metadata_files = [
-            metadata_file for metadata_file in self.metadata_files
-            if metadata_file.use == "function:provenance"
-        ]
-        if len(provenance_metadata_files) != 1:
-            self.clear_package_path()
-            return self.get_package_result(
-                success=False,
-                message=(
-                    f"Expected to find a single instance of metadata file data for use \"function:provenance\" " +
-                    f"but found {len(provenance_metadata_files)}"
-                )
-            )
-        provenance_metadata_file = provenance_metadata_files[0]
-        alternate_identifier = provenance_metadata_file.data["alternate_identifier"]
 
         resource = PackageResource(
             id=uuid.UUID(self.root_resource_identifier),
@@ -319,6 +318,6 @@ class PackageGenerator:
             "Identifier": incorporated_file_set_ids,
         }
         bag = BagAdapter.make(self.package_path, self.file_provider)
-        bag.add_dor_info(dor_info=dor_info)
+        bag.add_dor_info(dor_info)
 
         return self.get_package_result(success=True, message="Generated package successfully!")

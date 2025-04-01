@@ -125,7 +125,7 @@ def test_generator_fails_when_metadata_is_missing_file_data(
         deposit_group_identifier=deposit_group.identifier,
         success=False,
         message=(
-            "Expected to find a single instance of metadata file data for use \"function:provenance\" " +
+            "Expected to find a single metadata file object for use \"function:provenance\" " +
             "but found 0"
         )
     )
