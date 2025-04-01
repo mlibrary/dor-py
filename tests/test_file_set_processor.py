@@ -22,13 +22,5 @@ def test_process_basic_copy_copies_input_file_to_output_file(input_path, output_
     identifier = "uuid"
     copy_of_source_file = output_path/identifier/"data"/(identifier + ".function:source.known")
 
-    success = process_basic_image(identifier, input_path, output_path)
-    
-    #     success = False
-    # for each filename in input do
-    #     copy filename to "id.function:source.known"
-    #     success = True
-    #     break
-
-    assert success
-    assert copy_of_source_file.exist()
+    assert process_basic_image(identifier, input_path, output_path)
+    assert copy_of_source_file.exists()
