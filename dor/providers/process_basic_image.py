@@ -24,6 +24,7 @@ class TechnicalMetadata:
     mimetype: str
     metadata: str
     metadata_mimetype: str
+    # rotated: bool = False
 
     
 def get_source_file_path(input_path: Path) -> Path:
@@ -83,12 +84,19 @@ def process_basic_image(
     tech_meta_file_info = image_file_info.metadata(UseFunction.technical, source_tech_metadata.metadata_mimetype)
     (output_path / identifier / tech_meta_file_info.path).write_text(source_tech_metadata.metadata)
 
+    compressible_file_path = new_source_file_path
+    # check source_tech_metadata for rotation
+    # if true: 
+    #    compressible_file_path = make_temp()
+    #    generate_intermediate_file(new_source_file_path, compressible_file_path)
+
     service_image_file_info = FileInfo(
         identifier, basename, [UseFunction.service, UseFormat.image], "image/jpeg"
     )
     service_file_path = output_path / identifier / service_image_file_info.path
 
     try:
+        # new_source_file_path -> compressible_file_path
         generate_service_variant(new_source_file_path, source_tech_metadata, service_file_path)
     except ServiceImageProcessingError as error:
         return False
