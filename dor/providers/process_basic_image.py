@@ -118,9 +118,7 @@ def process_basic_image(
         events=[],
         metadata_files=[
             FileMetadata(
-                ## these ids need to be part of the file_info to
-                ## refer to them in other FileMetadata
-                id=uuid.uuid4(),
+                id=tech_meta_file_info.xmlid,
                 use=flatten_use(*tech_meta_file_info.uses),
                 ref=FileReference(
                     locref=tech_meta_file_info.locref,
@@ -128,7 +126,7 @@ def process_basic_image(
                 )
             ),
             FileMetadata(
-                id=uuid.uuid4(),
+                id=service_tech_meta_file_info.xmlid,
                 use=flatten_use(*service_tech_meta_file_info.uses),
                 ref=FileReference(
                     locref=service_tech_meta_file_info.locref,
@@ -138,17 +136,19 @@ def process_basic_image(
         ],
         data_files=[
             FileMetadata(
-                id=uuid.uuid4(),
+                id=image_file_info.xmlid,
                 use=flatten_use(*image_file_info.uses),
+                mdid=tech_meta_file_info.xmlid,
                 ref=FileReference(
                     locref=image_file_info.locref,
                     mimetype=image_file_info.mimetype
                 )
             ),
             FileMetadata(
-                id=uuid.uuid4(),
+                id=service_image_file_info.xmlid,
                 use=flatten_use(*service_image_file_info.uses),
-                groupid=uuid.uuid4(),
+                groupid=image_file_info.xmlid,
+                mdid=service_tech_meta_file_info.xmlid,
                 ref=FileReference(
                     locref=service_image_file_info.locref,
                     mimetype=service_image_file_info.mimetype

@@ -160,10 +160,15 @@ class FileInfo:
     basename: str
     uses: list[UseFunction | UseFormat]
     mimetype: str
+    id: uuid6.UUID = field(default_factory=lambda: uuid6.uuid7())
 
     @property
     def place(self):
         return "data"
+    
+    @property
+    def xmlid(self):
+        return f"_{self.id}"
 
     @property
     def ext(self):
