@@ -5,7 +5,7 @@
 .pytest_cache
 __pycache__
 .dotnet/
-.vscode-server
+.vscode*/
 .local
 .gitconfig
 .venv
