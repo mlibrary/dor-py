@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 from typing import Callable
 
-from dor.adapters.technical_metadata import TechnicalMetadata, TechnicalMetadataError
+from dor.adapters.technical_metadata import TechnicalMetadata, TechnicalMetadataError, get_technical_metadata
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.builders.parts import FileInfo, UseFunction, UseFormat, flatten_use
 from dor.providers.models import AlternateIdentifier, FileReference, PackageResource, FileMetadata
@@ -18,9 +18,6 @@ def get_source_file_path(input_path: Path) -> Path:
         return file_path
     raise Exception()
 
-
-def get_fake_technical_metadata(file_path: Path) -> TechnicalMetadata:
-    return TechnicalMetadata(mimetype="image/jpeg", metadata=f"<xml>{file_path}</xml>", metadata_mimetype="text/xml+mix")
 
 def generate_fake_service_variant(source_file_path: Path, source_metadata: TechnicalMetadata, service_file_path: Path):
     shutil.copyfile(source_file_path, service_file_path)
@@ -43,7 +40,7 @@ def process_basic_image(
     identifier: str,
     input_path: Path,
     output_path: Path,
-    get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_fake_technical_metadata,
+    get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_technical_metadata,
     generate_service_variant: Callable[[Path, TechnicalMetadata, Path], None] = generate_fake_service_variant
 ) -> bool:
     file_provider = FilesystemFileProvider()
