@@ -38,3 +38,9 @@ def test_get_technical_metadata_retrieves_data_for_rotated_tiff(fixtures_path: P
     assert tech_metadata.rotated
     assert not tech_metadata.compressed
     assert tech_metadata.metadata
+
+
+def test_get_technical_metadata_raises_when_processing_png(fixtures_path: Path):
+    image_path = fixtures_path / "test_image.png"
+    with pytest.raises(TechnicalMetadataError):
+        get_technical_metadata(image_path)
