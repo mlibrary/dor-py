@@ -8,6 +8,9 @@ MIX_NS = "http://www.loc.gov/mix/v20"
 NS_MAP = {'jhove': JHOVE_NS, 'mix': MIX_NS}
 
 JHOVE_VALID_OK = "Well-Formed and valid"
+UNCOMPRESSED = "Uncompressed"
+ROTATED = "rotated"
+
 ACCEPTED_IMAGE_MIMETYPES = [
     "image/jpeg",
     "image/tiff",
@@ -24,8 +27,6 @@ class TechnicalMetadataError(Exception):
 
 @dataclass
 class TechnicalMetadata:
-    # height: int
-    # width: int
     mimetype: str
     metadata: str
     metadata_mimetype: str
@@ -61,13 +62,13 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
     compression_elem = niso_mix_elem.find(".//mix:Compression/mix:compressionScheme", NS_MAP)
     if compression_elem is None or compression_elem.text is None:
         raise TechnicalMetadataError
-    compressed = compression_elem.text != "Uncompressed"
+    compressed = compression_elem.text != UNCOMPRESSED
 
     orientation_elem = niso_mix_elem.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
     if orientation_elem is None or orientation_elem.text is None:
         rotated = False
     else:
-        rotated = "rotated" in orientation_elem.text
+        rotated = ROTATED in orientation_elem.text
 
     return TechnicalMetadata(
         mimetype=mimetype,
@@ -76,3 +77,7 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
         compressed=compressed,
         rotated=rotated
     )
+
+
+def get_fake_technical_metadata(file_path: Path) -> TechnicalMetadata:
+    return TechnicalMetadata(mimetype="image/jpeg", metadata=f"<xml>{file_path}</xml>", metadata_mimetype="text/xml+mix")
