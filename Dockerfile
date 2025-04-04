@@ -34,7 +34,9 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   curl \
   unzip \
   libpq-dev \
-  openjdk-17-jre-headless
+  openjdk-17-jre-headless \
+  libvips-dev \
+  libvips-tools
 
 # Set the working directory to /app
 WORKDIR /app
