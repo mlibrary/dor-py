@@ -1,6 +1,7 @@
 import subprocess
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 
 JHOVE_NS = "http://schema.openpreservation.org/ois/xml/ns/jhove"
@@ -19,11 +20,21 @@ class TechnicalMetadataError(Exception):
     pass
 
 
+class ImageMimetype(Enum):
+    JPEG = "image/jpeg"
+    TIFF = "image/tiff"
+    JP2 = "image/jp2"
+
+
+class TechnicalMetadataMimetype(Enum):
+    MIX = "text/xml+mix"
+
+
 @dataclass
 class TechnicalMetadata:
-    mimetype: str
+    mimetype: ImageMimetype
     metadata: str
-    metadata_mimetype: str
+    metadata_mimetype: TechnicalMetadataMimetype
     rotated: bool = False
     compressed: bool = False
 
@@ -43,7 +54,11 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
     
     mimetype_elem = jhove_doc.find(f".//jhove:repInfo/jhove:mimeType", NS_MAP)
     if mimetype_elem is None or mimetype_elem.text is None: raise TechnicalMetadataError
-    mimetype = mimetype_elem.text
+    mimetype_text = mimetype_elem.text
+    try:
+        mimetype = ImageMimetype(mimetype_text)
+    except ValueError:
+        raise TechnicalMetadataError(f"Unknown mimetype encountered: {mimetype_text}")
 
     niso_mix_elem = jhove_doc.find(
         f".//jhove:values[@type='NISOImageMetadata']/jhove:value/mix:mix", NS_MAP
@@ -65,7 +80,7 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
     return TechnicalMetadata(
         mimetype=mimetype,
         metadata=niso_mix_xml,
-        metadata_mimetype="text/xml+mix",
+        metadata_mimetype=TechnicalMetadataMimetype.MIX,
         compressed=compressed,
         rotated=rotated
     )
@@ -73,7 +88,7 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
 
 def get_fake_technical_metadata(file_path: Path) -> TechnicalMetadata:
     return TechnicalMetadata(
-        mimetype="image/jpeg",
+        mimetype=ImageMimetype.JPEG,
         metadata=f"<xml>{file_path}</xml>",
-        metadata_mimetype="text/xml+mix"
+        metadata_mimetype=TechnicalMetadataMimetype.MIX
     )

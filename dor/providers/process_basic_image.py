@@ -3,16 +3,19 @@ import shutil
 from pathlib import Path
 from typing import Callable
 
-from dor.adapters.technical_metadata import TechnicalMetadata, TechnicalMetadataError, get_technical_metadata
+from dor.adapters.technical_metadata import (
+    ImageMimetype, TechnicalMetadata, TechnicalMetadataError, get_technical_metadata
+)
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.builders.parts import FileInfo, UseFunction, UseFormat, flatten_use
 from dor.providers.models import AlternateIdentifier, FileReference, PackageResource, FileMetadata
 from dor.settings import template_env
 
+
 ACCEPTED_IMAGE_MIMETYPES = [
-    "image/jpeg",
-    "image/tiff",
-    "image/jp2",
+    ImageMimetype.JPEG,
+    ImageMimetype.TIFF,
+    ImageMimetype.JP2
 ]
 
 
@@ -61,20 +64,22 @@ def process_basic_image(
 
     try:
         source_tech_metadata = get_technical_metadata(source_file_path)
-    except TechnicalMetadataError as error:
+    except TechnicalMetadataError:
         return False
 
     if source_tech_metadata.mimetype not in ACCEPTED_IMAGE_MIMETYPES:
         return False
 
     image_file_info = FileInfo(
-        identifier, basename, [UseFunction.source, UseFormat.image], source_tech_metadata.mimetype
+        identifier, basename, [UseFunction.source, UseFormat.image], source_tech_metadata.mimetype.value
     )
     new_source_file_path = output_path / identifier / image_file_info.path
 
     shutil.copyfile(source_file_path, new_source_file_path)
 
-    tech_meta_file_info = image_file_info.metadata(UseFunction.technical, source_tech_metadata.metadata_mimetype)
+    tech_meta_file_info = image_file_info.metadata(
+        UseFunction.technical, source_tech_metadata.metadata_mimetype.value
+    )
     (output_path / identifier / tech_meta_file_info.path).write_text(source_tech_metadata.metadata)
 
     compressible_file_path = new_source_file_path
@@ -84,7 +89,7 @@ def process_basic_image(
     #    generate_intermediate_file(new_source_file_path, compressible_file_path)
 
     service_image_file_info = FileInfo(
-        identifier, basename, [UseFunction.service, UseFormat.image], "image/jpeg"
+        identifier, basename, [UseFunction.service, UseFormat.image], ImageMimetype.JPEG.value
     )
     service_file_path = output_path / identifier / service_image_file_info.path
 
@@ -99,7 +104,9 @@ def process_basic_image(
     except TechnicalMetadataError as error:
         return False
 
-    service_tech_meta_file_info = service_image_file_info.metadata(UseFunction.technical, service_tech_metadata.metadata_mimetype)
+    service_tech_meta_file_info = service_image_file_info.metadata(
+        UseFunction.technical, service_tech_metadata.metadata_mimetype.value
+    )
     (output_path / identifier / service_tech_meta_file_info.path).write_text(service_tech_metadata.metadata)
 
     descriptor_file_path = output_path / identifier / "descriptor" / f"{identifier}.file_set.mets2.xml"
