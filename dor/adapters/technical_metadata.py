@@ -41,8 +41,12 @@ class TechnicalMetadata:
 
 def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
     try:
-        jhove_output = subprocess.run(["/opt/jhove/jhove", "-h", "XML", file_path], capture_output=True)
-    except subprocess.SubprocessError as error:
+        jhove_output = subprocess.run(
+            ["/opt/jhove/jhove", "-h", "XML", file_path],
+            capture_output=True,
+            check=True
+        )
+    except subprocess.CalledProcessError as error:
         raise TechnicalMetadataError("JHOVE failed.") from error
     jhove_doc = ET.fromstring(jhove_output.stdout)
 
