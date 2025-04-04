@@ -9,10 +9,17 @@ from dor.builders.parts import FileInfo, UseFunction, UseFormat, flatten_use
 from dor.providers.models import AlternateIdentifier, FileReference, PackageResource, FileMetadata
 from dor.settings import template_env
 
+ACCEPTED_IMAGE_MIMETYPES = [
+    "image/jpeg",
+    "image/tiff",
+    "image/jp2",
+]
+
+
 class ServiceImageProcessingError(Exception):
     pass
 
-    
+
 def get_source_file_path(input_path: Path) -> Path:
     for file_path in input_path.iterdir():
         return file_path
@@ -55,6 +62,9 @@ def process_basic_image(
     try:
         source_tech_metadata = get_technical_metadata(source_file_path)
     except TechnicalMetadataError as error:
+        return False
+
+    if source_tech_metadata.mimetype not in ACCEPTED_IMAGE_MIMETYPES:
         return False
 
     image_file_info = FileInfo(
