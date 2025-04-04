@@ -33,7 +33,8 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   vim-tiny \
   curl \
   unzip \
-  libpq-dev
+  libpq-dev \
+  openjdk-17-jre-headless
 
 # Set the working directory to /app
 WORKDIR /app
@@ -44,6 +45,11 @@ ENV PYTHONPATH="/app"
 RUN curl -LO https://github.com/pwinckles/rocfl/releases/download/v1.7.0/rocfl-linux-x86_64-no-s3.zip && \
   unzip -d /usr/local/bin rocfl-linux-x86_64-no-s3.zip && \
   rm rocfl-linux-x86_64-no-s3.zip
+
+# Install JHOVE
+COPY etc/jhove-auto-install.xml /tmp/jhove-auto-install.xml
+RUN curl https://software.openpreservation.org/rel/jhove-latest.jar -o /tmp/jhove-installer.jar
+RUN java -jar /tmp/jhove-installer.jar /tmp/jhove-auto-install.xml
 
 CMD ["tail", "-f", "/dev/null"]
 
