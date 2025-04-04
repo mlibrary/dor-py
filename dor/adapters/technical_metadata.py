@@ -90,5 +90,6 @@ def get_fake_technical_metadata(file_path: Path) -> TechnicalMetadata:
     return TechnicalMetadata(
         mimetype=ImageMimetype.JPEG,
         metadata=f"<xml>{file_path}</xml>",
-        metadata_mimetype=TechnicalMetadataMimetype.MIX
+        metadata_mimetype=TechnicalMetadataMimetype.MIX,
+        compressed=True
     )
