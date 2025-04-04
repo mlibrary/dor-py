@@ -11,12 +11,6 @@ JHOVE_VALID_OK = "Well-Formed and valid"
 UNCOMPRESSED = "Uncompressed"
 ROTATED = "rotated"
 
-ACCEPTED_IMAGE_MIMETYPES = [
-    "image/jpeg",
-    "image/tiff",
-    "image/jp2",
-]
-
 for prefix in NS_MAP:
     ET.register_namespace(prefix, NS_MAP[prefix])
 
@@ -50,8 +44,6 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
     mimetype_elem = jhove_doc.find(f".//jhove:repInfo/jhove:mimeType", NS_MAP)
     if mimetype_elem is None or mimetype_elem.text is None: raise TechnicalMetadataError
     mimetype = mimetype_elem.text
-    if not mimetype in ACCEPTED_IMAGE_MIMETYPES:
-        raise TechnicalMetadataError(f"File {file_path} has an unexpected file type: {mimetype}")
 
     niso_mix_elem = jhove_doc.find(
         f".//jhove:values[@type='NISOImageMetadata']/jhove:value/mix:mix", NS_MAP
@@ -80,4 +72,8 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
 
 
 def get_fake_technical_metadata(file_path: Path) -> TechnicalMetadata:
-    return TechnicalMetadata(mimetype="image/jpeg", metadata=f"<xml>{file_path}</xml>", metadata_mimetype="text/xml+mix")
+    return TechnicalMetadata(
+        mimetype="image/jpeg",
+        metadata=f"<xml>{file_path}</xml>",
+        metadata_mimetype="text/xml+mix"
+    )
