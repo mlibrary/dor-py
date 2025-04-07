@@ -1,8 +1,10 @@
-from datetime import datetime
 import shutil
+import tempfile
+from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
+from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
     ImageMimetype, TechnicalMetadata, TechnicalMetadataError, get_technical_metadata
 )
@@ -74,7 +76,6 @@ def process_basic_image(
         identifier, basename, [UseFunction.source, UseFormat.image], source_tech_metadata.mimetype.value
     )
     new_source_file_path = output_path / identifier / image_file_info.path
-
     shutil.copyfile(source_file_path, new_source_file_path)
 
     tech_meta_file_info = image_file_info.metadata(
@@ -82,22 +83,23 @@ def process_basic_image(
     )
     (output_path / identifier / tech_meta_file_info.path).write_text(source_tech_metadata.metadata)
 
-    compressible_file_path = new_source_file_path
-    # check source_tech_metadata for rotation
-    # if true: 
-    #    compressible_file_path = make_temp()
-    #    generate_intermediate_file(new_source_file_path, compressible_file_path)
-
     service_image_file_info = FileInfo(
         identifier, basename, [UseFunction.service, UseFormat.image], ImageMimetype.JPEG.value
     )
     service_file_path = output_path / identifier / service_image_file_info.path
 
-    try:
-        # new_source_file_path -> compressible_file_path
-        generate_service_variant(new_source_file_path, source_tech_metadata, service_file_path)
-    except ServiceImageProcessingError as error:
-        return False
+    temp_file = tempfile.NamedTemporaryFile(mode='w', suffix=".tiff")
+    with temp_file:
+        if source_tech_metadata.compressed or source_tech_metadata.rotated:
+            compressible_file_path = Path(temp_file.name)
+            make_intermediate_file(new_source_file_path, compressible_file_path)
+        else:
+            compressible_file_path = new_source_file_path
+
+        try:
+            generate_service_variant(compressible_file_path, source_tech_metadata, service_file_path)
+        except ServiceImageProcessingError:
+            return False
 
     try:
         service_tech_metadata = get_technical_metadata(service_file_path)
