@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
+from dor.adapters.generate_service_variant import generate_service_variant, ServiceImageProcessingError
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
     ImageMimetype, TechnicalMetadata, TechnicalMetadataError, get_technical_metadata
@@ -20,19 +21,10 @@ ACCEPTED_IMAGE_MIMETYPES = [
     ImageMimetype.JP2
 ]
 
-
-class ServiceImageProcessingError(Exception):
-    pass
-
-
 def get_source_file_path(input_path: Path) -> Path:
     for file_path in input_path.iterdir():
         return file_path
     raise Exception()
-
-
-def generate_fake_service_variant(source_file_path: Path, source_metadata: TechnicalMetadata, service_file_path: Path):
-    shutil.copyfile(source_file_path, service_file_path)
 
 def create_file_set_descriptor_file(
     resource: PackageResource,
@@ -53,7 +45,7 @@ def process_basic_image(
     input_path: Path,
     output_path: Path,
     get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_technical_metadata,
-    generate_service_variant: Callable[[Path, TechnicalMetadata, Path], None] = generate_fake_service_variant
+    generate_service_variant: Callable[[Path, Path], None] = generate_service_variant
 ) -> bool:
     file_provider = FilesystemFileProvider()
     file_provider.create_directory(output_path / identifier)
@@ -84,7 +76,7 @@ def process_basic_image(
     (output_path / identifier / tech_meta_file_info.path).write_text(source_tech_metadata.metadata)
 
     service_image_file_info = FileInfo(
-        identifier, basename, [UseFunction.service, UseFormat.image], ImageMimetype.JPEG.value
+        identifier, basename, [UseFunction.service, UseFormat.image], ImageMimetype.JP2.value
     )
     service_file_path = output_path / identifier / service_image_file_info.path
 
@@ -97,7 +89,7 @@ def process_basic_image(
             compressible_file_path = new_source_file_path
 
         try:
-            generate_service_variant(compressible_file_path, source_tech_metadata, service_file_path)
+            generate_service_variant(compressible_file_path, service_file_path)
         except ServiceImageProcessingError:
             return False
 
