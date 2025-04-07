@@ -36,7 +36,10 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   libpq-dev \
   openjdk-17-jre-headless \
   libvips-dev \
-  libvips-tools
+  libvips-tools \
+  grokj2k-tools \
+  libimage-exiftool-perl
+
 
 # Set the working directory to /app
 WORKDIR /app

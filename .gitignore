@@ -23,3 +23,5 @@ tests/test_descriptor_generator/
 tests/test_package_generator
 tests/test_packager
 tests/test_workspaces/
+tests/test_generate_service_variant_output/
+tests/test_process_basic_image_output/

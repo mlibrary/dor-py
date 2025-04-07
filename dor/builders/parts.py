@@ -173,8 +173,12 @@ class FileInfo:
     @property
     def ext(self):
         match self.mimetype:
+            case "image/jp2":
+                return "jp2"
             case "image/jpeg":
                 return "jpg"
+            case "image/tiff":
+                return "tiff"
             case "text/plain":
                 return "txt"
             case "text/xml+premis":
@@ -187,7 +191,7 @@ class FileInfo:
                 return "json"
             case "application/json":
                 return "json"
-            case "_":
+            case _:
                 return "bin"
 
     @property

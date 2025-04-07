@@ -39,7 +39,7 @@ def test_process_basic_image_creates_technical_metadata(input_path, output_path)
 def test_process_basic_image_creates_service_image(input_path, output_path):
     identifier = "uuid"
     service_image_file = output_path / identifier / "data" / \
-        ("test_image.function:service.format:image.jpg")
+        ("test_image.function:service.format:image.jp2")
     assert process_basic_image(identifier, input_path, output_path)
     assert service_image_file.exists()
 
@@ -47,7 +47,7 @@ def test_process_basic_image_creates_service_image(input_path, output_path):
 def test_process_basic_image_creates_service_technical_metadata(input_path, output_path):
     identifier = "uuid"
     technical_metadata_file = output_path / identifier / "metadata" / \
-        ("test_image.function:service.format:image.jpg.function:technical.mix.xml")
+        ("test_image.function:service.format:image.jp2.function:technical.mix.xml")
     assert process_basic_image(identifier, input_path, output_path)
     assert technical_metadata_file.exists()
 
