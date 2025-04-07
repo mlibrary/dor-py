@@ -9,7 +9,7 @@ from dor.adapters.technical_metadata import ImageMimetype, get_technical_metadat
 
 @pytest.fixture
 def fixtures_path() -> Path:
-    return Path("tests/fixtures/test_technical_metadata")
+    return Path("tests/fixtures/test_file_set_images")
 
 
 def test_make_intermediate_file_converts_jpg_to_uncompressed_tiff(fixtures_path):
