@@ -7,7 +7,7 @@ from dor.adapters.technical_metadata import ImageMimetype, TechnicalMetadataMime
 
 @pytest.fixture
 def fixtures_path() -> Path:
-    return Path("tests/fixtures/test_technical_metadata")
+    return Path("tests/fixtures/test_file_set_images")
 
 
 def test_get_technical_metadata_retrieves_data_for_jpg(fixtures_path: Path):
