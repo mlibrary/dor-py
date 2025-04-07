@@ -21,10 +21,6 @@ ACCEPTED_IMAGE_MIMETYPES = [
     ImageMimetype.JP2
 ]
 
-def get_source_file_path(input_path: Path) -> Path:
-    for file_path in input_path.iterdir():
-        return file_path
-    raise Exception()
 
 def create_file_set_descriptor_file(
     resource: PackageResource,
@@ -42,7 +38,7 @@ def create_file_set_descriptor_file(
 
 def process_basic_image(
     identifier: str,
-    input_path: Path,
+    input_image_path: Path,
     output_path: Path,
     get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_technical_metadata,
     generate_service_variant: Callable[[Path, Path], None] = generate_service_variant
@@ -53,7 +49,7 @@ def process_basic_image(
     file_provider.create_directory(output_path / identifier / "metadata")
     file_provider.create_directory(output_path / identifier / "descriptor")
 
-    source_file_path = get_source_file_path(input_path)
+    source_file_path = input_image_path
     basename = source_file_path.stem
 
     try:
