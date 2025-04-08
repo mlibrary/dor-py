@@ -12,7 +12,9 @@ from dor.adapters.technical_metadata import (
 )
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.builders.parts import FileInfo, UseFunction, UseFormat, flatten_use
-from dor.providers.models import AlternateIdentifier, FileReference, PackageResource, FileMetadata
+from dor.providers.models import (
+    Agent, AlternateIdentifier, FileReference, PackageResource, FileMetadata, PreservationEvent
+)
 from dor.settings import template_env
 
 
@@ -25,21 +27,42 @@ ACCEPTED_IMAGE_MIMETYPES = [
 PREMIS_EVENT_TEMPLATE = template_env.get_template("premis_event.xml")
 
 
-def create_event_data(
+class PreservationEventSerializer():
+
+    template = template_env.get_template("premis_event.xml")
+
+    def __init__(self, event: PreservationEvent):
+        self.event = event
+
+    def serialize(self) -> str:
+        event_data = {
+            "identifier": self.event.identifier,
+            "type": self.event.type,
+            "date_time": self.event.datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "detail": self.event.detail,
+            "linking_agent": {
+                "type": self.event.agent.role,
+                "value": self.event.agent.address
+            }
+        }
+        return self.template.render(event=event_data)
+
+
+def create_preservation_event(
     type: str,
     collection_manager_email: str,
     detail: str = ""
 ):
-    event = {
-        "identifier": uuid.uuid4(),
-        "type": type,
-        "date_time": datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "detail": detail,
-        "linking_agent": {
-            "type": "image_processing",
-            "value": collection_manager_email
-        }
-    }
+    event = PreservationEvent(
+        identifier=str(uuid.uuid4()),
+        type=type,
+        datetime=datetime.now(tz=UTC),
+        detail=detail,
+        agent=Agent(
+            role="image_processing",
+            address=collection_manager_email
+        )
+    )
     return event
 
 
@@ -88,10 +111,10 @@ def process_basic_image(
     new_source_file_path = output_path / identifier / image_file_info.path
     shutil.copyfile(source_file_path, new_source_file_path)
 
-    premis_event = create_event_data("copy source image", collection_manager_email)
-    premis_xml = PREMIS_EVENT_TEMPLATE.render(event=premis_event)
+    source_event = create_preservation_event("copy source image", collection_manager_email)
+    source_event_xml = PreservationEventSerializer(source_event).serialize()
     source_event_metadata_file_info = image_file_info.metadata(UseFunction.event, "text/xml+premis")
-    (output_path / identifier / source_event_metadata_file_info.path).write_text(premis_xml)
+    (output_path / identifier / source_event_metadata_file_info.path).write_text(source_event_xml)
 
     tech_meta_file_info = image_file_info.metadata(
         UseFunction.technical, source_tech_metadata.metadata_mimetype.value
@@ -116,10 +139,10 @@ def process_basic_image(
         except ServiceImageProcessingError:
             return False
 
-    premis_event = create_event_data("generate service derivative", collection_manager_email)
-    premis_xml = PREMIS_EVENT_TEMPLATE.render(event=premis_event)
+    service_event = create_preservation_event("generate service derivative", collection_manager_email)
+    service_event_xml = PreservationEventSerializer(service_event).serialize()
     service_event_metadata_file_info = service_image_file_info.metadata(UseFunction.event, "text/xml+premis")
-    (output_path / identifier / service_event_metadata_file_info.path).write_text(premis_xml)
+    (output_path / identifier / service_event_metadata_file_info.path).write_text(service_event_xml)
 
     try:
         service_tech_metadata = get_technical_metadata(service_file_path)
