@@ -89,6 +89,13 @@ def process_basic_image(
         except ServiceImageProcessingError:
             return False
 
+    service_event_metadata_file_info = service_image_file_info.metadata(UseFunction.event, "text/xml+premis")
+
+    
+
+    (output_path / identifier / service_event_metadata_file_info.path).write_text("<xml>Hello World!</xml>")
+
+
     try:
         service_tech_metadata = get_technical_metadata(service_file_path)
     except TechnicalMetadataError as error:
@@ -122,7 +129,15 @@ def process_basic_image(
                     locref=service_tech_meta_file_info.locref,
                     mimetype=service_tech_meta_file_info.mimetype
                 )
-            )
+            ),
+            FileMetadata(
+                id=service_event_metadata_file_info.xmlid,
+                use=flatten_use(*service_event_metadata_file_info.uses),
+                ref=FileReference(
+                    locref=service_event_metadata_file_info.locref,
+                    mimetype=service_event_metadata_file_info.mimetype
+                )
+            ),
         ],
         data_files=[
             FileMetadata(
@@ -148,5 +163,7 @@ def process_basic_image(
     )
 
     create_file_set_descriptor_file(resource, descriptor_file_path)
+
+    
 
     return True
