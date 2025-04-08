@@ -20,7 +20,7 @@ def output_path() -> Path:
     return output_path
 
 
-def test_process_basic_copy_copies_input_file_to_output_file(input_path, output_path):
+def test_process_basic_image_copy_copies_input_file_to_output_file(input_path, output_path):
     identifier = "uuid"
     copy_of_source_file = output_path / identifier / "data" / ("test_image.function:source.format:image.jpg")
 
@@ -59,3 +59,10 @@ def test_process_basic_image_creates_descriptor_file(input_path, output_path):
     assert process_basic_image(identifier, input_path / "test_image.jpg", output_path)
     assert descriptor_file.exists()
 
+
+def test_process_basic_image_creates_event_metadata(input_path, output_path):
+    identifier = "uuid"
+    event_metadata_file = output_path / identifier / "metadata" / \
+        ("test_image.function:service.format:image.jp2.function:event.premis.xml")
+    assert process_basic_image(identifier, input_path / "test_image.jpg", output_path)
+    assert event_metadata_file.exists()
