@@ -134,7 +134,7 @@ def process_basic_image(
     descriptor_file_path = output_path / identifier / "descriptor" / f"{identifier}.file_set.mets2.xml"
 
     resource = PackageResource(
-        id=identifier,
+        id=uuid.UUID(identifier),
         type="File Set",
         alternate_identifier=AlternateIdentifier(id=basename, type="DLXS"),
         events=[],
