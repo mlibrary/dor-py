@@ -1,6 +1,7 @@
 import shutil
 import tempfile
-from datetime import datetime
+import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Callable
 
@@ -21,6 +22,26 @@ ACCEPTED_IMAGE_MIMETYPES = [
     ImageMimetype.JP2
 ]
 
+PREMIS_EVENT_TEMPLATE = template_env.get_template("premis_event.xml")
+
+
+def create_event_data(
+    type: str,
+    collection_manager_email: str,
+    detail: str = ""
+):
+    event = {
+        "identifier": uuid.uuid4(),
+        "type": type,
+        "date_time": datetime.now(tz=UTC),
+        "detail": detail,
+        "linking_agent": {
+            "type": "image_processing",
+            "value": collection_manager_email
+        }
+    }
+    return event
+
 
 def create_file_set_descriptor_file(
     resource: PackageResource,
@@ -40,6 +61,7 @@ def process_basic_image(
     identifier: str,
     input_image_path: Path,
     output_path: Path,
+    collection_manager_email: str = "example@org.edu",
     get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_technical_metadata,
     generate_service_variant: Callable[[Path, Path], None] = generate_service_variant
 ) -> bool:
@@ -66,6 +88,11 @@ def process_basic_image(
     new_source_file_path = output_path / identifier / image_file_info.path
     shutil.copyfile(source_file_path, new_source_file_path)
 
+    premis_event = create_event_data("copy source image", collection_manager_email)
+    premis_xml = PREMIS_EVENT_TEMPLATE.render(event=premis_event)
+    source_event_metadata_file_info = image_file_info.metadata(UseFunction.event, "text/xml+premis")
+    (output_path / identifier / source_event_metadata_file_info.path).write_text(premis_xml)
+
     tech_meta_file_info = image_file_info.metadata(
         UseFunction.technical, source_tech_metadata.metadata_mimetype.value
     )
@@ -89,12 +116,10 @@ def process_basic_image(
         except ServiceImageProcessingError:
             return False
 
+    premis_event = create_event_data("generate service derivative", collection_manager_email)
+    premis_xml = PREMIS_EVENT_TEMPLATE.render(event=premis_event)
     service_event_metadata_file_info = service_image_file_info.metadata(UseFunction.event, "text/xml+premis")
-
-    
-
-    (output_path / identifier / service_event_metadata_file_info.path).write_text("<xml>Hello World!</xml>")
-
+    (output_path / identifier / service_event_metadata_file_info.path).write_text(premis_xml)
 
     try:
         service_tech_metadata = get_technical_metadata(service_file_path)
@@ -163,7 +188,5 @@ def process_basic_image(
     )
 
     create_file_set_descriptor_file(resource, descriptor_file_path)
-
-    
 
     return True
