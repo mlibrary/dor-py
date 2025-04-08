@@ -33,7 +33,7 @@ def create_event_data(
     event = {
         "identifier": uuid.uuid4(),
         "type": type,
-        "date_time": datetime.now(tz=UTC),
+        "date_time": datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "detail": detail,
         "linking_agent": {
             "type": "image_processing",
@@ -144,7 +144,8 @@ def process_basic_image(
                 use=flatten_use(*tech_meta_file_info.uses),
                 ref=FileReference(
                     locref=tech_meta_file_info.locref,
-                    mimetype=tech_meta_file_info.mimetype
+                    mimetype=tech_meta_file_info.mimetype,
+                    mdtype=tech_meta_file_info.mdtype
                 )
             ),
             FileMetadata(
@@ -152,7 +153,17 @@ def process_basic_image(
                 use=flatten_use(*service_tech_meta_file_info.uses),
                 ref=FileReference(
                     locref=service_tech_meta_file_info.locref,
-                    mimetype=service_tech_meta_file_info.mimetype
+                    mimetype=service_tech_meta_file_info.mimetype,
+                    mdtype=service_tech_meta_file_info.mdtype
+                )
+            ),
+            FileMetadata(
+                id=source_event_metadata_file_info.xmlid,
+                use=flatten_use(*source_event_metadata_file_info.uses),
+                ref=FileReference(
+                    locref=source_event_metadata_file_info.locref,
+                    mimetype=source_event_metadata_file_info.mimetype,
+                    mdtype=source_event_metadata_file_info.mdtype
                 )
             ),
             FileMetadata(
@@ -160,9 +171,11 @@ def process_basic_image(
                 use=flatten_use(*service_event_metadata_file_info.uses),
                 ref=FileReference(
                     locref=service_event_metadata_file_info.locref,
-                    mimetype=service_event_metadata_file_info.mimetype
+                    mimetype=service_event_metadata_file_info.mimetype,
+                    mdtype=service_event_metadata_file_info.mdtype
                 )
             ),
+
         ],
         data_files=[
             FileMetadata(
