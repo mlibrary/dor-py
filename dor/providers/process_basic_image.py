@@ -11,7 +11,7 @@ from dor.adapters.technical_metadata import (
     ImageMimetype, TechnicalMetadata, TechnicalMetadataError, get_technical_metadata
 )
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.builders.parts import FileInfo, UseFunction, UseFormat, flatten_use
+from dor.builders.parts import FileInfo, MetadataFileInfo, UseFunction, UseFormat, flatten_use
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileReference, PackageResource, FileMetadata, PreservationEvent
 )
@@ -41,6 +41,18 @@ def create_preservation_event(
         )
     )
     return event
+
+
+def convert_metadata_file_info_to_file_metadata(metadata_file_info: MetadataFileInfo) -> FileMetadata:
+    return FileMetadata(
+        id=metadata_file_info.xmlid,
+        use=flatten_use(*metadata_file_info.uses),
+        ref=FileReference(
+            locref=metadata_file_info.locref,
+            mimetype=metadata_file_info.mimetype,
+            mdtype=metadata_file_info.mdtype
+        )
+    )
 
 
 def create_file_set_descriptor_file(
@@ -139,43 +151,10 @@ def process_basic_image(
         alternate_identifier=AlternateIdentifier(id=basename, type="DLXS"),
         events=[],
         metadata_files=[
-            FileMetadata(
-                id=tech_meta_file_info.xmlid,
-                use=flatten_use(*tech_meta_file_info.uses),
-                ref=FileReference(
-                    locref=tech_meta_file_info.locref,
-                    mimetype=tech_meta_file_info.mimetype,
-                    mdtype=tech_meta_file_info.mdtype
-                )
-            ),
-            FileMetadata(
-                id=service_tech_meta_file_info.xmlid,
-                use=flatten_use(*service_tech_meta_file_info.uses),
-                ref=FileReference(
-                    locref=service_tech_meta_file_info.locref,
-                    mimetype=service_tech_meta_file_info.mimetype,
-                    mdtype=service_tech_meta_file_info.mdtype
-                )
-            ),
-            FileMetadata(
-                id=source_event_metadata_file_info.xmlid,
-                use=flatten_use(*source_event_metadata_file_info.uses),
-                ref=FileReference(
-                    locref=source_event_metadata_file_info.locref,
-                    mimetype=source_event_metadata_file_info.mimetype,
-                    mdtype=source_event_metadata_file_info.mdtype
-                )
-            ),
-            FileMetadata(
-                id=service_event_metadata_file_info.xmlid,
-                use=flatten_use(*service_event_metadata_file_info.uses),
-                ref=FileReference(
-                    locref=service_event_metadata_file_info.locref,
-                    mimetype=service_event_metadata_file_info.mimetype,
-                    mdtype=service_event_metadata_file_info.mdtype
-                )
-            ),
-
+            convert_metadata_file_info_to_file_metadata(tech_meta_file_info),
+            convert_metadata_file_info_to_file_metadata(service_tech_meta_file_info),
+            convert_metadata_file_info_to_file_metadata(source_event_metadata_file_info),
+            convert_metadata_file_info_to_file_metadata(service_event_metadata_file_info)
         ],
         data_files=[
             FileMetadata(
