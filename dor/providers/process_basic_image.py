@@ -16,6 +16,7 @@ from dor.providers.models import (
     Agent, AlternateIdentifier, FileReference, PackageResource, FileMetadata, PreservationEvent
 )
 from dor.providers.serializers import PreservationEventSerializer
+from dor.providers.utilities import sanitize_basename
 from dor.settings import template_env
 
 
@@ -24,6 +25,7 @@ ACCEPTED_IMAGE_MIMETYPES = [
     ImageMimetype.TIFF,
     ImageMimetype.JP2
 ]
+
 
 def create_preservation_event(
     type: str,
@@ -69,6 +71,7 @@ def create_file_set_descriptor_file(
     with (descriptor_file_path).open("w") as file:
         file.write(xmldata)
 
+
 def process_basic_image(
     identifier: str,
     input_image_path: Path,
@@ -84,7 +87,8 @@ def process_basic_image(
     file_provider.create_directory(output_path / identifier / "descriptor")
 
     source_file_path = input_image_path
-    basename = source_file_path.stem
+
+    basename = sanitize_basename(source_file_path.stem)
 
     try:
         source_tech_metadata = get_technical_metadata(source_file_path)
