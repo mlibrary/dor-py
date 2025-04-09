@@ -1,3 +1,4 @@
+import hashlib
 import shutil
 import tempfile
 import uuid
@@ -25,6 +26,27 @@ ACCEPTED_IMAGE_MIMETYPES = [
     ImageMimetype.TIFF,
     ImageMimetype.JP2
 ]
+
+
+class FileSetIdentifier:
+
+    def __init__(self, project_id: str, file_name: str):
+        self.project_id = project_id
+        self.file_name = file_name
+        self.basename = sanitize_basename(Path(file_name).stem)
+
+    @property
+    def alternate_identifier(self) -> str:
+        return f"{self.project_id}:{self.basename}"
+
+    @property
+    def uuid(self) -> uuid.UUID:
+        hex_string = hashlib.md5(self.alternate_identifier.encode("UTF-8")).hexdigest()
+        return uuid.UUID(hex=hex_string)
+
+    @property
+    def identifier(self) -> str:
+        return str(self.uuid)
 
 
 def create_preservation_event(
@@ -73,14 +95,15 @@ def create_file_set_descriptor_file(
 
 
 def process_basic_image(
-    identifier: str,
-    project_id: str,
+    file_set_identifier: FileSetIdentifier,
     input_image_path: Path,
     output_path: Path,
     collection_manager_email: str = "example@org.edu",
     get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_technical_metadata,
     generate_service_variant: Callable[[Path, Path], None] = generate_service_variant
 ) -> bool:
+    identifier = file_set_identifier.identifier
+
     file_provider = FilesystemFileProvider()
     file_provider.create_directory(output_path / identifier)
     file_provider.create_directory(output_path / identifier / "data")
@@ -151,9 +174,9 @@ def process_basic_image(
     descriptor_file_path = output_path / identifier / "descriptor" / f"{identifier}.file_set.mets2.xml"
 
     resource = PackageResource(
-        id=uuid.UUID(identifier),
+        id=file_set_identifier.uuid,
         type="File Set",
-        alternate_identifier=AlternateIdentifier(id=f"{project_id}:{basename}", type="DLXS"),
+        alternate_identifier=AlternateIdentifier(id=file_set_identifier.alternate_identifier, type="DLXS"),
         events=[],
         metadata_files=[
             convert_metadata_file_info_to_file_metadata(tech_meta_file_info),
