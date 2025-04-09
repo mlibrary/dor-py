@@ -74,6 +74,7 @@ def create_file_set_descriptor_file(
 
 def process_basic_image(
     identifier: str,
+    project_id: str,
     input_image_path: Path,
     output_path: Path,
     collection_manager_email: str = "example@org.edu",
@@ -152,7 +153,7 @@ def process_basic_image(
     resource = PackageResource(
         id=uuid.UUID(identifier),
         type="File Set",
-        alternate_identifier=AlternateIdentifier(id=basename, type="DLXS"),
+        alternate_identifier=AlternateIdentifier(id=f"{project_id}:{basename}", type="DLXS"),
         events=[],
         metadata_files=[
             convert_metadata_file_info_to_file_metadata(tech_meta_file_info),
