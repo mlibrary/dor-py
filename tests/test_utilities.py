@@ -1,0 +1,11 @@
+from dor.providers.utilities import sanitize_basename
+
+
+def test_sanitize_basename_forces_lowercase_removes_spaces_and_allows():
+    assert r"tolowerlettersnumbers0-1.2_3+4plus+signhypens-underscores_and.dots..." == sanitize_basename(
+        r"To Lower LeTtErS Numbers 0-1.2_3+4 Plus + Sign Hypens - Under Scores _ AND . Dots ...")
+
+
+def test_sanitize_basename_filters_everything_else():
+    assert r"tolowerlettersnumbers0-1.2_3+4plus+signhypens-underscores_and.dots..." == sanitize_basename(
+        r"To ~ L!ower @Le\T#t\"ErS; N$u'mbe%rs 0^-1.2_3&+4 P*lu:s + (Sign) Hyp=ens - U{nd}er [Sc]or?es/ _ A,ND . D<ot>s ...")
