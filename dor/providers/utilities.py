@@ -14,6 +14,4 @@ import re
 # with line-sensitive logic.
 #
 def sanitize_basename(basename: str) -> str:
-    lowercase_basename = basename.lower()
-    filtered_basename = re.sub(r'[^\w\+\-\.]', r'', lowercase_basename)
-    return filtered_basename
+    return re.sub(r'[^\w\+\-\.]', r'', basename.lower())
