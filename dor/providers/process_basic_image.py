@@ -89,14 +89,12 @@ def create_file_set_descriptor_data(resource: PackageResource) -> str:
     return xmldata
 
 
-def create_file_set_directories(output_path: Path, file_set_identifier: FileSetIdentifier) -> Path:
-    file_set_directory = output_path / file_set_identifier.identifier
+def create_file_set_directories(file_set_directory: Path) -> None:
     file_provider = FilesystemFileProvider()
     file_provider.create_directory(file_set_directory)
     file_provider.create_directory(file_set_directory / "data")
     file_provider.create_directory(file_set_directory / "metadata")
     file_provider.create_directory(file_set_directory / "descriptor")
-    return file_set_directory
 
 
 def process_basic_image(
@@ -107,7 +105,8 @@ def process_basic_image(
     get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_technical_metadata,
     generate_service_variant: Callable[[Path, Path], None] = generate_service_variant
 ) -> bool:
-    file_set_directory = create_file_set_directories(output_path, file_set_identifier)
+    file_set_directory = output_path / file_set_identifier.identifier
+    create_file_set_directories(file_set_directory)
 
     try:
         source_tech_metadata = get_technical_metadata(image_path)
@@ -118,27 +117,31 @@ def process_basic_image(
         return False
 
     source_file_info = FileInfo(
-        file_set_identifier.identifier,
-        file_set_identifier.basename,
-        [UseFunction.source, UseFormat.image],
-        source_tech_metadata.mimetype.value
+        identifier=file_set_identifier.identifier,
+        basename=file_set_identifier.basename,
+        uses=[UseFunction.source, UseFormat.image],
+        mimetype=source_tech_metadata.mimetype.value
     )
     source_file_path = file_set_directory / source_file_info.path
     shutil.copyfile(image_path, source_file_path)
 
     source_event = create_preservation_event("copy source image", collection_manager_email)
     source_event_xml = PreservationEventSerializer(source_event).serialize()
-    source_event_metadata_file_info = source_file_info.metadata(UseFunction.event, "text/xml+premis")
+    source_event_metadata_file_info = source_file_info.metadata(
+        use=UseFunction.event, mimetype="text/xml+premis"
+    )
     (file_set_directory / source_event_metadata_file_info.path).write_text(source_event_xml)
 
     source_tech_metadata_file_info = source_file_info.metadata(
-        UseFunction.technical, source_tech_metadata.metadata_mimetype.value
+        use=UseFunction.technical, mimetype=source_tech_metadata.metadata_mimetype.value
     )
     (file_set_directory / source_tech_metadata_file_info.path).write_text(source_tech_metadata.metadata)
 
     service_file_info = FileInfo(
-        file_set_identifier.identifier, file_set_identifier.basename, [
-            UseFunction.service, UseFormat.image], ImageMimetype.JP2.value
+        identifier=file_set_identifier.identifier,
+        basename=file_set_identifier.basename,
+        uses=[UseFunction.service, UseFormat.image],
+        mimetype=ImageMimetype.JP2.value
     )
     service_file_path = file_set_directory / service_file_info.path
 
@@ -157,7 +160,9 @@ def process_basic_image(
 
     service_event = create_preservation_event("generate service derivative", collection_manager_email)
     service_event_xml = PreservationEventSerializer(service_event).serialize()
-    service_event_metadata_file_info = service_file_info.metadata(UseFunction.event, "text/xml+premis")
+    service_event_metadata_file_info = service_file_info.metadata(
+        use=UseFunction.event, mimetype="text/xml+premis"
+    )
     (file_set_directory / service_event_metadata_file_info.path).write_text(service_event_xml)
 
     try:
@@ -166,7 +171,7 @@ def process_basic_image(
         return False
 
     service_tech_metadata_file_info = service_file_info.metadata(
-        UseFunction.technical, service_tech_metadata.metadata_mimetype.value
+        use=UseFunction.technical, mimetype=service_tech_metadata.metadata_mimetype.value
     )
     (file_set_directory / service_tech_metadata_file_info.path).write_text(service_tech_metadata.metadata)
 
