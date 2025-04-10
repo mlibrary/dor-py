@@ -11,8 +11,8 @@ from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
     ImageMimetype, TechnicalMetadata, TechnicalMetadataError, get_technical_metadata
 )
-from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.builders.parts import FileInfo, MetadataFileInfo, UseFunction, UseFormat, flatten_use
+from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileReference, PackageResource, FileMetadata, PreservationEvent
 )
@@ -79,19 +79,14 @@ def convert_metadata_file_info_to_file_metadata(metadata_file_info: MetadataFile
     )
 
 
-def create_file_set_descriptor_file(
-    resource: PackageResource,
-    descriptor_file_path: Path
-) -> None:
-
+def create_file_set_descriptor_data(resource: PackageResource) -> str:
     entity_template = template_env.get_template("preservation_mets.xml")
     xmldata = entity_template.render(
         resource=resource,
         object_identifier=resource.id,
         create_date=datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
     )
-    with (descriptor_file_path).open("w") as file:
-        file.write(xmldata)
+    return xmldata
 
 
 def process_basic_image(
@@ -110,12 +105,10 @@ def process_basic_image(
     file_provider.create_directory(output_path / identifier / "metadata")
     file_provider.create_directory(output_path / identifier / "descriptor")
 
-    source_file_path = input_image_path
-
-    basename = sanitize_basename(source_file_path.stem)
+    basename = sanitize_basename(input_image_path.stem)
 
     try:
-        source_tech_metadata = get_technical_metadata(source_file_path)
+        source_tech_metadata = get_technical_metadata(input_image_path)
     except TechnicalMetadataError:
         return False
 
@@ -125,8 +118,8 @@ def process_basic_image(
     image_file_info = FileInfo(
         identifier, basename, [UseFunction.source, UseFormat.image], source_tech_metadata.mimetype.value
     )
-    new_source_file_path = output_path / identifier / image_file_info.path
-    shutil.copyfile(source_file_path, new_source_file_path)
+    source_file_path = output_path / identifier / image_file_info.path
+    shutil.copyfile(input_image_path, source_file_path)
 
     source_event = create_preservation_event("copy source image", collection_manager_email)
     source_event_xml = PreservationEventSerializer(source_event).serialize()
@@ -147,9 +140,9 @@ def process_basic_image(
     with temp_file:
         if source_tech_metadata.compressed or source_tech_metadata.rotated:
             compressible_file_path = Path(temp_file.name)
-            make_intermediate_file(new_source_file_path, compressible_file_path)
+            make_intermediate_file(source_file_path, compressible_file_path)
         else:
-            compressible_file_path = new_source_file_path
+            compressible_file_path = source_file_path
 
         try:
             generate_service_variant(compressible_file_path, service_file_path)
@@ -170,8 +163,6 @@ def process_basic_image(
         UseFunction.technical, service_tech_metadata.metadata_mimetype.value
     )
     (output_path / identifier / service_tech_meta_file_info.path).write_text(service_tech_metadata.metadata)
-
-    descriptor_file_path = output_path / identifier / "descriptor" / f"{identifier}.file_set.mets2.xml"
 
     resource = PackageResource(
         id=file_set_identifier.uuid,
@@ -206,7 +197,9 @@ def process_basic_image(
             ),
         ]
     )
-
-    create_file_set_descriptor_file(resource, descriptor_file_path)
+    descriptor_xml = create_file_set_descriptor_data(resource)
+    descriptor_file_path = output_path / identifier / "descriptor" / f"{identifier}.file_set.mets2.xml"
+    with (descriptor_file_path).open("w") as file:
+        file.write(descriptor_xml)
 
     return True
