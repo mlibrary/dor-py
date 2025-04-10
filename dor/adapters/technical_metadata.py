@@ -39,10 +39,17 @@ class TechnicalMetadata:
     compressed: bool = False
 
 
-def retrieve_element_text(jhove_doc: ET.Element, path: str) -> str:
+def retrieve_element(jhove_doc: ET.Element, path: str) -> ET.Element:
     elem = jhove_doc.find(path, NS_MAP)
-    if elem is None or elem.text is None:
-        raise TechnicalMetadataError()
+    if elem is None:
+        raise TechnicalMetadataError(f"No element found at path {path}")
+    return elem
+
+
+def retrieve_element_text(jhove_doc: ET.Element, path: str) -> str:
+    elem = retrieve_element(jhove_doc, path)
+    if elem.text is None:
+        raise TechnicalMetadataError(f"No text found for element at path {path}")
     return elem.text
 
 
@@ -70,10 +77,10 @@ def parse_jhove_doc(jhove_doc: ET.Element, file_path: Path) -> TechnicalMetadata
     except ValueError:
         raise TechnicalMetadataError(f"Unknown mimetype encountered: {mimetype_text}")
 
-    niso_mix_elem = jhove_doc.find(
-        f".//jhove:values[@type='NISOImageMetadata']/jhove:value/mix:mix", NS_MAP
+    niso_mix_elem = retrieve_element(
+        jhove_doc,
+        ".//jhove:values[@type='NISOImageMetadata']/jhove:value/mix:mix"
     )
-    if niso_mix_elem is None: raise TechnicalMetadataError
     niso_mix_xml = ET.tostring(niso_mix_elem, encoding='unicode')
 
     compression = retrieve_element_text(jhove_doc, ".//mix:Compression/mix:compressionScheme")
