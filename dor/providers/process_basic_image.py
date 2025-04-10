@@ -105,8 +105,6 @@ def process_basic_image(
     file_provider.create_directory(output_path / identifier / "metadata")
     file_provider.create_directory(output_path / identifier / "descriptor")
 
-    basename = sanitize_basename(input_image_path.stem)
-
     try:
         source_tech_metadata = get_technical_metadata(input_image_path)
     except TechnicalMetadataError:
@@ -116,7 +114,7 @@ def process_basic_image(
         return False
 
     image_file_info = FileInfo(
-        identifier, basename, [UseFunction.source, UseFormat.image], source_tech_metadata.mimetype.value
+        identifier, file_set_identifier.basename, [UseFunction.source, UseFormat.image], source_tech_metadata.mimetype.value
     )
     source_file_path = output_path / identifier / image_file_info.path
     shutil.copyfile(input_image_path, source_file_path)
@@ -132,7 +130,7 @@ def process_basic_image(
     (output_path / identifier / tech_meta_file_info.path).write_text(source_tech_metadata.metadata)
 
     service_image_file_info = FileInfo(
-        identifier, basename, [UseFunction.service, UseFormat.image], ImageMimetype.JP2.value
+        identifier, file_set_identifier.basename, [UseFunction.service, UseFormat.image], ImageMimetype.JP2.value
     )
     service_file_path = output_path / identifier / service_image_file_info.path
 
