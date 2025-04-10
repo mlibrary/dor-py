@@ -39,7 +39,14 @@ class TechnicalMetadata:
     compressed: bool = False
 
 
-def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
+def retrieve_element_text(jhove_doc: ET.Element, path: str) -> str:
+    elem = jhove_doc.find(path, NS_MAP)
+    if elem is None or elem.text is None:
+        raise TechnicalMetadataError()
+    return elem.text
+
+
+def get_jhove_doc(file_path: Path) -> ET.Element:
     try:
         jhove_output = subprocess.run(
             ["/opt/jhove/jhove", "-h", "XML", file_path],
@@ -49,16 +56,15 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
     except subprocess.CalledProcessError as error:
         raise TechnicalMetadataError("JHOVE failed.") from error
     jhove_doc = ET.fromstring(jhove_output.stdout)
+    return jhove_doc
 
-    status_elem = jhove_doc.find(f".//jhove:repInfo/jhove:status", NS_MAP)
-    if status_elem is None or status_elem.text is None: raise TechnicalMetadataError
-    status = status_elem.text
+
+def parse_jhove_doc(jhove_doc: ET.Element, file_path: Path) -> TechnicalMetadata:
+    status = retrieve_element_text(jhove_doc, ".//jhove:repInfo/jhove:status")
     if status != JHOVE_VALID_OK:
         raise TechnicalMetadataError(f"File {file_path} was found to be invalid. Status: {status}")
     
-    mimetype_elem = jhove_doc.find(f".//jhove:repInfo/jhove:mimeType", NS_MAP)
-    if mimetype_elem is None or mimetype_elem.text is None: raise TechnicalMetadataError
-    mimetype_text = mimetype_elem.text
+    mimetype_text = retrieve_element_text(jhove_doc, ".//jhove:repInfo/jhove:mimeType")
     try:
         mimetype = ImageMimetype(mimetype_text)
     except ValueError:
@@ -70,10 +76,8 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
     if niso_mix_elem is None: raise TechnicalMetadataError
     niso_mix_xml = ET.tostring(niso_mix_elem, encoding='unicode')
 
-    compression_elem = niso_mix_elem.find(".//mix:Compression/mix:compressionScheme", NS_MAP)
-    if compression_elem is None or compression_elem.text is None:
-        raise TechnicalMetadataError
-    compressed = compression_elem.text != UNCOMPRESSED
+    compression = retrieve_element_text(jhove_doc, ".//mix:Compression/mix:compressionScheme")
+    compressed = compression != UNCOMPRESSED
 
     orientation_elem = niso_mix_elem.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
     if orientation_elem is None or orientation_elem.text is None:
@@ -88,6 +92,11 @@ def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
         compressed=compressed,
         rotated=rotated
     )
+
+
+def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
+    jhove_doc = get_jhove_doc(file_path)
+    return parse_jhove_doc(jhove_doc, file_path)
 
 
 def get_fake_technical_metadata(file_path: Path) -> TechnicalMetadata:
