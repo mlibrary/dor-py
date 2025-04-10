@@ -89,50 +89,58 @@ def create_file_set_descriptor_data(resource: PackageResource) -> str:
     return xmldata
 
 
+def create_file_set_directories(output_path: Path, file_set_identifier: FileSetIdentifier) -> Path:
+    file_set_directory = output_path / file_set_identifier.identifier
+    file_provider = FilesystemFileProvider()
+    file_provider.create_directory(file_set_directory)
+    file_provider.create_directory(file_set_directory / "data")
+    file_provider.create_directory(file_set_directory / "metadata")
+    file_provider.create_directory(file_set_directory / "descriptor")
+    return file_set_directory
+
+
 def process_basic_image(
     file_set_identifier: FileSetIdentifier,
-    input_image_path: Path,
+    image_path: Path,
     output_path: Path,
     collection_manager_email: str = "example@org.edu",
     get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_technical_metadata,
     generate_service_variant: Callable[[Path, Path], None] = generate_service_variant
 ) -> bool:
-    identifier = file_set_identifier.identifier
-
-    file_provider = FilesystemFileProvider()
-    file_provider.create_directory(output_path / identifier)
-    file_provider.create_directory(output_path / identifier / "data")
-    file_provider.create_directory(output_path / identifier / "metadata")
-    file_provider.create_directory(output_path / identifier / "descriptor")
+    file_set_directory = create_file_set_directories(output_path, file_set_identifier)
 
     try:
-        source_tech_metadata = get_technical_metadata(input_image_path)
+        source_tech_metadata = get_technical_metadata(image_path)
     except TechnicalMetadataError:
         return False
 
     if source_tech_metadata.mimetype not in ACCEPTED_IMAGE_MIMETYPES:
         return False
 
-    image_file_info = FileInfo(
-        identifier, file_set_identifier.basename, [UseFunction.source, UseFormat.image], source_tech_metadata.mimetype.value
+    source_file_info = FileInfo(
+        file_set_identifier.identifier,
+        file_set_identifier.basename,
+        [UseFunction.source, UseFormat.image],
+        source_tech_metadata.mimetype.value
     )
-    source_file_path = output_path / identifier / image_file_info.path
-    shutil.copyfile(input_image_path, source_file_path)
+    source_file_path = file_set_directory / source_file_info.path
+    shutil.copyfile(image_path, source_file_path)
 
     source_event = create_preservation_event("copy source image", collection_manager_email)
     source_event_xml = PreservationEventSerializer(source_event).serialize()
-    source_event_metadata_file_info = image_file_info.metadata(UseFunction.event, "text/xml+premis")
-    (output_path / identifier / source_event_metadata_file_info.path).write_text(source_event_xml)
+    source_event_metadata_file_info = source_file_info.metadata(UseFunction.event, "text/xml+premis")
+    (file_set_directory / source_event_metadata_file_info.path).write_text(source_event_xml)
 
-    tech_meta_file_info = image_file_info.metadata(
+    source_tech_metadata_file_info = source_file_info.metadata(
         UseFunction.technical, source_tech_metadata.metadata_mimetype.value
     )
-    (output_path / identifier / tech_meta_file_info.path).write_text(source_tech_metadata.metadata)
+    (file_set_directory / source_tech_metadata_file_info.path).write_text(source_tech_metadata.metadata)
 
-    service_image_file_info = FileInfo(
-        identifier, file_set_identifier.basename, [UseFunction.service, UseFormat.image], ImageMimetype.JP2.value
+    service_file_info = FileInfo(
+        file_set_identifier.identifier, file_set_identifier.basename, [
+            UseFunction.service, UseFormat.image], ImageMimetype.JP2.value
     )
-    service_file_path = output_path / identifier / service_image_file_info.path
+    service_file_path = file_set_directory / service_file_info.path
 
     temp_file = tempfile.NamedTemporaryFile(mode='w', suffix=".tiff")
     with temp_file:
@@ -149,18 +157,18 @@ def process_basic_image(
 
     service_event = create_preservation_event("generate service derivative", collection_manager_email)
     service_event_xml = PreservationEventSerializer(service_event).serialize()
-    service_event_metadata_file_info = service_image_file_info.metadata(UseFunction.event, "text/xml+premis")
-    (output_path / identifier / service_event_metadata_file_info.path).write_text(service_event_xml)
+    service_event_metadata_file_info = service_file_info.metadata(UseFunction.event, "text/xml+premis")
+    (file_set_directory / service_event_metadata_file_info.path).write_text(service_event_xml)
 
     try:
         service_tech_metadata = get_technical_metadata(service_file_path)
-    except TechnicalMetadataError as error:
+    except TechnicalMetadataError:
         return False
 
-    service_tech_meta_file_info = service_image_file_info.metadata(
+    service_tech_metadata_file_info = service_file_info.metadata(
         UseFunction.technical, service_tech_metadata.metadata_mimetype.value
     )
-    (output_path / identifier / service_tech_meta_file_info.path).write_text(service_tech_metadata.metadata)
+    (file_set_directory / service_tech_metadata_file_info.path).write_text(service_tech_metadata.metadata)
 
     resource = PackageResource(
         id=file_set_identifier.uuid,
@@ -168,35 +176,35 @@ def process_basic_image(
         alternate_identifier=AlternateIdentifier(id=file_set_identifier.alternate_identifier, type="DLXS"),
         events=[],
         metadata_files=[
-            convert_metadata_file_info_to_file_metadata(tech_meta_file_info),
-            convert_metadata_file_info_to_file_metadata(service_tech_meta_file_info),
+            convert_metadata_file_info_to_file_metadata(source_tech_metadata_file_info),
             convert_metadata_file_info_to_file_metadata(source_event_metadata_file_info),
+            convert_metadata_file_info_to_file_metadata(service_tech_metadata_file_info),
             convert_metadata_file_info_to_file_metadata(service_event_metadata_file_info)
         ],
         data_files=[
             FileMetadata(
-                id=image_file_info.xmlid,
-                use=flatten_use(*image_file_info.uses),
-                mdid=tech_meta_file_info.xmlid,
+                id=source_file_info.xmlid,
+                use=flatten_use(*source_file_info.uses),
+                mdid=source_tech_metadata_file_info.xmlid,
                 ref=FileReference(
-                    locref=image_file_info.locref,
-                    mimetype=image_file_info.mimetype
+                    locref=source_file_info.locref,
+                    mimetype=source_file_info.mimetype
                 )
             ),
             FileMetadata(
-                id=service_image_file_info.xmlid,
-                use=flatten_use(*service_image_file_info.uses),
-                groupid=image_file_info.xmlid,
-                mdid=service_tech_meta_file_info.xmlid,
+                id=service_file_info.xmlid,
+                use=flatten_use(*service_file_info.uses),
+                groupid=source_file_info.xmlid,
+                mdid=service_tech_metadata_file_info.xmlid,
                 ref=FileReference(
-                    locref=service_image_file_info.locref,
-                    mimetype=service_image_file_info.mimetype
+                    locref=service_file_info.locref,
+                    mimetype=service_file_info.mimetype
                 )
             ),
         ]
     )
     descriptor_xml = create_file_set_descriptor_data(resource)
-    descriptor_file_path = output_path / identifier / "descriptor" / f"{identifier}.file_set.mets2.xml"
+    descriptor_file_path = file_set_directory / "descriptor" / f"{file_set_identifier.identifier}.file_set.mets2.xml"
     with (descriptor_file_path).open("w") as file:
         file.write(descriptor_xml)
 
