@@ -53,6 +53,37 @@ def retrieve_element_text(jhove_doc: ET.Element, path: str) -> str:
     return elem.text
 
 
+def get_status(jhove_doc: ET.Element) -> str:
+    return retrieve_element_text(jhove_doc, ".//jhove:repInfo/jhove:status")
+
+
+def get_valid(jhove_doc: ET.Element) -> bool:
+    return get_status(jhove_doc) == JHOVE_VALID_OK
+
+
+def get_mimetype(jhove_doc: ET.Element) -> str:
+    return retrieve_element_text(jhove_doc, ".//jhove:repInfo/jhove:mimeType")
+
+
+def get_niso_mix(jhove_doc: ET.Element) -> str:
+    niso_mix_elem = retrieve_element(
+        jhove_doc,
+        ".//jhove:values[@type='NISOImageMetadata']/jhove:value/mix:mix"
+    )
+    return ET.tostring(niso_mix_elem, encoding='unicode')
+
+
+def get_compressed(jhove_doc: ET.Element) -> bool:
+    compression = retrieve_element_text(jhove_doc, ".//mix:Compression/mix:compressionScheme")
+    return compression != UNCOMPRESSED
+
+
+def get_rotated(jhove_doc: ET.Element) -> bool:
+    orientation_elem = jhove_doc.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
+    if orientation_elem is None or orientation_elem.text is None: return False
+    return ROTATED in orientation_elem.text
+
+
 def get_jhove_doc(file_path: Path) -> ET.Element:
     try:
         jhove_output = subprocess.run(
@@ -67,30 +98,21 @@ def get_jhove_doc(file_path: Path) -> ET.Element:
 
 
 def parse_jhove_doc(jhove_doc: ET.Element, file_path: Path) -> TechnicalMetadata:
-    status = retrieve_element_text(jhove_doc, ".//jhove:repInfo/jhove:status")
-    if status != JHOVE_VALID_OK:
-        raise TechnicalMetadataError(f"File {file_path} was found to be invalid. Status: {status}")
+    if not get_valid(jhove_doc):
+        raise TechnicalMetadataError(
+            f"File {file_path} was found to be invalid. Status: {get_status(jhove_doc)}"
+        )
     
-    mimetype_text = retrieve_element_text(jhove_doc, ".//jhove:repInfo/jhove:mimeType")
+    mimetype_text = get_mimetype(jhove_doc)
     try:
         mimetype = ImageMimetype(mimetype_text)
     except ValueError:
         raise TechnicalMetadataError(f"Unknown mimetype encountered: {mimetype_text}")
 
-    niso_mix_elem = retrieve_element(
-        jhove_doc,
-        ".//jhove:values[@type='NISOImageMetadata']/jhove:value/mix:mix"
-    )
-    niso_mix_xml = ET.tostring(niso_mix_elem, encoding='unicode')
+    niso_mix_xml = get_niso_mix(jhove_doc)
 
-    compression = retrieve_element_text(jhove_doc, ".//mix:Compression/mix:compressionScheme")
-    compressed = compression != UNCOMPRESSED
-
-    orientation_elem = niso_mix_elem.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
-    if orientation_elem is None or orientation_elem.text is None:
-        rotated = False
-    else:
-        rotated = ROTATED in orientation_elem.text
+    compressed = get_compressed(jhove_doc)
+    rotated = get_rotated(jhove_doc)
 
     return TechnicalMetadata(
         mimetype=mimetype,
