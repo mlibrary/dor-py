@@ -38,7 +38,8 @@ RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
   libvips-dev \
   libvips-tools \
   grokj2k-tools \
-  libimage-exiftool-perl
+  libimage-exiftool-perl \
+  tesseract-ocr-all
 
 
 # Set the working directory to /app
