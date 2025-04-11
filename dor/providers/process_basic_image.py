@@ -9,7 +9,7 @@ from typing import Callable
 from dor.adapters.generate_service_variant import generate_service_variant, ServiceImageProcessingError
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
-    ImageMimetype, TechnicalMetadata, TechnicalMetadataError, get_technical_metadata
+    ImageMimetype, JHOVEDoc, JHOVEDocError
 )
 from dor.builders.parts import FileInfo, MetadataFileInfo, UseFunction, UseFormat, flatten_use
 from dor.providers.file_system_file_provider import FilesystemFileProvider
@@ -102,15 +102,14 @@ def process_basic_image(
     image_path: Path,
     output_path: Path,
     collection_manager_email: str = "example@org.edu",
-    get_technical_metadata: Callable[[Path], TechnicalMetadata] = get_technical_metadata,
     generate_service_variant: Callable[[Path, Path], None] = generate_service_variant
 ) -> bool:
     file_set_directory = output_path / file_set_identifier.identifier
     create_file_set_directories(file_set_directory)
 
     try:
-        source_tech_metadata = get_technical_metadata(image_path)
-    except TechnicalMetadataError:
+        source_tech_metadata = JHOVEDoc.create(image_path).technical_metadata
+    except JHOVEDocError:
         return False
 
     if source_tech_metadata.mimetype not in ACCEPTED_IMAGE_MIMETYPES:
@@ -166,8 +165,8 @@ def process_basic_image(
     (file_set_directory / service_event_metadata_file_info.path).write_text(service_event_xml)
 
     try:
-        service_tech_metadata = get_technical_metadata(service_file_path)
-    except TechnicalMetadataError:
+        service_tech_metadata = JHOVEDoc.create(service_file_path).technical_metadata
+    except JHOVEDocError:
         return False
 
     service_tech_metadata_file_info = service_file_info.metadata(
