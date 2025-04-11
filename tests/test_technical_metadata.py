@@ -20,7 +20,7 @@ def jhove_doc() -> ET.Element:
     return ET.fromstring(doc_path.read_text())
 
 
-def test_get_technical_metadata_retrieves_data_for_jpg(fixtures_path: Path):
+def test_gatherer_retrieves_data_for_jpg(fixtures_path: Path):
     image_path = fixtures_path / "test_image.jpg"
     tech_metadata = TechnicalMetadataGatherer(image_path).gather()
     assert tech_metadata.mimetype == ImageMimetype.JPEG
@@ -30,7 +30,7 @@ def test_get_technical_metadata_retrieves_data_for_jpg(fixtures_path: Path):
     assert tech_metadata.metadata
 
 
-def test_get_technical_metadata_retrieves_data_for_tiff(fixtures_path: Path):
+def test_gatherer_retrieves_data_for_tiff(fixtures_path: Path):
     image_path = fixtures_path / "test_image.tiff"
     tech_metadata = TechnicalMetadataGatherer(image_path).gather()
     assert tech_metadata.mimetype == ImageMimetype.TIFF
@@ -40,7 +40,7 @@ def test_get_technical_metadata_retrieves_data_for_tiff(fixtures_path: Path):
     assert tech_metadata.metadata
 
 
-def test_get_technical_metadata_retrieves_data_for_rotated_tiff(fixtures_path: Path):
+def test_gatherer_retrieves_data_for_rotated_tiff(fixtures_path: Path):
     image_path = fixtures_path / "test_image_rotated.tiff"
     tech_metadata = TechnicalMetadataGatherer(image_path).gather()
     assert tech_metadata.mimetype == ImageMimetype.TIFF
@@ -50,7 +50,7 @@ def test_get_technical_metadata_retrieves_data_for_rotated_tiff(fixtures_path: P
     assert tech_metadata.metadata
 
 
-def test_parse_jhove_doc_fails_when_encountering_unknown_mimetype(jhove_doc: ET.Element):
+def test_create_metadata_fails_when_encountering_unknown_mimetype(jhove_doc: ET.Element):
     mimetype_elem = jhove_doc.find(".//jhove:repInfo/jhove:mimeType", NS_MAP)
     if mimetype_elem is None: raise Exception
     mimetype_elem.text = "image/png"
@@ -60,7 +60,7 @@ def test_parse_jhove_doc_fails_when_encountering_unknown_mimetype(jhove_doc: ET.
         gatherer.create_metadata(jhove_doc)
 
 
-def test_parse_jhove_doc_fails_when_status_is_invalid(jhove_doc: ET.Element):
+def test_create_metadata_fails_when_status_is_invalid(jhove_doc: ET.Element):
     status_elem = jhove_doc.find(".//jhove:repInfo/jhove:status", NS_MAP)
     if status_elem is None: raise Exception
     status_elem.text = "Unknown"
