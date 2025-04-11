@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from dor.adapters.make_intermediate_file import make_intermediate_file
-from dor.adapters.technical_metadata import ImageMimetype, TechnicalMetadataGatherer
+from dor.adapters.technical_metadata import ImageMimetype, JHOVEDoc
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def test_make_intermediate_file_converts_jpg_to_uncompressed_tiff(fixtures_path)
     with temp_file:
         temp_file_path = Path(temp_file.name)
         make_intermediate_file(image_path, temp_file_path)
-        tech_metadata = TechnicalMetadataGatherer(temp_file_path).gather()
+        tech_metadata = JHOVEDoc.create(temp_file_path).technical_metadata
 
     assert tech_metadata.mimetype == ImageMimetype.TIFF
     assert not tech_metadata.compressed
@@ -30,7 +30,7 @@ def test_make_intermediate_file_unrotates_tiff(fixtures_path):
     with temp_file:
         temp_file_path = Path(temp_file.name)
         make_intermediate_file(image_path, temp_file_path)
-        tech_metadata = TechnicalMetadataGatherer(temp_file_path).gather()
+        tech_metadata = JHOVEDoc.create(temp_file_path).technical_metadata
 
     assert tech_metadata.mimetype == ImageMimetype.TIFF
     assert not tech_metadata.rotated
@@ -42,7 +42,7 @@ def test_make_intermediate_file_uncompresses_tiff(fixtures_path):
     with temp_file:
         temp_file_path = Path(temp_file.name)
         make_intermediate_file(image_path, temp_file_path)
-        tech_metadata = TechnicalMetadataGatherer(temp_file_path).gather()
+        tech_metadata = JHOVEDoc.create(temp_file_path).technical_metadata
 
     assert tech_metadata.mimetype == ImageMimetype.TIFF
     assert not tech_metadata.compressed

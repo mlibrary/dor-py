@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from dor.adapters.generate_service_variant import generate_service_variant
-from dor.adapters.technical_metadata import ImageMimetype, TechnicalMetadataGatherer
+from dor.adapters.technical_metadata import ImageMimetype, JHOVEDoc
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 
 
@@ -25,7 +25,7 @@ def test_generate_service_variant_converts_to_jp2(fixtures_path, output_path):
     image_path = fixtures_path / "test_image.tiff"
     output_path = output_path / "test_image.jp2"
     generate_service_variant(image_path, output_path)
-    techmetadata = TechnicalMetadataGatherer(output_path).gather()
+    techmetadata = JHOVEDoc.create(output_path).technical_metadata
     
     assert techmetadata.mimetype == ImageMimetype.JP2
 

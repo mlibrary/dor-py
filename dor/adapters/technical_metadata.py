@@ -1,4 +1,5 @@
 import subprocess
+from typing import Self
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from enum import Enum
@@ -14,10 +15,6 @@ ROTATED = "rotated"
 
 for prefix in NS_MAP:
     ET.register_namespace(prefix, NS_MAP[prefix])
-
-
-class TechnicalMetadataError(Exception):
-    pass
 
 
 class JHOVEDocError(Exception):
@@ -45,11 +42,26 @@ class TechnicalMetadata:
 
 class JHOVEDoc():
 
-    def __init__(self, jhove_doc: ET.Element):
-        self.jhove_doc = jhove_doc
+    @classmethod
+    def create(cls, file_path: Path) -> Self:
+        try:
+            jhove_output = subprocess.run(
+                ["/opt/jhove/jhove", "-h", "XML", file_path],
+                capture_output=True,
+                check=True
+            )
+        except subprocess.CalledProcessError as error:
+            raise JHOVEDocError("JHOVE failed.") from error
+        jhove_elem = ET.fromstring(jhove_output.stdout)
+
+        doc = cls(jhove_elem)
+        return doc
+
+    def __init__(self, jhove_elem: ET.Element):
+        self.jhove_elem = jhove_elem
 
     def retrieve_element(self, path: str) -> ET.Element:
-        elem = self.jhove_doc.find(path, NS_MAP)
+        elem = self.jhove_elem.find(path, NS_MAP)
         if elem is None:
             raise JHOVEDocError(f"No element found at path {path}")
         return elem
@@ -86,50 +98,29 @@ class JHOVEDoc():
 
     @property
     def rotated(self) -> bool:
-        orientation_elem = self.jhove_doc.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
+        orientation_elem = self.jhove_elem.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
         if orientation_elem is None or orientation_elem.text is None: return False
         return ROTATED in orientation_elem.text
 
-
-class TechnicalMetadataGatherer:
-
-    def __init__(self, file_path: Path):
-        self.file_path: Path = file_path
-
-    def produce_jhove_doc(self) -> ET.Element:
-        try:
-            jhove_output = subprocess.run(
-                ["/opt/jhove/jhove", "-h", "XML", self.file_path],
-                capture_output=True,
-                check=True
-            )
-        except subprocess.CalledProcessError as error:
-            raise TechnicalMetadataError("JHOVE failed.") from error
-        jhove_doc = ET.fromstring(jhove_output.stdout)
-        return jhove_doc
-
-    def create_metadata(self, jhove_doc: ET.Element) -> TechnicalMetadata:
-        doc = JHOVEDoc(jhove_doc)
-
-        if not doc.valid:
-            raise TechnicalMetadataError(
-                f"File {self.file_path} was found to be invalid. " +
-                f"Status: {doc.status}"
+    @property
+    def technical_metadata(self) -> TechnicalMetadata:
+        if not self.valid:
+            raise JHOVEDocError(
+                f"File was found to be invalid. " +
+                f"Status: {self.status}"
             )
 
-        mimetype_text = doc.mimetype
+        mimetype_text = self.mimetype
         try:
             mimetype = ImageMimetype(mimetype_text)
         except ValueError:
-            raise TechnicalMetadataError(f"Unknown mimetype encountered: {mimetype_text}")
+            raise JHOVEDocError(f"Unknown mimetype encountered: {mimetype_text}")
 
         return TechnicalMetadata(
             mimetype=mimetype,
-            metadata=doc.niso_mix,
+            metadata=self.niso_mix,
             metadata_mimetype=TechnicalMetadataMimetype.MIX,
-            compressed=doc.compressed,
-            rotated=doc.rotated
+            compressed=self.compressed,
+            rotated=self.rotated
         )
 
-    def gather(self):
-        return self.create_metadata(self.produce_jhove_doc())
