@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 
 from dor.adapters.technical_metadata import (
-    NS_MAP, ImageMimetype, JHOVEParser, JHOVEParserError, TechnicalMetadataError,
-    TechnicalMetadataMimetype, get_technical_metadata, parse_jhove_doc
+    ImageMimetype, JHOVEParser, JHOVEParserError, NS_MAP, TechnicalMetadataError,
+    TechnicalMetadataGatherer, TechnicalMetadataMimetype
 )
 
 
@@ -22,7 +22,7 @@ def jhove_doc() -> ET.Element:
 
 def test_get_technical_metadata_retrieves_data_for_jpg(fixtures_path: Path):
     image_path = fixtures_path / "test_image.jpg"
-    tech_metadata = get_technical_metadata(image_path)
+    tech_metadata = TechnicalMetadataGatherer(image_path).gather()
     assert tech_metadata.mimetype == ImageMimetype.JPEG
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert not tech_metadata.rotated
@@ -32,7 +32,7 @@ def test_get_technical_metadata_retrieves_data_for_jpg(fixtures_path: Path):
 
 def test_get_technical_metadata_retrieves_data_for_tiff(fixtures_path: Path):
     image_path = fixtures_path / "test_image.tiff"
-    tech_metadata = get_technical_metadata(image_path)
+    tech_metadata = TechnicalMetadataGatherer(image_path).gather()
     assert tech_metadata.mimetype == ImageMimetype.TIFF
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert not tech_metadata.rotated
@@ -42,7 +42,7 @@ def test_get_technical_metadata_retrieves_data_for_tiff(fixtures_path: Path):
 
 def test_get_technical_metadata_retrieves_data_for_rotated_tiff(fixtures_path: Path):
     image_path = fixtures_path / "test_image_rotated.tiff"
-    tech_metadata = get_technical_metadata(image_path)
+    tech_metadata = TechnicalMetadataGatherer(image_path).gather()
     assert tech_metadata.mimetype == ImageMimetype.TIFF
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert tech_metadata.rotated
@@ -56,7 +56,8 @@ def test_parse_jhove_doc_fails_when_encountering_unknown_mimetype(jhove_doc: ET.
     mimetype_elem.text = "image/png"
 
     with pytest.raises(TechnicalMetadataError):
-        parse_jhove_doc(jhove_doc, Path("some/path"))
+        gatherer = TechnicalMetadataGatherer(Path("some/path"))
+        gatherer.create_metadata(jhove_doc)
 
 
 def test_parse_jhove_doc_fails_when_status_is_invalid(jhove_doc: ET.Element):
@@ -65,7 +66,8 @@ def test_parse_jhove_doc_fails_when_status_is_invalid(jhove_doc: ET.Element):
     status_elem.text = "Unknown"
 
     with pytest.raises(TechnicalMetadataError):
-        parse_jhove_doc(jhove_doc, Path("some/path"))
+        gatherer = TechnicalMetadataGatherer(Path("some/path"))
+        gatherer.create_metadata(jhove_doc)
 
 
 def test_jhove_parser_fails_when_status_is_missing(jhove_doc: ET.Element):
