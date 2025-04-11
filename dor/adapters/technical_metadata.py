@@ -40,7 +40,7 @@ class TechnicalMetadata:
     compressed: bool = False
 
 
-class JHOVEDoc():
+class JHOVEDoc:
 
     @classmethod
     def create(cls, file_path: Path) -> Self:
@@ -53,9 +53,7 @@ class JHOVEDoc():
         except subprocess.CalledProcessError as error:
             raise JHOVEDocError("JHOVE failed.") from error
         jhove_elem = ET.fromstring(jhove_output.stdout)
-
-        doc = cls(jhove_elem)
-        return doc
+        return cls(jhove_elem)
 
     def __init__(self, jhove_elem: ET.Element):
         self.jhove_elem = jhove_elem
@@ -105,10 +103,7 @@ class JHOVEDoc():
     @property
     def technical_metadata(self) -> TechnicalMetadata:
         if not self.valid:
-            raise JHOVEDocError(
-                f"File was found to be invalid. " +
-                f"Status: {self.status}"
-            )
+            raise JHOVEDocError(f"File was found to be invalid. Status: {self.status}")
 
         mimetype_text = self.mimetype
         try:
