@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from dor.adapters.technical_metadata import (
-    ImageMimetype, JHOVEParser, JHOVEParserError, NS_MAP, TechnicalMetadataError,
+    ImageMimetype, JHOVEDoc, JHOVEDocError, NS_MAP, TechnicalMetadataError,
     TechnicalMetadataGatherer, TechnicalMetadataMimetype
 )
 
@@ -70,47 +70,47 @@ def test_create_metadata_fails_when_status_is_invalid(jhove_doc: ET.Element):
         gatherer.create_metadata(jhove_doc)
 
 
-def test_jhove_parser_fails_when_status_is_missing(jhove_doc: ET.Element):
+def test_jhove_doc_fails_when_status_is_missing(jhove_doc: ET.Element):
     rep_info_elem = jhove_doc.find(".//jhove:repInfo", NS_MAP)
     if rep_info_elem is None: raise Exception
     status_elem = rep_info_elem.find("./jhove:status", NS_MAP)
     if status_elem is None: raise Exception
     rep_info_elem.remove(status_elem)
 
-    with pytest.raises(JHOVEParserError):
-        JHOVEParser(jhove_doc).get_status()
+    with pytest.raises(JHOVEDocError):
+        JHOVEDoc(jhove_doc).status
 
 
-def test_jhove_parser_fails_when_status_has_no_text(jhove_doc: ET.Element):
+def test_jhove_doc_fails_when_status_has_no_text(jhove_doc: ET.Element):
     status_elem = jhove_doc.find(".//jhove:repInfo/jhove:status", NS_MAP)
     if status_elem is None: raise Exception
     status_elem.text = None
 
-    with pytest.raises(JHOVEParserError):
-        JHOVEParser(jhove_doc).get_status()
+    with pytest.raises(JHOVEDocError):
+        JHOVEDoc(jhove_doc).status
 
 
-def test_jhove_parser_fails_when_mimetype_is_missing(jhove_doc: ET.Element):
+def test_jhove_doc_fails_when_mimetype_is_missing(jhove_doc: ET.Element):
     rep_info_elem = jhove_doc.find(".//jhove:repInfo", NS_MAP)
     if rep_info_elem is None: raise Exception
     mimetype_elem = rep_info_elem.find("./jhove:mimeType", NS_MAP)
     if mimetype_elem is None: raise Exception
     rep_info_elem.remove(mimetype_elem)
 
-    with pytest.raises(JHOVEParserError):
-        JHOVEParser(jhove_doc).get_mimetype()
+    with pytest.raises(JHOVEDocError):
+        JHOVEDoc(jhove_doc).mimetype
 
 
-def test_jhove_parser_fails_when_mimetype_has_no_text(jhove_doc: ET.Element):
+def test_jhove_doc_fails_when_mimetype_has_no_text(jhove_doc: ET.Element):
     mimetype_elem = jhove_doc.find(".//jhove:repInfo/jhove:mimeType", NS_MAP)
     if mimetype_elem is None: raise Exception
     mimetype_elem.text = None
 
-    with pytest.raises(JHOVEParserError):
-        JHOVEParser(jhove_doc).get_mimetype()
+    with pytest.raises(JHOVEDocError):
+        JHOVEDoc(jhove_doc).mimetype
 
 
-def test_jhove_parser_fails_when_mix_is_missing(jhove_doc: ET.Element):
+def test_jhove_doc_fails_when_mix_is_missing(jhove_doc: ET.Element):
     niso_value_elem = jhove_doc.find(
         f".//jhove:values[@type='NISOImageMetadata']/jhove:value", NS_MAP
     )
@@ -119,25 +119,25 @@ def test_jhove_parser_fails_when_mix_is_missing(jhove_doc: ET.Element):
     if niso_mix_elem is None: raise Exception
     niso_value_elem.remove(niso_mix_elem)
 
-    with pytest.raises(JHOVEParserError):
-        JHOVEParser(jhove_doc).get_niso_mix()
+    with pytest.raises(JHOVEDocError):
+        JHOVEDoc(jhove_doc).niso_mix
 
 
-def test_jhove_parser_fails_when_compression_is_missing(jhove_doc: ET.Element):
+def test_jhove_doc_fails_when_compression_is_missing(jhove_doc: ET.Element):
     compression_elem = jhove_doc.find(".//mix:Compression", NS_MAP)
     if compression_elem is None: raise Exception
     compression_scheme_elem = compression_elem.find("./mix:compressionScheme", NS_MAP)
     if compression_scheme_elem is None: raise Exception
     compression_elem.remove(compression_scheme_elem)
 
-    with pytest.raises(JHOVEParserError):
-        JHOVEParser(jhove_doc).get_compressed()
+    with pytest.raises(JHOVEDocError):
+        JHOVEDoc(jhove_doc).compressed
 
 
-def test_jhove_parser_fails_when_compression_has_no_text(jhove_doc: ET.Element):
+def test_jhove_doc_fails_when_compression_has_no_text(jhove_doc: ET.Element):
     compression_scheme_elem = jhove_doc.find(".//mix:Compression/mix:compressionScheme", NS_MAP)
     if compression_scheme_elem is None: raise Exception
     compression_scheme_elem.text = None
 
-    with pytest.raises(JHOVEParserError):
-        JHOVEParser(jhove_doc).get_compressed()
+    with pytest.raises(JHOVEDocError):
+        JHOVEDoc(jhove_doc).compressed

@@ -19,7 +19,8 @@ for prefix in NS_MAP:
 class TechnicalMetadataError(Exception):
     pass
 
-class JHOVEParserError(Exception):
+
+class JHOVEDocError(Exception):
     pass
 
 
@@ -42,7 +43,7 @@ class TechnicalMetadata:
     compressed: bool = False
 
 
-class JHOVEParser():
+class JHOVEDoc():
 
     def __init__(self, jhove_doc: ET.Element):
         self.jhove_doc = jhove_doc
@@ -50,35 +51,41 @@ class JHOVEParser():
     def retrieve_element(self, path: str) -> ET.Element:
         elem = self.jhove_doc.find(path, NS_MAP)
         if elem is None:
-            raise JHOVEParserError(f"No element found at path {path}")
+            raise JHOVEDocError(f"No element found at path {path}")
         return elem
 
     def retrieve_element_text(self, path: str) -> str:
         elem = self.retrieve_element(path)
         if elem.text is None:
-            raise JHOVEParserError(f"No text found for element at path {path}")
+            raise JHOVEDocError(f"No text found for element at path {path}")
         return elem.text
 
-    def get_status(self) -> str:
+    @property
+    def status(self) -> str:
         return self.retrieve_element_text(".//jhove:repInfo/jhove:status")
 
-    def get_valid(self) -> bool:
-        return self.get_status() == JHOVE_VALID_OK
+    @property
+    def valid(self) -> bool:
+        return self.status == JHOVE_VALID_OK
 
-    def get_mimetype(self) -> str:
+    @property
+    def mimetype(self) -> str:
         return self.retrieve_element_text(".//jhove:repInfo/jhove:mimeType")
 
-    def get_niso_mix(self) -> str:
+    @property
+    def niso_mix(self) -> str:
         niso_mix_elem = self.retrieve_element(
             ".//jhove:values[@type='NISOImageMetadata']/jhove:value/mix:mix"
         )
         return ET.tostring(niso_mix_elem, encoding='unicode')
 
-    def get_compressed(self) -> bool:
+    @property
+    def compressed(self) -> bool:
         compression = self.retrieve_element_text(".//mix:Compression/mix:compressionScheme")
         return compression != UNCOMPRESSED
 
-    def get_rotated(self) -> bool:
+    @property
+    def rotated(self) -> bool:
         orientation_elem = self.jhove_doc.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
         if orientation_elem is None or orientation_elem.text is None: return False
         return ROTATED in orientation_elem.text
@@ -102,15 +109,15 @@ class TechnicalMetadataGatherer:
         return jhove_doc
 
     def create_metadata(self, jhove_doc: ET.Element) -> TechnicalMetadata:
-        parser = JHOVEParser(jhove_doc)
+        doc = JHOVEDoc(jhove_doc)
 
-        if not parser.get_valid():
+        if not doc.valid:
             raise TechnicalMetadataError(
                 f"File {self.file_path} was found to be invalid. " +
-                f"Status: {parser.get_status()}"
+                f"Status: {doc.status}"
             )
 
-        mimetype_text = parser.get_mimetype()
+        mimetype_text = doc.mimetype
         try:
             mimetype = ImageMimetype(mimetype_text)
         except ValueError:
@@ -118,10 +125,10 @@ class TechnicalMetadataGatherer:
 
         return TechnicalMetadata(
             mimetype=mimetype,
-            metadata=parser.get_niso_mix(),
+            metadata=doc.niso_mix,
             metadata_mimetype=TechnicalMetadataMimetype.MIX,
-            compressed=parser.get_compressed(),
-            rotated=parser.get_rotated()
+            compressed=doc.compressed,
+            rotated=doc.rotated
         )
 
     def gather(self):
