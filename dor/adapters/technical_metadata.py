@@ -84,56 +84,45 @@ class JHOVEParser():
         return ROTATED in orientation_elem.text
 
 
-def get_jhove_doc(file_path: Path) -> ET.Element:
-    try:
-        jhove_output = subprocess.run(
-            ["/opt/jhove/jhove", "-h", "XML", file_path],
-            capture_output=True,
-            check=True
+class TechnicalMetadataGatherer:
+
+    def __init__(self, file_path: Path):
+        self.file_path: Path = file_path
+
+    def produce_jhove_doc(self) -> ET.Element:
+        try:
+            jhove_output = subprocess.run(
+                ["/opt/jhove/jhove", "-h", "XML", self.file_path],
+                capture_output=True,
+                check=True
+            )
+        except subprocess.CalledProcessError as error:
+            raise TechnicalMetadataError("JHOVE failed.") from error
+        jhove_doc = ET.fromstring(jhove_output.stdout)
+        return jhove_doc
+
+    def create_metadata(self, jhove_doc: ET.Element) -> TechnicalMetadata:
+        parser = JHOVEParser(jhove_doc)
+
+        if not parser.get_valid():
+            raise TechnicalMetadataError(
+                f"File {self.file_path} was found to be invalid. " +
+                f"Status: {parser.get_status()}"
+            )
+
+        mimetype_text = parser.get_mimetype()
+        try:
+            mimetype = ImageMimetype(mimetype_text)
+        except ValueError:
+            raise TechnicalMetadataError(f"Unknown mimetype encountered: {mimetype_text}")
+
+        return TechnicalMetadata(
+            mimetype=mimetype,
+            metadata=parser.get_niso_mix(),
+            metadata_mimetype=TechnicalMetadataMimetype.MIX,
+            compressed=parser.get_compressed(),
+            rotated=parser.get_rotated()
         )
-    except subprocess.CalledProcessError as error:
-        raise TechnicalMetadataError("JHOVE failed.") from error
-    jhove_doc = ET.fromstring(jhove_output.stdout)
-    return jhove_doc
 
-
-def parse_jhove_doc(jhove_doc: ET.Element, file_path: Path) -> TechnicalMetadata:
-    parser = JHOVEParser(jhove_doc)
-
-    if not parser.get_valid():
-        raise TechnicalMetadataError(
-            f"File {file_path} was found to be invalid. Status: {parser.get_status()}"
-        )
-    
-    mimetype_text = parser.get_mimetype()
-    try:
-        mimetype = ImageMimetype(mimetype_text)
-    except ValueError:
-        raise TechnicalMetadataError(f"Unknown mimetype encountered: {mimetype_text}")
-
-    niso_mix_xml = parser.get_niso_mix()
-
-    compressed = parser.get_compressed()
-    rotated = parser.get_rotated()
-
-    return TechnicalMetadata(
-        mimetype=mimetype,
-        metadata=niso_mix_xml,
-        metadata_mimetype=TechnicalMetadataMimetype.MIX,
-        compressed=compressed,
-        rotated=rotated
-    )
-
-
-def get_technical_metadata(file_path: Path) -> TechnicalMetadata:
-    jhove_doc = get_jhove_doc(file_path)
-    return parse_jhove_doc(jhove_doc, file_path)
-
-
-def get_fake_technical_metadata(file_path: Path) -> TechnicalMetadata:
-    return TechnicalMetadata(
-        mimetype=ImageMimetype.JPEG,
-        metadata=f"<xml>{file_path}</xml>",
-        metadata_mimetype=TechnicalMetadataMimetype.MIX,
-        compressed=True
-    )
+    def gather(self):
+        return self.create_metadata(self.produce_jhove_doc())
