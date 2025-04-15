@@ -26,7 +26,7 @@ def test_jhove_doc_retrieves_data_for_jpg(fixtures_path: Path):
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert not tech_metadata.rotated
     assert tech_metadata.compressed
-    assert tech_metadata.metadata
+    assert tech_metadata.metadata is not None
 
 
 def test_jhove_doc_retrieves_data_for_tiff(fixtures_path: Path):
@@ -36,7 +36,7 @@ def test_jhove_doc_retrieves_data_for_tiff(fixtures_path: Path):
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert not tech_metadata.rotated
     assert not tech_metadata.compressed
-    assert tech_metadata.metadata
+    assert tech_metadata.metadata is not None
 
 
 def test_jhove_doc_retrieves_data_for_rotated_tiff(fixtures_path: Path):
@@ -46,7 +46,7 @@ def test_jhove_doc_retrieves_data_for_rotated_tiff(fixtures_path: Path):
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert tech_metadata.rotated
     assert not tech_metadata.compressed
-    assert tech_metadata.metadata
+    assert tech_metadata.metadata is not None
 
 
 def test_jhove_doc_fails_when_status_is_invalid(jhove_elem: ET.Element):
@@ -107,17 +107,17 @@ def test_jhove_doc_fails_when_mimetype_has_no_text(jhove_elem: ET.Element):
         JHOVEDoc(jhove_elem, "Dummy").mimetype
 
 
-# def test_jhove_doc_fails_when_mix_is_missing(jhove_elem: ET.Element):
-#     niso_value_elem = jhove_elem.find(
-#         f".//jhove:values[@type='NISOImageMetadata']/jhove:value", NS_MAP
-#     )
-#     if niso_value_elem is None: raise Exception
-#     niso_mix_elem = niso_value_elem.find("./mix:mix", NS_MAP)
-#     if niso_mix_elem is None: raise Exception
-#     niso_value_elem.remove(niso_mix_elem)
+def test_jhove_doc_fails_when_mix_is_missing(jhove_elem: ET.Element):
+    niso_value_elem = jhove_elem.find(
+        f".//jhove:values[@type='NISOImageMetadata']/jhove:value", NS_MAP
+    )
+    if niso_value_elem is None: raise Exception
+    niso_mix_elem = niso_value_elem.find("./mix:mix", NS_MAP)
+    if niso_mix_elem is None: raise Exception
+    niso_value_elem.remove(niso_mix_elem)
 
-#     with pytest.raises(JHOVEDocError):
-#         JHOVEDoc(jhove_elem).niso_mix
+    with pytest.raises(JHOVEDocError):
+        JHOVEDoc(jhove_elem, "NISOImageMetadata").technical_metadata
 
 
 # def test_jhove_doc_fails_when_compression_is_missing(jhove_elem: ET.Element):
