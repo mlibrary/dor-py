@@ -122,11 +122,8 @@ class JHOVEDoc:
     def mimetype(self) -> str:
         return self.retrieve_element_text(".//jhove:repInfo/jhove:mimeType")
     
-
     @property
     def technical_metadata(self) -> ET.Element:
         xpath = f'.//jhove:values[@type="{self.metadata_property}"]/jhove:value/*'
-        elem = self.retrieve_element(
-            xpath
-        )
+        elem = self.retrieve_element(xpath)
         return elem

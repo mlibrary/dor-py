@@ -19,7 +19,7 @@ def jhove_elem() -> ET.Element:
     return ET.fromstring(doc_path.read_text())
 
 
-def test_jhove_doc_retrieves_data_for_jpg(fixtures_path: Path):
+def test_image_tech_metadata_retrieves_data_for_jpg(fixtures_path: Path):
     image_path = fixtures_path / "test_image.jpg"
     tech_metadata = ImageTechnicalMetadata.create(image_path)
     assert tech_metadata.mimetype == ImageMimetype.JPEG
@@ -29,7 +29,7 @@ def test_jhove_doc_retrieves_data_for_jpg(fixtures_path: Path):
     assert tech_metadata.metadata is not None
 
 
-def test_jhove_doc_retrieves_data_for_tiff(fixtures_path: Path):
+def test_image_tech_metadata_retrieves_data_for_tiff(fixtures_path: Path):
     image_path = fixtures_path / "test_image.tiff"
     tech_metadata = ImageTechnicalMetadata.create(image_path)
     assert tech_metadata.mimetype == ImageMimetype.TIFF
@@ -39,7 +39,7 @@ def test_jhove_doc_retrieves_data_for_tiff(fixtures_path: Path):
     assert tech_metadata.metadata is not None
 
 
-def test_jhove_doc_retrieves_data_for_rotated_tiff(fixtures_path: Path):
+def test_image_tech_metadata_retrieves_data_for_rotated_tiff(fixtures_path: Path):
     image_path = fixtures_path / "test_image_rotated.tiff"
     tech_metadata = ImageTechnicalMetadata.create(image_path)
     assert tech_metadata.mimetype == ImageMimetype.TIFF
@@ -118,23 +118,3 @@ def test_jhove_doc_fails_when_mix_is_missing(jhove_elem: ET.Element):
 
     with pytest.raises(JHOVEDocError):
         JHOVEDoc(jhove_elem, "NISOImageMetadata").technical_metadata
-
-
-# def test_jhove_doc_fails_when_compression_is_missing(jhove_elem: ET.Element):
-#     compression_elem = jhove_elem.find(".//mix:Compression", NS_MAP)
-#     if compression_elem is None: raise Exception
-#     compression_scheme_elem = compression_elem.find("./mix:compressionScheme", NS_MAP)
-#     if compression_scheme_elem is None: raise Exception
-#     compression_elem.remove(compression_scheme_elem)
-
-#     with pytest.raises(JHOVEDocError):
-#         JHOVEDoc(jhove_elem).compressed
-
-
-# def test_jhove_doc_fails_when_compression_has_no_text(jhove_elem: ET.Element):
-#     compression_scheme_elem = jhove_elem.find(".//mix:Compression/mix:compressionScheme", NS_MAP)
-#     if compression_scheme_elem is None: raise Exception
-#     compression_scheme_elem.text = None
-
-#     with pytest.raises(JHOVEDocError):
-#         JHOVEDoc(jhove_elem).compressed
