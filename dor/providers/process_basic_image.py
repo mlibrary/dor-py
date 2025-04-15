@@ -99,7 +99,7 @@ def create_file_set_directories(file_set_directory: Path) -> None:
 
 
 def get_source_file_info(
-    file_set_identifier: FileSetIdentifier, tech_metadata: TechnicalMetadata
+    file_set_identifier: FileSetIdentifier, tech_metadata: ImageTechnicalMetadata
 ) -> FileInfo:
     return FileInfo(
         identifier=file_set_identifier.identifier,
@@ -129,7 +129,7 @@ def get_event_file_info(file_info: FileInfo):
 def create_service_file(
     source_path: Path,
     destination_path: Path,
-    tech_metadata: TechnicalMetadata,
+    tech_metadata: ImageTechnicalMetadata,
     generate_service_variant: Callable[[Path, Path], None]
 ) -> None:
     temp_file = tempfile.NamedTemporaryFile(mode='w', suffix=".tiff")
