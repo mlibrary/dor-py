@@ -31,19 +31,60 @@ class TechnicalMetadataMimetype(Enum):
     MIX = "text/xml+mix"
 
 
-@dataclass
-class TechnicalMetadata:
-    mimetype: ImageMimetype
-    metadata: str
-    metadata_mimetype: TechnicalMetadataMimetype
-    rotated: bool = False
-    compressed: bool = False
+class JHOVEStatus(Enum):
+    VALID_OK = "Well-Formed and valid"
 
+
+@dataclass
+class ImageTechnicalMetadata:
+    mimetype: ImageMimetype
+    metadata: ET.Element
+    # metadata_mimetype: TechnicalMetadataMimetype
+    # rotated: bool = False
+    # compressed: bool = False
+
+    @classmethod
+    def create(cls, file_path: Path) -> Self:
+        input = JHOVEDoc.create(
+            file_path,
+            'NISOImageMetadata'
+            # "jhove:values[@type='NISOImageMetadata']/jhove:value/mix:mix"
+        )
+
+        return cls(
+            mimetype=ImageMimetype(input.mimetype),
+            metadata=input.technical_metadata,
+        )
+    
+    @property
+    def rotated(self) -> bool:
+        orientation_elem = self.metadata.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
+        if orientation_elem is None or orientation_elem.text is None: return False
+        return ROTATED in orientation_elem.text
+
+    @property
+    def compressed(self) -> bool:
+        compression_elem = self.metadata.find(".//mix:Compression/mix:compressionScheme", NS_MAP)
+        if compression_elem is None:
+            return False
+        return compression_elem.text != UNCOMPRESSED
+    
+    @property
+    def metadata_mimetype(self) -> TechnicalMetadataMimetype:
+        return TechnicalMetadataMimetype.MIX
+
+
+
+@dataclass
+class JHOVEData:
+    status: JHOVEStatus
+    mimetype: str
+    technical_metadata: ET.Element
 
 class JHOVEDoc:
 
     @classmethod
-    def create(cls, file_path: Path) -> Self:
+    def create(cls, file_path: Path, xpath: str) -> Self:
         try:
             jhove_output = subprocess.run(
                 ["/opt/jhove/jhove", "-h", "XML", file_path],
@@ -53,10 +94,11 @@ class JHOVEDoc:
         except subprocess.CalledProcessError as error:
             raise JHOVEDocError("JHOVE failed.") from error
         jhove_elem = ET.fromstring(jhove_output.stdout)
-        return cls(jhove_elem)
+        return cls(jhove_elem, xpath).data()
 
-    def __init__(self, jhove_elem: ET.Element):
+    def __init__(self, jhove_elem: ET.Element, xpath: str):
         self.jhove_elem = jhove_elem
+        self.xpath = xpath
 
     def retrieve_element(self, path: str) -> ET.Element:
         elem = self.jhove_elem.find(path, NS_MAP)
@@ -81,6 +123,21 @@ class JHOVEDoc:
     @property
     def mimetype(self) -> str:
         return self.retrieve_element_text(".//jhove:repInfo/jhove:mimeType")
+    
+    def data(self) -> JHOVEData:
+        return JHOVEData(
+            status=JHOVEStatus(self.status),
+            mimetype=self.mimetype,
+            technical_metadata=self.technical_metadata
+        )
+
+    @property
+    def technical_metadata(self) -> ET.Element:
+        xpath = f'.//jhove:values[@type="{self.xpath}"]/jhove:value/*'
+        elem = self.retrieve_element(
+            xpath
+        )
+        return elem
 
     @property
     def niso_mix(self) -> str:
@@ -100,22 +157,22 @@ class JHOVEDoc:
         if orientation_elem is None or orientation_elem.text is None: return False
         return ROTATED in orientation_elem.text
 
-    @property
-    def technical_metadata(self) -> TechnicalMetadata:
-        if not self.valid:
-            raise JHOVEDocError(f"File was found to be invalid. Status: {self.status}")
+    # @property
+    # def technical_metadata(self) -> TechnicalMetadata:
+    #     if not self.valid:
+    #         raise JHOVEDocError(f"File was found to be invalid. Status: {self.status}")
 
-        mimetype_text = self.mimetype
-        try:
-            mimetype = ImageMimetype(mimetype_text)
-        except ValueError:
-            raise JHOVEDocError(f"Unknown mimetype encountered: {mimetype_text}")
+    #     mimetype_text = self.mimetype
+    #     try:
+    #         mimetype = ImageMimetype(mimetype_text)
+    #     except ValueError:
+    #         raise JHOVEDocError(f"Unknown mimetype encountered: {mimetype_text}")
 
-        return TechnicalMetadata(
-            mimetype=mimetype,
-            metadata=self.niso_mix,
-            metadata_mimetype=TechnicalMetadataMimetype.MIX,
-            compressed=self.compressed,
-            rotated=self.rotated
-        )
+    #     return TechnicalMetadata(
+    #         mimetype=mimetype,
+    #         metadata=self.niso_mix,
+    #         metadata_mimetype=TechnicalMetadataMimetype.MIX,
+    #         compressed=self.compressed,
+    #         rotated=self.rotated
+    #     )
 
