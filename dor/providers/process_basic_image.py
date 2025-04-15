@@ -58,6 +58,24 @@ class FileInfoAssociation:
     source_file_info: FileInfo | None = None
 
 
+def create_preservation_event(
+    type: str,
+    collection_manager_email: str,
+    detail: str = ""
+):
+    event = PreservationEvent(
+        identifier=str(uuid.uuid4()),
+        type=type,
+        datetime=datetime.now(tz=UTC),
+        detail=detail,
+        agent=Agent(
+            role="image_processing",
+            address=collection_manager_email
+        )
+    )
+    return event
+
+
 class TransformerError(Exception):
     pass
 
@@ -70,19 +88,11 @@ class Transformer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_file_info_association(self, source_file_info) -> FileInfoAssociation:
+    def get_file_info_associations(self, source_file_info) -> list[FileInfoAssociation]:
         raise NotImplementedError
 
     @abstractmethod
-    def transform(self, source_path: Path, tech_metadata: ImageTechnicalMetadata) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def create_event(self, collection_manager_email: str) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def create_technical_metadata(self) -> None:
+    def transform(self, source_path: Path, source_tech_metadata: ImageTechnicalMetadata, collection_manager_email: str) -> None:
         raise NotImplementedError
 
 
@@ -112,21 +122,33 @@ class ServiceImageTransformer(Transformer):
     def metadata_file_infos(self) -> list[MetadataFileInfo]:
         return [self.tech_metadata_file_info, self.event_metadata_file_info]
 
-    def get_file_info_association(self, source_file_info) -> FileInfoAssociation:
-        return FileInfoAssociation(
+    def get_file_info_associations(self, source_file_info) -> list[FileInfoAssociation]:
+        return [FileInfoAssociation(
             file_info=self.file_info,
             tech_metadata_file_info=self.tech_metadata_file_info,
             source_file_info=source_file_info
-        )
+        )]
 
-    def transform(
-        self,
-        source_path: Path,
-        tech_metadata: ImageTechnicalMetadata
-    ) -> None:
+    def create_event(self, collection_manager_email: str) -> None:
+        event = create_preservation_event("generate service derivative", collection_manager_email)
+        event_xml = PreservationEventSerializer(event).serialize()
+        (self.file_set_directory / self.event_metadata_file_info.path).write_text(event_xml)
+
+    def create_technical_metadata(self) -> None:
+        try:
+            self.tech_metadata = ImageTechnicalMetadata.create(self.file_path)
+        except JHOVEDocError:
+            raise TransformerError
+
+        self.tech_metadata_file_info = self.file_info.metadata(
+            use=UseFunction.technical, mimetype=self.tech_metadata.metadata_mimetype.value
+        )
+        (self.file_set_directory / self.tech_metadata_file_info.path).write_text(str(self.tech_metadata))
+
+    def create_service_file(self, source_path: Path, source_tech_metadata: ImageTechnicalMetadata):
         temp_file = tempfile.NamedTemporaryFile(mode='w', suffix=".tiff")
         with temp_file:
-            if tech_metadata.compressed or tech_metadata.rotated:
+            if source_tech_metadata.compressed or source_tech_metadata.rotated:
                 compressible_file_path = Path(temp_file.name)
                 make_intermediate_file(source_path, compressible_file_path)
             else:
@@ -137,40 +159,15 @@ class ServiceImageTransformer(Transformer):
             except ServiceImageProcessingError:
                 raise TransformerError
 
-    def create_event(self, collection_manager_email: str) -> None:
-        event = create_preservation_event("generate service derivative", collection_manager_email)
-        event_xml = PreservationEventSerializer(event).serialize()
-        (self.file_set_directory / self.event_metadata_file_info.path).write_text(event_xml)
-
-    def create_technical_metadata(self) -> None:
-        try:
-            tech_metadata = ImageTechnicalMetadata.create(self.file_path)
-        except JHOVEDocError:
-            raise TransformerError
-
-        self.tech_metadata_file_info = self.file_info.metadata(
-            use=UseFunction.technical, mimetype=tech_metadata.metadata_mimetype.value
-        )
-
-        (self.file_set_directory / self.tech_metadata_file_info.path).write_text(str(tech_metadata))
-
-
-def create_preservation_event(
-    type: str,
-    collection_manager_email: str,
-    detail: str = ""
-):
-    event = PreservationEvent(
-        identifier=str(uuid.uuid4()),
-        type=type,
-        datetime=datetime.now(tz=UTC),
-        detail=detail,
-        agent=Agent(
-            role="image_processing",
-            address=collection_manager_email
-        )
-    )
-    return event
+    def transform(
+        self,
+        source_path: Path,
+        source_tech_metadata: ImageTechnicalMetadata,
+        collection_manager_email: str
+    ) -> None:
+        self.create_service_file(source_path=source_path, source_tech_metadata=source_tech_metadata)
+        self.create_event(collection_manager_email)
+        self.create_technical_metadata()
 
 
 def convert_metadata_file_info_to_file_metadata(metadata_file_info: MetadataFileInfo) -> FileMetadata:
@@ -291,9 +288,11 @@ def process_basic_image(
     # Transformations
     for transformer in transformers:
         try:
-            transformer.transform(source_path=source_file_path, tech_metadata=source_tech_metadata)
-            transformer.create_event(collection_manager_email)
-            transformer.create_technical_metadata()
+            transformer.transform(
+                source_path=source_file_path,
+                source_tech_metadata=source_tech_metadata,
+                collection_manager_email=collection_manager_email
+            )
         except TransformerError:
             return False
 
@@ -308,8 +307,7 @@ def process_basic_image(
         )
     ]
     for transformer in transformers:
-        file_info_associations.append(transformer.get_file_info_association(source_file_info))
-
+        file_info_associations.extend(transformer.get_file_info_associations(source_file_info))
 
     resource = create_package_resource(
         file_set_identifier=file_set_identifier,
