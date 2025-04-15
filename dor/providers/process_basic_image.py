@@ -9,7 +9,7 @@ from typing import Callable
 from dor.adapters.generate_service_variant import generate_service_variant, ServiceImageProcessingError
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
-    ImageMimetype, JHOVEDoc, JHOVEDocError
+    ImageMimetype, ImageTechnicalMetadata, JHOVEDocError
 )
 from dor.builders.parts import FileInfo, MetadataFileInfo, UseFunction, UseFormat, flatten_use
 from dor.providers.file_system_file_provider import FilesystemFileProvider
@@ -108,7 +108,7 @@ def process_basic_image(
     create_file_set_directories(file_set_directory)
 
     try:
-        source_tech_metadata = JHOVEDoc.create(image_path).technical_metadata
+        source_tech_metadata = ImageTechnicalMetadata.create(image_path)
     except JHOVEDocError:
         return False
 
@@ -134,7 +134,7 @@ def process_basic_image(
     source_tech_metadata_file_info = source_file_info.metadata(
         use=UseFunction.technical, mimetype=source_tech_metadata.metadata_mimetype.value
     )
-    (file_set_directory / source_tech_metadata_file_info.path).write_text(source_tech_metadata.metadata)
+    (file_set_directory / source_tech_metadata_file_info.path).write_text(str(source_tech_metadata))
 
     service_file_info = FileInfo(
         identifier=file_set_identifier.identifier,
@@ -165,14 +165,14 @@ def process_basic_image(
     (file_set_directory / service_event_metadata_file_info.path).write_text(service_event_xml)
 
     try:
-        service_tech_metadata = JHOVEDoc.create(service_file_path).technical_metadata
+        service_tech_metadata = ImageTechnicalMetadata.create(service_file_path)
     except JHOVEDocError:
         return False
 
     service_tech_metadata_file_info = service_file_info.metadata(
         use=UseFunction.technical, mimetype=service_tech_metadata.metadata_mimetype.value
     )
-    (file_set_directory / service_tech_metadata_file_info.path).write_text(service_tech_metadata.metadata)
+    (file_set_directory / service_tech_metadata_file_info.path).write_text(str(service_tech_metadata))
 
     resource = PackageResource(
         id=file_set_identifier.uuid,
