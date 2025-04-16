@@ -15,8 +15,13 @@ def file_set_images_path() -> Path:
 
 
 @pytest.fixture
-def jhove_elem() -> ET.Element:
-    doc_path = Path("tests/fixtures/test_technical_metadata/jhove_output.xml")
+def fixtures_path() -> Path:
+    return Path("tests/fixtures/test_technical_metadata")
+
+
+@pytest.fixture
+def jhove_elem(fixtures_path: Path) -> ET.Element:
+    doc_path = fixtures_path / "jhove_output.xml"
     return ET.fromstring(doc_path.read_text())
 
 
@@ -50,16 +55,16 @@ def test_image_tech_metadata_retrieves_data_for_rotated_tiff(file_set_images_pat
     assert tech_metadata.metadata is not None
 
 
-def test_text_tech_metadata_retrieves_data_for_ascii_text():
-    text_path = Path("tests/fixtures/test_technical_metadata/sample_ascii.txt")
+def test_text_tech_metadata_retrieves_data_for_ascii_text(fixtures_path: Path):
+    text_path = fixtures_path / "sample_ascii.txt"
     tech_metadata = TextTechnicalMetadata.create(text_path)
     assert tech_metadata.mimetype == Mimetype.TXT_ASCII
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.TEXTMD
     assert tech_metadata.metadata is not None
 
 
-def test_text_tech_metadata_retrieves_for_utf_text():
-    text_path = Path("tests/fixtures/test_technical_metadata/sample_utf8.txt")
+def test_text_tech_metadata_retrieves_for_utf_text(fixtures_path: Path):
+    text_path = fixtures_path / "sample_utf8.txt"
     tech_metadata = TextTechnicalMetadata.create(text_path)
     assert tech_metadata.mimetype == Mimetype.TXT_UTF8
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.TEXTMD
