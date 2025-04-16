@@ -63,7 +63,7 @@ def test_text_tech_metadata_retrieves_data_for_ascii_text(fixtures_path: Path):
     assert tech_metadata.metadata is not None
 
 
-def test_text_tech_metadata_retrieves_for_utf_text(fixtures_path: Path):
+def test_text_tech_metadata_retrieves_data_for_utf_text(fixtures_path: Path):
     text_path = fixtures_path / "sample_utf8.txt"
     tech_metadata = TextTechnicalMetadata.create(text_path)
     assert tech_metadata.mimetype == Mimetype.TXT_UTF8
