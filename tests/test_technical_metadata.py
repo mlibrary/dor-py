@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 
 from dor.adapters.technical_metadata import (
-    JHOVEDoc, JHOVEDocError, ImageTechnicalMetadata, Mimetype, NS_MAP,
-    TechnicalMetadataMimetype,TextTechnicalMetadata
+    ImageTechnicalMetadata, JHOVEDoc, JHOVEDocError, Mimetype, NS_MAP,
+    TechnicalMetadataMimetype, TextTechnicalMetadata
 )
 
 
