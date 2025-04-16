@@ -10,6 +10,7 @@ MIX_NS = "http://www.loc.gov/mix/v20"
 NS_MAP = {'jhove': JHOVE_NS, 'mix': MIX_NS}
 
 JHOVE_IMAGE_METADATA_PROPERTY = "NISOImageMetadata"
+JHOVE_TEXT_METADATA_PROPERTY = "TextMDMetadata"
 
 JHOVE_VALID_OK = "Well-Formed and valid"
 UNCOMPRESSED = "Uncompressed"
@@ -23,14 +24,17 @@ class JHOVEDocError(Exception):
     pass
 
 
-class ImageMimetype(Enum):
+class Mimetype(Enum):
     JPEG = "image/jpeg"
     TIFF = "image/tiff"
     JP2 = "image/jp2"
+    TXT_ASCII = "text/plain; charset=US-ASCII"
+    TXT_UTF8 = "text/plain; charset=UTF-8"
 
 
 class TechnicalMetadataMimetype(Enum):
     MIX = "text/xml+mix"
+    TEXTMD = "text/xml+textmd"
 
 
 class JHOVEStatus(Enum):
@@ -39,7 +43,7 @@ class JHOVEStatus(Enum):
 
 @dataclass
 class ImageTechnicalMetadata:
-    mimetype: ImageMimetype
+    mimetype: Mimetype
     metadata: ET.Element
     status: JHOVEStatus
     valid: bool
@@ -52,7 +56,7 @@ class ImageTechnicalMetadata:
         )
 
         return cls(
-            mimetype=ImageMimetype(jhove_doc.mimetype),
+            mimetype=Mimetype(jhove_doc.mimetype),
             metadata=jhove_doc.technical_metadata,
             status=JHOVEStatus(jhove_doc.status),
             valid=jhove_doc.valid
@@ -79,13 +83,42 @@ class ImageTechnicalMetadata:
         return ET.tostring(self.metadata, encoding="unicode")
 
 
+@dataclass
+class TextTechnicalMetadata:
+    mimetype: Mimetype
+    metadata: ET.Element
+    status: JHOVEStatus
+    valid: bool
+
+    @classmethod
+    def create(cls, file_path: Path) -> Self:
+        jhove_doc = JHOVEDoc.create(
+            file_path,
+            JHOVE_TEXT_METADATA_PROPERTY
+        )
+
+        return cls(
+            mimetype=Mimetype(jhove_doc.mimetype),
+            metadata=jhove_doc.technical_metadata,
+            status=JHOVEStatus(jhove_doc.status),
+            valid=jhove_doc.valid
+        )
+
+    @property
+    def metadata_mimetype(self) -> TechnicalMetadataMimetype:
+        return TechnicalMetadataMimetype.TEXTMD
+
+    def __str__(self):
+        return ET.tostring(self.metadata, encoding="unicode")
+
+
 class JHOVEDoc:
 
     @classmethod
     def create(cls, file_path: Path, metadata_property: str) -> Self:
         try:
             jhove_output = subprocess.run(
-                ["/opt/jhove/jhove", "-h", "XML", file_path],
+                ["/opt/jhove/jhove", "-h", "XML", "-c", "./etc/jhove.conf", file_path],
                 capture_output=True,
                 check=True
             )

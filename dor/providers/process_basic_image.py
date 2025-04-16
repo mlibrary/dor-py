@@ -9,7 +9,7 @@ from typing import Callable
 from dor.adapters.generate_service_variant import generate_service_variant, ServiceImageProcessingError
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
-    ImageMimetype, ImageTechnicalMetadata, JHOVEDocError
+    ImageTechnicalMetadata, JHOVEDocError, Mimetype
 )
 from dor.builders.parts import FileInfo, MetadataFileInfo, UseFunction, UseFormat, flatten_use
 from dor.providers.file_system_file_provider import FilesystemFileProvider
@@ -22,9 +22,9 @@ from dor.settings import template_env
 
 
 ACCEPTED_IMAGE_MIMETYPES = [
-    ImageMimetype.JPEG,
-    ImageMimetype.TIFF,
-    ImageMimetype.JP2
+    Mimetype.JPEG,
+    Mimetype.TIFF,
+    Mimetype.JP2
 ]
 
 
@@ -140,7 +140,7 @@ def process_basic_image(
         identifier=file_set_identifier.identifier,
         basename=file_set_identifier.basename,
         uses=[UseFunction.service, UseFormat.image],
-        mimetype=ImageMimetype.JP2.value
+        mimetype=Mimetype.JP2.value
     )
     service_file_path = file_set_directory / service_file_info.path
 
