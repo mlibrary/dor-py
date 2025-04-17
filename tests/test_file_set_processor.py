@@ -70,34 +70,34 @@ def test_process_basic_image_creates_service_technical_metadata(file_set_identif
     assert technical_metadata_file.exists()
 
 
-# def test_process_basic_image_creates_descriptor_file(file_set_identifier, input_path, output_path):
-#     descriptor_file = output_path / file_set_identifier.identifier / "descriptor" / \
-#         (f"{file_set_identifier.uuid}.file_set.mets2.xml")
-#     assert process_basic_image(
-#         file_set_identifier=file_set_identifier,
-#         image_path=input_path / "test_image.jpg",
-#         output_path=output_path
-#     )
-#     assert descriptor_file.exists()
+def test_process_basic_image_creates_descriptor_file(file_set_identifier, input_path, output_path):
+    descriptor_file = output_path / file_set_identifier.identifier / "descriptor" / \
+        (f"{file_set_identifier.uuid}.file_set.mets2.xml")
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        image_path=input_path / "test_image.jpg",
+        output_path=output_path
+    )
+    assert descriptor_file.exists()
 
 
-# def test_process_basic_image_creates_service_event_metadata(file_set_identifier, input_path, output_path):
-#     event_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
-#         ("test_image.function:service.format:image.jp2.function:event.premis.xml")
-#     assert process_basic_image(
-#         file_set_identifier=file_set_identifier,
-#         image_path=input_path / "test_image.jpg",
-#         output_path=output_path
-#     )
-#     assert event_metadata_file.exists()
+def test_process_basic_image_creates_service_event_metadata(file_set_identifier, input_path, output_path):
+    event_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
+        ("test_image.function:service.format:image.jp2.function:event.premis.xml")
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        image_path=input_path / "test_image.jpg",
+        output_path=output_path
+    )
+    assert event_metadata_file.exists()
 
 
-# def test_process_basic_image_creates_source_event_metadata(file_set_identifier, input_path, output_path):
-#     event_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
-#         ("test_image.function:source.format:image.jpg.function:event.premis.xml")
-#     assert process_basic_image(
-#         file_set_identifier=file_set_identifier,
-#         image_path=input_path / "test_image.jpg",
-#         output_path=output_path
-#     )
-#     assert event_metadata_file.exists()
+def test_process_basic_image_creates_source_event_metadata(file_set_identifier, input_path, output_path):
+    event_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
+        ("test_image.function:source.format:image.jpg.function:event.premis.xml")
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        image_path=input_path / "test_image.jpg",
+        output_path=output_path
+    )
+    assert event_metadata_file.exists()
