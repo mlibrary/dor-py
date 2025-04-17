@@ -54,6 +54,13 @@ class FileSetIdentifier:
 class TransformerError(Exception):
     pass
 
+@dataclass
+class Result:
+    file_path: Path
+    tech_metadata: ImageTechnicalMetadata
+    file_info: FileInfo
+    event: PreservationEvent
+
 
 @dataclass
 class Transformer:
@@ -69,18 +76,26 @@ class Transformer:
     def run(self):
         while self.steps:
             (method, uses) = self.steps.pop(0)
-            (path, tech_metadata, file_info, event) = method(transformer=self, uses=uses)
-            if path:
-                if not tech_metadata.valid:
+            result = method(transformer=self, uses=uses)
+            if result:
+                if not result.tech_metadata.valid:
                     raise TransformerError("a problem occurred")
 
-                self.files.append((path, tech_metadata, file_info, event))
+                self.files.append(result)
 
     def write(self):
         # write metadata files
         metadata_file_infos = []
         file_info_associations = []
-        for ( file_path, tech_metadata, file_info, event ) in self.files:
+        for result in self.files:
+
+            ( file_info, tech_metadata, file_info, event ) = (
+                result.file_info,
+                result.tech_metadata,
+                result.file_info,
+                result.event
+            )
+
             if UseFunction.intermediate in file_info.uses:
                 # don't persist these
                 continue
@@ -114,12 +129,12 @@ class Transformer:
             file.write(descriptor_xml)
 
 
-    def get_file(self, uses: list[UseFunction]):
-        for use in uses:
-            for file_ in self.files:
-                if use in file_[-2].uses:
-                    return file_
-        return NOP_RETURN
+    def get_file(self, function: list[UseFunction], format: UseFormat):
+        for use in function:
+            for result in self.files:
+                if use in result.file_info.uses and format in result.file_info.uses:
+                    return result
+        return False
 
 
 def create_preservation_event(
@@ -194,7 +209,7 @@ def process_source_file(image_path: Path, transformer: Transformer, uses: list[A
     try:
         source_tech_metadata = ImageTechnicalMetadata.create(image_path)
     except JHOVEDocError:
-        return NOP_RETURN
+        return None
 
     # source_file_info = get_source_file_info(transformer.file_set_identifier, source_tech_metadata)
     file_info = FileInfo(
@@ -209,18 +224,34 @@ def process_source_file(image_path: Path, transformer: Transformer, uses: list[A
 
     event = create_preservation_event("copy source file", transformer.collection_manager_email)
 
-    return (source_file_path, source_tech_metadata, file_info, event)
+    return Result(source_file_path, source_tech_metadata, file_info, event)
 
 def check_source_orientation(transformer: Transformer, uses: list[Any]):
-    (image_path, tech_metadata, file_info, event) = transformer.get_file(uses=[UseFunction.source])
-    if image_path is None:
-        print("well that's a problem")
-        return NOP_RETURN
-    if tech_metadata.rotated:
-        print("we must rotate")
+    source_file_result = transformer.get_file(function=[UseFunction.source], format=UseFormat.image)
+    if source_file_result.file_path is None:
+        return None
+
+    if not source_file_result.tech_metadata.rotated:
+        return None    
+
+    temp_file = tempfile.NamedTemporaryFile(mode='w', suffix=".tiff")
+    compressible_file_path = Path(temp_file.name)
+    make_intermediate_file(source_file_result.file_path, compressible_file_path)
+
+    try:
+        tech_metadata = ImageTechnicalMetadata.create(compressible_file_path)
+    except JHOVEDocError:
+        return None
+
+    file_info = FileInfo(
+        identifier=transformer.file_set_identifier.identifier,
+        basename=transformer.file_set_identifier.basename,
+        uses=uses,
+        mimetype=tech_metadata.mimetype.value
+    )
     
-    print("everything's fine, keep going")
-    return NOP_RETURN
+    return Result(compressible_file_path, tech_metadata, file_info, None)
+
 
 def copy_source_file(source_path: Path, destination_path: Path) -> None:
     shutil.copyfile(source_path, destination_path)
@@ -231,7 +262,7 @@ def get_event_file_info(file_info: FileInfo):
     return file_info.metadata(use=UseFunction.event, mimetype="text/xml+premis")
 
 def process_service_file(transformer: Transformer, uses: list[Any]):
-    (image_path, tech_metadata, file_info, event) = transformer.get_file(uses=[UseFunction.intermediate, UseFunction.source])
+    source_file_result = transformer.get_file(function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image)
 
     file_info = FileInfo(
         identifier=transformer.file_set_identifier.identifier,
@@ -243,22 +274,22 @@ def process_service_file(transformer: Transformer, uses: list[Any]):
     service_file_path = transformer.file_set_directory / file_info.path
     try:
         create_service_file(
-            source_path=image_path,
+            source_path=source_file_result.file_path,
             destination_path=service_file_path,
-            tech_metadata=tech_metadata,
+            tech_metadata=source_file_result.tech_metadata,
             generate_service_variant=generate_service_variant
         )
     except ServiceImageProcessingError:
-        return NOP_RETURN
+        return None
     
     try:
         service_tech_metadata = ImageTechnicalMetadata.create(service_file_path)
     except JHOVEDocError:
-        return NOP_RETURN
+        return None
 
     event = create_preservation_event("create JPEG2000 service file", transformer.collection_manager_email)
 
-    return ( service_file_path, service_tech_metadata, file_info, event )
+    return Result(service_file_path, service_tech_metadata, file_info, event)
 
 def create_service_file(
     source_path: Path,
@@ -341,82 +372,4 @@ def process_basic_image(
     transformer.write()
     return True
 
-def old_process_basic_image():
 
-    try:
-        source_tech_metadata = ImageTechnicalMetadata.create(image_path)
-    except JHOVEDocError:
-        return False
-
-    if source_tech_metadata.mimetype not in ACCEPTED_IMAGE_MIMETYPES:
-        return False
-
-    source_file_info = get_source_file_info(file_set_identifier, source_tech_metadata)
-    source_file_path = file_set_directory / source_file_info.path
-    source_event_metadata_file_info = get_event_file_info(source_file_info)
-
-    copy_source_file(source_path=image_path, destination_path=source_file_path)
-
-    source_event = create_preservation_event("copy source image", collection_manager_email)
-    source_event_xml = PreservationEventSerializer(source_event).serialize()
-    (file_set_directory / source_event_metadata_file_info.path).write_text(source_event_xml)
-
-    source_tech_metadata_file_info = source_file_info.metadata(
-        use=UseFunction.technical, mimetype=source_tech_metadata.metadata_mimetype.value
-    )
-    (file_set_directory / source_tech_metadata_file_info.path).write_text(str(source_tech_metadata))
-
-    service_file_info = get_service_file_info(file_set_identifier)
-    service_file_path = file_set_directory / service_file_info.path
-    service_event_metadata_file_info = get_event_file_info(service_file_info)
-
-    try:
-        create_service_file(
-            source_path=source_file_path,
-            destination_path=service_file_path,
-            tech_metadata=source_tech_metadata,
-            generate_service_variant=generate_service_variant
-        )
-    except ServiceImageProcessingError:
-        return False
-
-    service_event = create_preservation_event("generate service derivative", collection_manager_email)
-    service_event_xml = PreservationEventSerializer(service_event).serialize()
-    (file_set_directory / service_event_metadata_file_info.path).write_text(service_event_xml)
-
-    try:
-        service_tech_metadata = ImageTechnicalMetadata.create(service_file_path)
-    except JHOVEDocError:
-        return False
-
-    service_tech_metadata_file_info = service_file_info.metadata(
-        use=UseFunction.technical, mimetype=service_tech_metadata.metadata_mimetype.value
-    )
-    (file_set_directory / service_tech_metadata_file_info.path).write_text(str(service_tech_metadata))
-
-    resource = create_package_resource(
-        file_set_identifier=file_set_identifier,
-        metadata_file_infos=[
-            source_tech_metadata_file_info,
-            source_event_metadata_file_info,
-            service_tech_metadata_file_info,
-            service_event_metadata_file_info
-        ],
-        file_info_associations=[
-            FileInfoAssociation(
-                file_info=source_file_info,
-                tech_metadata_file_info=source_tech_metadata_file_info,
-            ),
-            FileInfoAssociation(
-                file_info=service_file_info,
-                tech_metadata_file_info=service_tech_metadata_file_info,
-                source_file_info=source_file_info
-            )
-        ]
-    )
-    descriptor_xml = create_file_set_descriptor_data(resource)
-    descriptor_file_path = file_set_directory / "descriptor" / f"{file_set_identifier.identifier}.file_set.mets2.xml"
-    with (descriptor_file_path).open("w") as file:
-        file.write(descriptor_xml)
-
-    return True
