@@ -96,6 +96,12 @@ class Transformer:
                 result.event
             )
 
+            if event:
+                event_metadata_file_info = get_event_file_info(file_info)
+                event_xml = PreservationEventSerializer(event).serialize()
+                (self.file_set_directory / event_metadata_file_info.path).write_text(event_xml)
+                metadata_file_infos.append(event_metadata_file_info)
+
             if UseFunction.intermediate in file_info.uses:
                 # don't persist these
                 continue
@@ -105,12 +111,7 @@ class Transformer:
             )
             (self.file_set_directory / tech_metadata_file_info.path).write_text(str(tech_metadata))
 
-            event_metadata_file_info = get_event_file_info(file_info)
-            event_xml = PreservationEventSerializer(event).serialize()
-            (self.file_set_directory / event_metadata_file_info.path).write_text(event_xml)
-
             metadata_file_infos.append(tech_metadata_file_info)
-            metadata_file_infos.append(event_metadata_file_info)
 
             file_info_associations.append(FileInfoAssociation(
                 file_info=file_info,
@@ -251,8 +252,10 @@ def check_source_orientation(transformer: Transformer, uses: list[Any]):
         uses=uses,
         mimetype=tech_metadata.mimetype.value
     )
-    
-    return Result(compressible_file_path, tech_metadata, file_info, None)
+
+    event = create_preservation_event("rotated source file", transformer.collection_manager_email)
+
+    return Result(compressible_file_path, tech_metadata, file_info, event)
 
 
 def copy_source_file(source_path: Path, destination_path: Path) -> None:
