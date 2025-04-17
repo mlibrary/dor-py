@@ -2,10 +2,11 @@ import hashlib
 import shutil
 import tempfile
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Any
+from functools import partial
 
 from dor.adapters.generate_service_variant import generate_service_variant, ServiceImageProcessingError
 from dor.adapters.make_intermediate_file import make_intermediate_file
@@ -28,6 +29,7 @@ ACCEPTED_IMAGE_MIMETYPES = [
     Mimetype.JP2
 ]
 
+NOP_RETURN = (None, None, None)
 
 class FileSetIdentifier:
 
@@ -48,6 +50,50 @@ class FileSetIdentifier:
     @property
     def identifier(self) -> str:
         return str(self.uuid)
+
+class TransformerError(Exception):
+    pass
+
+
+@dataclass
+class Transformer:
+    file_set_identifier: FileSetIdentifier
+    file_set_directory: Path
+    steps: list[tuple[Callable, list[UseFormat | UseFunction]]] = field(default_factory=list)
+    files: list[tuple[Path, ImageTechnicalMetadata, list[UseFormat | UseFunction]]] = field(default_factory=list)
+
+    def add(self, method: Callable, uses=list[UseFormat | UseFunction]):
+        self.steps.append((method, uses))
+
+    def run(self):
+        while self.steps:
+            (method, uses) = self.steps.pop(0)
+            (path, tech_metadata, file_info) = method(transformer=self, uses=uses)
+            if path:
+                if not tech_metadata.valid:
+                    raise TransformerError("a problem occurred")
+
+                self.files.append((path, tech_metadata, file_info))
+
+    def write(self):
+        # write metadata files
+        for ( file_path, tech_metadata, file_info ) in self.files:
+            if UseFunction.intermediate in file_info.uses:
+                # don't persist these
+                continue
+
+            tech_metadata_file_info = file_info.metadata(
+                use=UseFunction.technical, mimetype=tech_metadata.metadata_mimetype.value
+            )
+            (self.file_set_directory / tech_metadata_file_info.path).write_text(str(tech_metadata))
+
+
+    def get_file(self, uses: list[UseFunction]):
+        for use in uses:
+            for file_ in self.files:
+                if use in file_[-1].uses:
+                    return file_
+        return NOP_RETURN
 
 
 def create_preservation_event(
@@ -118,13 +164,71 @@ def get_service_file_info(file_set_identifier: FileSetIdentifier) -> FileInfo:
     )
 
 
+def process_source_file(image_path: Path, transformer: Transformer, uses: list[Any]):
+    try:
+        source_tech_metadata = ImageTechnicalMetadata.create(image_path)
+    except JHOVEDocError:
+        return NOP_RETURN
+
+    # source_file_info = get_source_file_info(transformer.file_set_identifier, source_tech_metadata)
+    file_info = FileInfo(
+        identifier=transformer.file_set_identifier.identifier,
+        basename=transformer.file_set_identifier.basename,
+        uses=uses,
+        mimetype=source_tech_metadata.mimetype.value
+    )
+
+    source_file_path = transformer.file_set_directory / file_info.path
+    copy_source_file(source_path=image_path, destination_path=source_file_path)
+
+    return (source_file_path, source_tech_metadata, file_info)
+
+def check_source_orientation(transformer: Transformer, uses: list[Any]):
+    (image_path, tech_metadata, file_info) = transformer.get_file(uses=[UseFunction.source])
+    if image_path is None:
+        print("well that's a problem")
+        return NOP_RETURN
+    if tech_metadata.rotated:
+        print("we must rotate")
+    
+    print("everything's fine, keep going")
+    return ( None, None, None )
+
 def copy_source_file(source_path: Path, destination_path: Path) -> None:
     shutil.copyfile(source_path, destination_path)
+    
 
 
 def get_event_file_info(file_info: FileInfo):
     return file_info.metadata(use=UseFunction.event, mimetype="text/xml+premis")
 
+def process_service_file(transformer: Transformer, uses: list[Any]):
+    (image_path, tech_metadata, file_info) = transformer.get_file(uses=[UseFunction.intermediate, UseFunction.source])
+
+    file_info = FileInfo(
+        identifier=transformer.file_set_identifier.identifier,
+        basename=transformer.file_set_identifier.basename,
+        uses=uses,
+        mimetype=ImageMimetype.JP2.value
+    )
+
+    service_file_path = transformer.file_set_directory / file_info.path
+    try:
+        create_service_file(
+            source_path=image_path,
+            destination_path=service_file_path,
+            tech_metadata=tech_metadata,
+            generate_service_variant=generate_service_variant
+        )
+    except ServiceImageProcessingError:
+        return NOP_RETURN
+    
+    try:
+        service_tech_metadata = ImageTechnicalMetadata.create(service_file_path)
+    except JHOVEDocError:
+        return NOP_RETURN
+
+    return ( service_file_path, service_tech_metadata, file_info )
 
 def create_service_file(
     source_path: Path,
@@ -191,6 +295,17 @@ def process_basic_image(
 ) -> bool:
     file_set_directory = output_path / file_set_identifier.identifier
     create_file_set_directories(file_set_directory)
+
+    transformer = Transformer(file_set_identifier=file_set_identifier, file_set_directory=file_set_directory)
+    transformer.add(partial(process_source_file, image_path), uses=[UseFunction.source, UseFormat.image])
+    transformer.add(check_source_orientation, uses=[UseFunction.intermediate])
+    transformer.add(process_service_file, uses=[UseFunction.service, UseFormat.image])
+
+    transformer.run()
+    transformer.write()
+    return True
+
+def old_process_basic_image():
 
     try:
         source_tech_metadata = ImageTechnicalMetadata.create(image_path)
