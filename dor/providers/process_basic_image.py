@@ -77,6 +77,8 @@ class Transformer:
 
     def write(self):
         # write metadata files
+        metadata_file_infos = []
+        file_info_associations = []
         for ( file_path, tech_metadata, file_info ) in self.files:
             if UseFunction.intermediate in file_info.uses:
                 # don't persist these
@@ -86,6 +88,23 @@ class Transformer:
                 use=UseFunction.technical, mimetype=tech_metadata.metadata_mimetype.value
             )
             (self.file_set_directory / tech_metadata_file_info.path).write_text(str(tech_metadata))
+
+            metadata_file_infos.append(tech_metadata_file_info)
+            file_info_associations.append(FileInfoAssociation(
+                file_info=file_info,
+                tech_metadata_file_info=tech_metadata_file_info
+            ))
+
+        # write descriptor file
+        resource = create_package_resource(
+            file_set_identifier=self.file_set_identifier,
+            metadata_file_infos=metadata_file_infos,
+            file_info_associations=file_info_associations
+        )
+        descriptor_xml = create_file_set_descriptor_data(resource)
+        descriptor_file_path = self.file_set_directory / "descriptor" / f"{self.file_set_identifier.identifier}.file_set.mets2.xml"
+        with (descriptor_file_path).open("w") as file:
+            file.write(descriptor_xml)
 
 
     def get_file(self, uses: list[UseFunction]):
