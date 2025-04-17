@@ -228,6 +228,8 @@ def process_source_file(image_path: Path, transformer: Transformer, uses: list[A
 
 def check_source_orientation(transformer: Transformer, uses: list[Any]):
     source_file_result = transformer.get_file(function=[UseFunction.source], format=UseFormat.image)
+    if not source_file_result:
+        return None
     if source_file_result.file_path is None:
         return None
 
