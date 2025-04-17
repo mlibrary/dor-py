@@ -29,7 +29,7 @@ ACCEPTED_IMAGE_MIMETYPES = [
     Mimetype.JP2
 ]
 
-NOP_RETURN = (None, None, None)
+NOP_RETURN = (None, None, None, None)
 
 class FileSetIdentifier:
 
@@ -59,6 +59,7 @@ class TransformerError(Exception):
 class Transformer:
     file_set_identifier: FileSetIdentifier
     file_set_directory: Path
+    collection_manager_email: str
     steps: list[tuple[Callable, list[UseFormat | UseFunction]]] = field(default_factory=list)
     files: list[tuple[Path, ImageTechnicalMetadata, list[UseFormat | UseFunction]]] = field(default_factory=list)
 
@@ -68,18 +69,18 @@ class Transformer:
     def run(self):
         while self.steps:
             (method, uses) = self.steps.pop(0)
-            (path, tech_metadata, file_info) = method(transformer=self, uses=uses)
+            (path, tech_metadata, file_info, event) = method(transformer=self, uses=uses)
             if path:
                 if not tech_metadata.valid:
                     raise TransformerError("a problem occurred")
 
-                self.files.append((path, tech_metadata, file_info))
+                self.files.append((path, tech_metadata, file_info, event))
 
     def write(self):
         # write metadata files
         metadata_file_infos = []
         file_info_associations = []
-        for ( file_path, tech_metadata, file_info ) in self.files:
+        for ( file_path, tech_metadata, file_info, event ) in self.files:
             if UseFunction.intermediate in file_info.uses:
                 # don't persist these
                 continue
@@ -89,7 +90,13 @@ class Transformer:
             )
             (self.file_set_directory / tech_metadata_file_info.path).write_text(str(tech_metadata))
 
+            event_metadata_file_info = get_event_file_info(file_info)
+            event_xml = PreservationEventSerializer(event).serialize()
+            (self.file_set_directory / event_metadata_file_info.path).write_text(event_xml)
+
             metadata_file_infos.append(tech_metadata_file_info)
+            metadata_file_infos.append(event_metadata_file_info)
+
             file_info_associations.append(FileInfoAssociation(
                 file_info=file_info,
                 tech_metadata_file_info=tech_metadata_file_info
@@ -110,7 +117,7 @@ class Transformer:
     def get_file(self, uses: list[UseFunction]):
         for use in uses:
             for file_ in self.files:
-                if use in file_[-1].uses:
+                if use in file_[-2].uses:
                     return file_
         return NOP_RETURN
 
@@ -200,10 +207,12 @@ def process_source_file(image_path: Path, transformer: Transformer, uses: list[A
     source_file_path = transformer.file_set_directory / file_info.path
     copy_source_file(source_path=image_path, destination_path=source_file_path)
 
-    return (source_file_path, source_tech_metadata, file_info)
+    event = create_preservation_event("copy source file", transformer.collection_manager_email)
+
+    return (source_file_path, source_tech_metadata, file_info, event)
 
 def check_source_orientation(transformer: Transformer, uses: list[Any]):
-    (image_path, tech_metadata, file_info) = transformer.get_file(uses=[UseFunction.source])
+    (image_path, tech_metadata, file_info, event) = transformer.get_file(uses=[UseFunction.source])
     if image_path is None:
         print("well that's a problem")
         return NOP_RETURN
@@ -211,7 +220,7 @@ def check_source_orientation(transformer: Transformer, uses: list[Any]):
         print("we must rotate")
     
     print("everything's fine, keep going")
-    return ( None, None, None )
+    return NOP_RETURN
 
 def copy_source_file(source_path: Path, destination_path: Path) -> None:
     shutil.copyfile(source_path, destination_path)
@@ -222,7 +231,7 @@ def get_event_file_info(file_info: FileInfo):
     return file_info.metadata(use=UseFunction.event, mimetype="text/xml+premis")
 
 def process_service_file(transformer: Transformer, uses: list[Any]):
-    (image_path, tech_metadata, file_info) = transformer.get_file(uses=[UseFunction.intermediate, UseFunction.source])
+    (image_path, tech_metadata, file_info, event) = transformer.get_file(uses=[UseFunction.intermediate, UseFunction.source])
 
     file_info = FileInfo(
         identifier=transformer.file_set_identifier.identifier,
@@ -247,7 +256,9 @@ def process_service_file(transformer: Transformer, uses: list[Any]):
     except JHOVEDocError:
         return NOP_RETURN
 
-    return ( service_file_path, service_tech_metadata, file_info )
+    event = create_preservation_event("create JPEG2000 service file", transformer.collection_manager_email)
+
+    return ( service_file_path, service_tech_metadata, file_info, event )
 
 def create_service_file(
     source_path: Path,
@@ -315,8 +326,14 @@ def process_basic_image(
     file_set_directory = output_path / file_set_identifier.identifier
     create_file_set_directories(file_set_directory)
 
-    transformer = Transformer(file_set_identifier=file_set_identifier, file_set_directory=file_set_directory)
+    transformer = Transformer(
+        file_set_identifier=file_set_identifier, 
+        file_set_directory=file_set_directory,
+        collection_manager_email=collection_manager_email
+    )
     transformer.add(partial(process_source_file, image_path), uses=[UseFunction.source, UseFormat.image])
+    # transformer.add(partial(process_source_file, transcription_path), uses=[UseFunction.source, UseFunction.service, UseFormat.text])
+
     transformer.add(check_source_orientation, uses=[UseFunction.intermediate])
     transformer.add(process_service_file, uses=[UseFunction.service, UseFormat.image])
 
