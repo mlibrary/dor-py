@@ -62,6 +62,7 @@ class UseFunction(str, _Enum):
     preservation = "function:preservation"
     event = "function:event"
     technical = "function:technical"
+    intermediate = "function:intermediate"
 
 
 class UseFormat(str, _Enum):
