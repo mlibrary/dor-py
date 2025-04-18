@@ -13,24 +13,24 @@ def quick_brown() -> Path:
 
 def test_tesseract_image_reader_fails_when_unknown_language_is_specified():
     with pytest.raises(TesseractImageReaderError):
-        TesseractImageReader(Path("some/path"), language="xyz")
+        TesseractImageReader.create(Path("some/path"), language="xyz")
 
 
 def test_tesseract_image_reader_can_read_simple_document(quick_brown):
     expected_text = "The quick\nbrown fox\njumps over the\nlazy dog."
-    text = TesseractImageReader(quick_brown).text
+    text = TesseractImageReader.create(quick_brown).text
     assert expected_text == text.strip()
 
 
 def test_tesseract_image_reader_can_create_alto_xml_for_simple_document(quick_brown):
-    alto_xml = TesseractImageReader(quick_brown).alto
+    alto_xml = TesseractImageReader.create(quick_brown).alto
     assert alto_xml is not None
     alto = ET.fromstring(alto_xml)
     assert alto is not None
 
 
 def test_alto_doc_can_return_annotation_data_for_simple_document(quick_brown):
-    data = AltoDoc(TesseractImageReader(quick_brown).alto).annotation_data
+    data = AltoDoc(TesseractImageReader.create(quick_brown).alto).annotation_data
 
     expected_data = {
         "page": {"width": 1700, "height": 2200},
