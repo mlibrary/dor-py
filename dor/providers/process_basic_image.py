@@ -5,7 +5,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Callable, Any
+from typing import Callable, Any, Self
 from functools import partial
 
 from dor.adapters.generate_service_variant import (
@@ -72,32 +72,29 @@ class TransformerError(Exception):
 @dataclass
 class FileInfoAssociation:
     file_info: FileInfo
-    tech_metadata: ImageTechnicalMetadata
+    tech_metadata_file_info: FileInfo
     source_file_info: FileInfo | None = None
-
-    @property
-    def tech_metadata_file_info(self):
-        return self.file_info.metadata(
-            use=UseFunction.technical,
-            mimetype=self.tech_metadata.metadata_mimetype.value,
-        )
 
 
 @dataclass
 class Result:
     file_path: Path
-    association: FileInfoAssociation
+    tech_metadata: ImageTechnicalMetadata
+    file_info: FileInfo
     event: PreservationEvent
+    source_file_result: Self | None = None
 
     @property
-    def tech_metadata(self):
-        return self.association.tech_metadata
-
-    @property
-    def file_info(self):
-        return self.association.file_info
-
-
+    def association(self) -> FileInfoAssociation:
+        return FileInfoAssociation(
+            file_info=self.file_info,
+            tech_metadata_file_info=self.file_info.metadata(
+                use=UseFunction.technical,
+                mimetype=self.tech_metadata.metadata_mimetype.value,
+            ),
+            source_file_info=self.source_file_result.file_info if self.source_file_result else None
+        )
+    
 @dataclass
 class Transformer:
     file_set_identifier: FileSetIdentifier
@@ -129,13 +126,12 @@ class Transformer:
         file_info_associations = []
         for result in self.files:
 
-            (file_info, association, event) = (
+            (file_info, tech_metadata, file_info, event) = (
                 result.file_info,
-                result.association,
+                result.tech_metadata,
+                result.file_info,
                 result.event,
             )
-            tech_metadata = association.tech_metadata
-            file_info = association.file_info
 
             if event:
                 event_metadata_file_info = get_event_file_info(file_info)
@@ -149,13 +145,13 @@ class Transformer:
                 # don't persist these
                 continue
 
-            tech_metadata_file_info = association.tech_metadata_file_info
+            tech_metadata_file_info = result.association.tech_metadata_file_info
             (self.file_set_directory / tech_metadata_file_info.path).write_text(
                 str(tech_metadata)
             )
 
             metadata_file_infos.append(tech_metadata_file_info)
-            file_info_associations.append(association)
+            file_info_associations.append(result.association)
 
         # write descriptor file
         resource = create_package_resource(
@@ -176,8 +172,8 @@ class Transformer:
         for use in function:
             for result in self.files:
                 if (
-                    use in result.association.file_info.uses
-                    and format in result.association.file_info.uses
+                    use in result.file_info.uses
+                    and format in result.file_info.uses
                 ):
                     return result
         return False
@@ -270,7 +266,10 @@ def process_source_file(image_path: Path, transformer: Transformer, uses: list[A
     )
 
     return Result(
-        source_file_path, FileInfoAssociation(file_info, source_tech_metadata), event
+        file_path=source_file_path, 
+        tech_metadata=source_tech_metadata, 
+        file_info=file_info, 
+        event=event
     )
 
 
@@ -307,7 +306,10 @@ def check_source_orientation(transformer: Transformer, uses: list[Any]):
     )
 
     return Result(
-        compressible_file_path, FileInfoAssociation(file_info, tech_metadata), event
+        file_path=compressible_file_path, 
+        tech_metadata=tech_metadata, 
+        file_info=file_info, 
+        event=event
     )
 
 
@@ -352,11 +354,11 @@ def process_service_file(transformer: Transformer, uses: list[Any]):
     )
 
     return Result(
-        service_file_path,
-        FileInfoAssociation(
-            file_info, service_tech_metadata, source_file_result.association.file_info
-        ),
-        event,
+        file_path=service_file_path,
+        tech_metadata=service_tech_metadata, 
+        file_info=file_info,
+        source_file_result=source_file_result,
+        event=event,
     )
 
 
