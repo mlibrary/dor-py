@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -11,26 +12,31 @@ class TesseractImageReaderError(Exception):
     pass
 
 
+@dataclass
 class TesseractImageReader:
+    image_path: Path
+    language: str
 
     @staticmethod
     def list_suppported_languages() -> list[str]:
         return pytesseract.get_languages()
 
-    def __init__(self, image_path: Path, language: str="eng"):
-        self.image_path: Path = image_path
-        self.language = language
-
-        if language not in self.list_suppported_languages():
+    @classmethod
+    def create(cls, image_path: Path, language: str = "eng"):
+        if language not in cls.list_suppported_languages():
             raise TesseractImageReaderError("Language code ${language} is not supported.")
+        return cls(image_path=image_path, language=language)
 
     @property
     def text(self) -> str:
         return pytesseract.image_to_string(Image.open(self.image_path), lang=self.language)
 
     @property
-    def alto(self):
-        return pytesseract.image_to_alto_xml(Image.open(self.image_path)).decode()
+    def alto(self) -> str:
+        result = pytesseract.image_to_alto_xml(Image.open(self.image_path), lang=self.language)
+        if isinstance(result, bytes):
+            return result.decode()
+        return str(result)
 
 
 class AltoDocError(Exception):
@@ -40,7 +46,6 @@ class AltoDocError(Exception):
 class AltoDoc:
 
     strip_punctuation_pattern = re.compile(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$|'s$")
-
     ns_map = {"alto": "http://www.loc.gov/standards/alto/ns-v3#"}
 
     def __init__(self, alto_xml: str):
