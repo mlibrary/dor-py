@@ -43,13 +43,16 @@ class AltoDocError(Exception):
     pass
 
 
+@dataclass
 class AltoDoc:
+    tree: ET.Element
 
     strip_punctuation_pattern = re.compile(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$|'s$")
     ns_map = {"alto": "http://www.loc.gov/standards/alto/ns-v3#"}
 
-    def __init__(self, alto_xml: str):
-        self.tree: ET.Element = ET.fromstring(alto_xml)
+    @classmethod
+    def create(cls, alto_xml: str):
+        return cls(ET.fromstring(alto_xml))
 
     def __str__(self) -> str:
         return ET.tostring(self.tree, encoding="unicode")

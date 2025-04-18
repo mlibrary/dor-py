@@ -30,7 +30,8 @@ def test_tesseract_image_reader_can_create_alto_xml_for_simple_document(quick_br
 
 
 def test_alto_doc_can_return_annotation_data_for_simple_document(quick_brown):
-    data = AltoDoc(TesseractImageReader.create(quick_brown).alto).annotation_data
+    image_reader = TesseractImageReader.create(quick_brown)
+    data = AltoDoc.create(image_reader.alto).annotation_data
 
     expected_data = {
         "page": {"width": 1700, "height": 2200},
