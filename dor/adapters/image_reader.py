@@ -1,5 +1,5 @@
-import xml.etree.ElementTree as ET
 import re
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -47,7 +47,6 @@ class AltoDocError(Exception):
 class AltoDoc:
     tree: ET.Element
 
-    strip_punctuation_pattern = re.compile(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$|'s$")
     ns_map = {"alto": "http://www.loc.gov/standards/alto/ns-v3#"}
 
     @classmethod
@@ -57,40 +56,53 @@ class AltoDoc:
     def __str__(self) -> str:
         return ET.tostring(self.tree, encoding="unicode")
 
+    def find_page_elem(self) -> ET.Element:
+        page_elem = self.tree.find(".//alto:Page", self.ns_map)
+        if page_elem is None: raise AltoDocError
+        return page_elem
+
+    def find_string_elems(self) -> list[ET.Element]:
+        return self.tree.findall(".//alto:String", self.ns_map)
+
     @staticmethod
     def retrieve_attribute_value(elem: ET.Element, attribute: str):
         value = elem.get(attribute)
         if value is None: raise AltoDocError
         return value
 
+
+@dataclass
+class AnnotationData:
+    alto_doc: AltoDoc
+
+    strip_punctuation_pattern = re.compile(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$|'s$")
+
     @staticmethod
-    def get_word_coordinates(elem: ET.Element) -> list[int]:
-        hpos = int(AltoDoc.retrieve_attribute_value(elem, "HPOS"))
-        vpos = int(AltoDoc.retrieve_attribute_value(elem, "VPOS"))
-        width = int(AltoDoc.retrieve_attribute_value(elem, "WIDTH"))
-        height = int(AltoDoc.retrieve_attribute_value(elem, "HEIGHT"))
+    def get_word_coordinates(string_elem: ET.Element) -> list[int]:
+        hpos = int(AltoDoc.retrieve_attribute_value(string_elem, "HPOS"))
+        vpos = int(AltoDoc.retrieve_attribute_value(string_elem, "VPOS"))
+        width = int(AltoDoc.retrieve_attribute_value(string_elem, "WIDTH"))
+        height = int(AltoDoc.retrieve_attribute_value(string_elem, "HEIGHT"))
         coordinates = [hpos, vpos, hpos + width, vpos + height]
         return coordinates
 
     @staticmethod
     def strip_punctuation(word: str) -> str:
-        return AltoDoc.strip_punctuation_pattern.sub("", word)
+        return AnnotationData.strip_punctuation_pattern.sub("", word)
 
     @property
     def page_dimensions(self) -> dict[str, int]:
-        page_elem = self.tree.find(".//alto:Page", self.ns_map)
-        if page_elem is None: raise AltoDocError
-        width = int(self.retrieve_attribute_value(page_elem, "WIDTH"))
-        height = int(self.retrieve_attribute_value(page_elem, "HEIGHT"))
+        page_elem = self.alto_doc.find_page_elem()
+        width = int(self.alto_doc.retrieve_attribute_value(page_elem, "WIDTH"))
+        height = int(self.alto_doc.retrieve_attribute_value(page_elem, "HEIGHT"))
         return {"width": width, "height": height}
 
     @property
     def word_data(self):
         word_data = {}
-        word_elems = self.tree.findall(".//alto:String", self.ns_map)
-        for word_elem in word_elems:
-            coordinates = self.get_word_coordinates(word_elem)
-            word = self.retrieve_attribute_value(word_elem, "CONTENT")
+        for string_elem in self.alto_doc.find_string_elems():
+            coordinates = self.get_word_coordinates(string_elem)
+            word = self.alto_doc.retrieve_attribute_value(string_elem, "CONTENT")
             normalized_word = self.strip_punctuation(word.lower())
             if normalized_word in word_data:
                 word_data[normalized_word].append(coordinates)
@@ -99,7 +111,7 @@ class AltoDoc:
         return word_data
 
     @property
-    def annotation_data(self) -> dict[str, Any]:
+    def data(self) -> dict[str, Any]:
         return {
             "page": self.page_dimensions,
             "words": self.word_data

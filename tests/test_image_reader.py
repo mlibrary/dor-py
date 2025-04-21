@@ -3,7 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from dor.adapters.image_reader import AltoDoc, TesseractImageReader, TesseractImageReaderError
+from dor.adapters.image_reader import (
+    AltoDoc, AnnotationData, TesseractImageReader, TesseractImageReaderError
+)
 
 
 @pytest.fixture
@@ -29,9 +31,9 @@ def test_tesseract_image_reader_can_create_alto_xml_for_simple_document(quick_br
     assert alto is not None
 
 
-def test_alto_doc_can_return_annotation_data_for_simple_document(quick_brown):
+def test_annotation_data_can_return_data_for_simple_document(quick_brown):
     image_reader = TesseractImageReader.create(quick_brown)
-    data = AltoDoc.create(image_reader.alto).annotation_data
+    annotation_data = AnnotationData(AltoDoc.create(image_reader.alto))
 
     expected_data = {
         "page": {"width": 1700, "height": 2200},
@@ -47,4 +49,4 @@ def test_alto_doc_can_return_annotation_data_for_simple_document(quick_brown):
         }
     }
 
-    assert data == expected_data
+    assert annotation_data.data == expected_data
