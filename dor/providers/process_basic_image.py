@@ -44,15 +44,15 @@ NOP_RETURN = (None, None, None, None)
 
 
 @dataclass
-class Preset:
+class Operation:
     func: Callable
     kwargs: dict[str, Any]
 
 
 @dataclass
-class SourceFile:
-    path: Path
-    presets: list[Preset]
+class Input:
+    file_path: Path
+    operations: list[Operation]
 
 
 class FileSetIdentifier:
@@ -241,9 +241,7 @@ def get_service_file_info(file_set_identifier: FileSetIdentifier) -> FileInfo:
     )
 
 
-def process_source_file(accumulator: Accumulator, kwargs: dict[str, Any]):
-    image_path = kwargs["source_path"]
-
+def process_source_file(accumulator: Accumulator, image_path: Path):
     try:
         source_tech_metadata = ImageTechnicalMetadata.create(image_path)
     except JHOVEDocError:
@@ -274,7 +272,7 @@ def process_source_file(accumulator: Accumulator, kwargs: dict[str, Any]):
     )
 
 
-def check_source_orientation(accumulator: Accumulator, kwargs: dict[str, Any]):
+def check_source_orientation(accumulator: Accumulator):
     source_result_file = accumulator.get_file(
         function=[UseFunction.source], format=UseFormat.image
     )
@@ -322,7 +320,7 @@ def get_event_file_info(file_info: FileInfo):
     return file_info.metadata(use=UseFunction.event, mimetype="text/xml+premis")
 
 
-def process_service_file(accumulator: Accumulator, kwargs: dict[str, Any]):
+def process_service_file(accumulator: Accumulator):
     source_result_file = accumulator.get_file(
         function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
     )
@@ -402,7 +400,7 @@ def create_package_resource(
 
 def process_basic_image(
     file_set_identifier: FileSetIdentifier,
-    source_files: list[SourceFile],
+    inputs: list[Input],
     output_path: Path,
     collection_manager_email: str = "example@org.edu",
 ) -> bool:
@@ -415,9 +413,11 @@ def process_basic_image(
         collection_manager_email=collection_manager_email,
     )
 
-    for source_file in source_files:
-        for preset in source_file.presets:
-            preset.func(accumulator=accumulator, kwargs=preset.kwargs)
+    for input in inputs:
+        process_source_file(accumulator=accumulator, image_path=input.file_path)
+        check_source_orientation(accumulator)
+        for operation in input.operations:
+            operation.func(accumulator=accumulator, **operation.kwargs)
 
     accumulator.write()
     return True
