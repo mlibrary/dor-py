@@ -284,7 +284,7 @@ def check_source_orientation(accumulator: Accumulator, kwargs: dict[str, Any]):
     if not source_result_file.tech_metadata.rotated:
         return None
 
-    temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".tiff")
+    temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".tiff", delete=False)
     compressible_file_path = Path(temp_file.name)
     make_intermediate_file(source_result_file.file_path, compressible_file_path)
 
@@ -322,23 +322,6 @@ def get_event_file_info(file_info: FileInfo):
     return file_info.metadata(use=UseFunction.event, mimetype="text/xml+premis")
 
 
-def create_service_file(
-    source_path: Path,
-    destination_path: Path,
-    tech_metadata: ImageTechnicalMetadata,
-    generate_service_variant: Callable[[Path, Path], None],
-) -> None:
-    temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".tiff")
-    with temp_file:
-        if tech_metadata.compressed or tech_metadata.rotated:
-            compressible_file_path = Path(temp_file.name)
-            make_intermediate_file(source_path, compressible_file_path)
-        else:
-            compressible_file_path = source_path
-
-        generate_service_variant(compressible_file_path, destination_path)
-
-
 def process_service_file(accumulator: Accumulator, kwargs: dict[str, Any]):
     source_result_file = accumulator.get_file(
         function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
@@ -353,12 +336,7 @@ def process_service_file(accumulator: Accumulator, kwargs: dict[str, Any]):
 
     service_file_path = accumulator.file_set_directory / file_info.path
     try:
-        create_service_file(
-            source_path=source_result_file.file_path,
-            destination_path=service_file_path,
-            tech_metadata=source_result_file.tech_metadata,
-            generate_service_variant=generate_service_variant,
-        )
+        generate_service_variant(source_result_file.file_path, service_file_path)
     except ServiceImageProcessingError:
         return None
 
