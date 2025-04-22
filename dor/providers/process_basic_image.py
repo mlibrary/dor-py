@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Callable, Any, Self
-from functools import partial
 
 from dor.adapters.generate_service_variant import (
     generate_service_variant,
@@ -44,6 +43,18 @@ ACCEPTED_IMAGE_MIMETYPES = [Mimetype.JPEG, Mimetype.TIFF, Mimetype.JP2]
 NOP_RETURN = (None, None, None, None)
 
 
+@dataclass
+class Preset:
+    func: Callable
+    kwargs: dict[str, Any]
+
+
+@dataclass
+class SourceFile:
+    path: Path
+    presets: list[Preset]
+
+
 class FileSetIdentifier:
 
     def __init__(self, project_id: str, file_name: str):
@@ -65,10 +76,6 @@ class FileSetIdentifier:
         return str(self.uuid)
 
 
-class TransformerError(Exception):
-    pass
-
-
 @dataclass
 class FileInfoAssociation:
     file_info: FileInfo
@@ -77,7 +84,7 @@ class FileInfoAssociation:
 
 
 @dataclass
-class Result:
+class ResultFile:
     file_path: Path
     tech_metadata: ImageTechnicalMetadata
     file_info: FileInfo
@@ -94,37 +101,37 @@ class Result:
             ),
             source_file_info=self.source_file_result.file_info if self.source_file_result else None
         )
-    
+
+
+class AccumulatorError(Exception):
+    pass
+
+
 @dataclass
-class Transformer:
+class Accumulator:
     file_set_identifier: FileSetIdentifier
     file_set_directory: Path
     collection_manager_email: str
-    steps: list[tuple[Callable, list[UseFormat | UseFunction]]] = field(
-        default_factory=list
-    )
-    files: list[tuple[Path, ImageTechnicalMetadata, list[UseFormat | UseFunction]]] = (
-        field(default_factory=list)
-    )
+    result_files: list[ResultFile] = field(default_factory=list)
 
-    def add(self, method: Callable, uses=list[UseFormat | UseFunction]):
-        self.steps.append((method, uses))
+    def add_file(self, file: ResultFile):
+        self.result_files.append(file)
 
-    def run(self):
-        while self.steps:
-            (method, uses) = self.steps.pop(0)
-            result = method(transformer=self, uses=uses)
-            if result:
-                if not result.tech_metadata.valid:
-                    raise TransformerError("a problem occurred")
-
-                self.files.append(result)
+    def get_file(self, function: list[UseFunction], format: UseFormat):
+        for use in function:
+            for result in self.result_files:
+                if (
+                    use in result.file_info.uses
+                    and format in result.file_info.uses
+                ):
+                    return result
+        raise AccumulatorError("Result file not found")
 
     def write(self):
         # write metadata files
         metadata_file_infos = []
         file_info_associations = []
-        for result in self.files:
+        for result in self.result_files:
 
             (file_info, tech_metadata, file_info, event) = (
                 result.file_info,
@@ -167,16 +174,6 @@ class Transformer:
         )
         with (descriptor_file_path).open("w") as file:
             file.write(descriptor_xml)
-
-    def get_file(self, function: list[UseFunction], format: UseFormat):
-        for use in function:
-            for result in self.files:
-                if (
-                    use in result.file_info.uses
-                    and format in result.file_info.uses
-                ):
-                    return result
-        return False
 
 
 def create_preservation_event(
@@ -244,7 +241,9 @@ def get_service_file_info(file_set_identifier: FileSetIdentifier) -> FileInfo:
     )
 
 
-def process_source_file(image_path: Path, transformer: Transformer, uses: list[Any]):
+def process_source_file(accumulator: Accumulator, kwargs: dict[str, Any]):
+    image_path = kwargs["source_path"]
+
     try:
         source_tech_metadata = ImageTechnicalMetadata.create(image_path)
     except JHOVEDocError:
@@ -252,42 +251,42 @@ def process_source_file(image_path: Path, transformer: Transformer, uses: list[A
 
     # source_file_info = get_source_file_info(transformer.file_set_identifier, source_tech_metadata)
     file_info = FileInfo(
-        identifier=transformer.file_set_identifier.identifier,
-        basename=transformer.file_set_identifier.basename,
-        uses=uses,
+        identifier=accumulator.file_set_identifier.identifier,
+        basename=accumulator.file_set_identifier.basename,
+        uses=[UseFunction.source, UseFormat.image],
         mimetype=source_tech_metadata.mimetype.value,
     )
 
-    source_file_path = transformer.file_set_directory / file_info.path
+    source_file_path = accumulator.file_set_directory / file_info.path
     copy_source_file(source_path=image_path, destination_path=source_file_path)
 
     event = create_preservation_event(
-        "copy source file", transformer.collection_manager_email
+        "copy source file", accumulator.collection_manager_email
     )
 
-    return Result(
-        file_path=source_file_path, 
-        tech_metadata=source_tech_metadata, 
-        file_info=file_info, 
-        event=event
+    accumulator.add_file(
+        ResultFile(
+            file_path=source_file_path,
+            tech_metadata=source_tech_metadata,
+            file_info=file_info,
+            event=event
+        )
     )
 
 
-def check_source_orientation(transformer: Transformer, uses: list[Any]):
-    source_file_result = transformer.get_file(
+def check_source_orientation(accumulator: Accumulator, kwargs: dict[str, Any]):
+    source_result_file = accumulator.get_file(
         function=[UseFunction.source], format=UseFormat.image
     )
-    if not source_file_result:
-        return None
-    if source_file_result.file_path is None:
+    if source_result_file.file_path is None:
         return None
 
-    if not source_file_result.tech_metadata.rotated:
+    if not source_result_file.tech_metadata.rotated:
         return None
 
     temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".tiff")
     compressible_file_path = Path(temp_file.name)
-    make_intermediate_file(source_file_result.file_path, compressible_file_path)
+    make_intermediate_file(source_result_file.file_path, compressible_file_path)
 
     try:
         tech_metadata = ImageTechnicalMetadata.create(compressible_file_path)
@@ -295,21 +294,23 @@ def check_source_orientation(transformer: Transformer, uses: list[Any]):
         return None
 
     file_info = FileInfo(
-        identifier=transformer.file_set_identifier.identifier,
-        basename=transformer.file_set_identifier.basename,
-        uses=uses,
+        identifier=accumulator.file_set_identifier.identifier,
+        basename=accumulator.file_set_identifier.basename,
+        uses=[UseFunction.intermediate, UseFormat.image],
         mimetype=tech_metadata.mimetype.value,
     )
 
     event = create_preservation_event(
-        "rotated source file", transformer.collection_manager_email
+        "rotated source file", accumulator.collection_manager_email
     )
 
-    return Result(
-        file_path=compressible_file_path, 
-        tech_metadata=tech_metadata, 
-        file_info=file_info, 
-        event=event
+    accumulator.add_file(
+        ResultFile(
+            file_path=compressible_file_path,
+            tech_metadata=tech_metadata,
+            file_info=file_info,
+            event=event
+        )
     )
 
 
@@ -319,47 +320,6 @@ def copy_source_file(source_path: Path, destination_path: Path) -> None:
 
 def get_event_file_info(file_info: FileInfo):
     return file_info.metadata(use=UseFunction.event, mimetype="text/xml+premis")
-
-
-def process_service_file(transformer: Transformer, uses: list[Any]):
-    source_file_result = transformer.get_file(
-        function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
-    )
-
-    file_info = FileInfo(
-        identifier=transformer.file_set_identifier.identifier,
-        basename=transformer.file_set_identifier.basename,
-        uses=uses,
-        mimetype=Mimetype.JP2.value,
-    )
-
-    service_file_path = transformer.file_set_directory / file_info.path
-    try:
-        create_service_file(
-            source_path=source_file_result.file_path,
-            destination_path=service_file_path,
-            tech_metadata=source_file_result.tech_metadata,
-            generate_service_variant=generate_service_variant,
-        )
-    except ServiceImageProcessingError:
-        return None
-
-    try:
-        service_tech_metadata = ImageTechnicalMetadata.create(service_file_path)
-    except JHOVEDocError:
-        return None
-
-    event = create_preservation_event(
-        "create JPEG2000 service file", transformer.collection_manager_email
-    )
-
-    return Result(
-        file_path=service_file_path,
-        tech_metadata=service_tech_metadata, 
-        file_info=file_info,
-        source_file_result=source_file_result,
-        event=event,
-    )
 
 
 def create_service_file(
@@ -377,6 +337,49 @@ def create_service_file(
             compressible_file_path = source_path
 
         generate_service_variant(compressible_file_path, destination_path)
+
+
+def process_service_file(accumulator: Accumulator, kwargs: dict[str, Any]):
+    source_result_file = accumulator.get_file(
+        function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
+    )
+
+    file_info = FileInfo(
+        identifier=accumulator.file_set_identifier.identifier,
+        basename=accumulator.file_set_identifier.basename,
+        uses=[UseFunction.service, UseFormat.image],
+        mimetype=Mimetype.JP2.value,
+    )
+
+    service_file_path = accumulator.file_set_directory / file_info.path
+    try:
+        create_service_file(
+            source_path=source_result_file.file_path,
+            destination_path=service_file_path,
+            tech_metadata=source_result_file.tech_metadata,
+            generate_service_variant=generate_service_variant,
+        )
+    except ServiceImageProcessingError:
+        return None
+
+    try:
+        service_tech_metadata = ImageTechnicalMetadata.create(service_file_path)
+    except JHOVEDocError:
+        return None
+
+    event = create_preservation_event(
+        "create JPEG2000 service file", accumulator.collection_manager_email
+    )
+
+    accumulator.add_file(
+        ResultFile(
+            file_path=service_file_path,
+            tech_metadata=service_tech_metadata,
+            file_info=file_info,
+            source_file_result=source_result_file,
+            event=event,
+        )
+    )
 
 
 def create_package_resource(
@@ -421,28 +424,22 @@ def create_package_resource(
 
 def process_basic_image(
     file_set_identifier: FileSetIdentifier,
-    image_path: Path,
+    source_files: list[SourceFile],
     output_path: Path,
     collection_manager_email: str = "example@org.edu",
-    generate_service_variant: Callable[[Path, Path], None] = generate_service_variant,
 ) -> bool:
     file_set_directory = output_path / file_set_identifier.identifier
     create_file_set_directories(file_set_directory)
 
-    transformer = Transformer(
+    accumulator = Accumulator(
         file_set_identifier=file_set_identifier,
         file_set_directory=file_set_directory,
         collection_manager_email=collection_manager_email,
     )
-    transformer.add(
-        partial(process_source_file, image_path),
-        uses=[UseFunction.source, UseFormat.image],
-    )
-    # transformer.add(partial(process_source_file, transcription_path), uses=[UseFunction.source, UseFunction.service, UseFormat.text])
 
-    transformer.add(check_source_orientation, uses=[UseFunction.intermediate])
-    transformer.add(process_service_file, uses=[UseFunction.service, UseFormat.image])
+    for source_file in source_files:
+        for preset in source_file.presets:
+            preset.func(accumulator=accumulator, kwargs=preset.kwargs)
 
-    transformer.run()
-    transformer.write()
+    accumulator.write()
     return True
