@@ -8,12 +8,12 @@ import pytesseract
 from PIL import Image
 
 
-class TesseractImageReaderError(Exception):
+class ImageTextExtractorError(Exception):
     pass
 
 
 @dataclass
-class TesseractImageReader:
+class ImageTextExtractor:
     image_path: Path
     language: str
 
@@ -24,7 +24,7 @@ class TesseractImageReader:
     @classmethod
     def create(cls, image_path: Path, language: str = "eng"):
         if language not in cls.list_suppported_languages():
-            raise TesseractImageReaderError("Language code ${language} is not supported.")
+            raise ImageTextExtractorError("Language code ${language} is not supported.")
         return cls(image_path=image_path, language=language)
 
     @property

@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from dor.adapters.image_reader import (
-    AltoDoc, AnnotationData, TesseractImageReader, TesseractImageReaderError
+from dor.adapters.image_text_extractor import (
+    AltoDoc, AnnotationData, ImageTextExtractor, ImageTextExtractorError
 )
 
 
@@ -13,26 +13,26 @@ def quick_brown() -> Path:
     return Path("tests/fixtures/test_image_reader/quick-brown.tiff")
 
 
-def test_tesseract_image_reader_fails_when_unknown_language_is_specified():
-    with pytest.raises(TesseractImageReaderError):
-        TesseractImageReader.create(Path("some/path"), language="xyz")
+def test_image_text_extractor_fails_when_unknown_language_is_specified():
+    with pytest.raises(ImageTextExtractorError):
+        ImageTextExtractor.create(Path("some/path"), language="xyz")
 
 
-def test_tesseract_image_reader_can_read_simple_document(quick_brown):
+def test_image_text_extractor_can_read_simple_document(quick_brown):
     expected_text = "The quick\nbrown fox\njumps over the\nlazy dog."
-    text = TesseractImageReader.create(quick_brown).text
+    text = ImageTextExtractor.create(quick_brown).text
     assert expected_text == text.strip()
 
 
-def test_tesseract_image_reader_can_create_alto_xml_for_simple_document(quick_brown):
-    alto_xml = TesseractImageReader.create(quick_brown).alto
+def test_image_text_extractor_can_create_alto_xml_for_simple_document(quick_brown):
+    alto_xml = ImageTextExtractor.create(quick_brown).alto
     assert alto_xml is not None
     alto = ET.fromstring(alto_xml)
     assert alto is not None
 
 
 def test_annotation_data_can_return_data_for_simple_document(quick_brown):
-    image_reader = TesseractImageReader.create(quick_brown)
+    image_reader = ImageTextExtractor.create(quick_brown)
     annotation_data = AnnotationData(AltoDoc.create(image_reader.alto))
 
     expected_data = {
