@@ -83,18 +83,6 @@ class TechnicalMetadata:
     
 @dataclass
 class ImageTechnicalMetadata(TechnicalMetadata):
-
-    
-    @classmethod
-    def via(cls, jhove_doc: 'JHOVEDoc'):
-        jhove_doc.metadata_property = JHOVE_IMAGE_METADATA_PROPERTY
-
-        return cls(
-            mimetype=Mimetype(jhove_doc.mimetype),
-            metadata=jhove_doc.technical_metadata,
-            status=JHOVEStatus(jhove_doc.status),
-            valid=jhove_doc.valid
-        )
     
     @classmethod
     def metadata_property(cls):
@@ -120,10 +108,6 @@ class ImageTechnicalMetadata(TechnicalMetadata):
 
 @dataclass
 class TextTechnicalMetadata(TechnicalMetadata):
-    
-    @classmethod
-    def via(cls, jhove_doc: 'JHOVEDoc'):
-        pass
 
     @classmethod
     def metadata_property(cls):
