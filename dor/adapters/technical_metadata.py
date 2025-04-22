@@ -32,14 +32,22 @@ class ImageMimetype(Enum):
 class TechnicalMetadataMimetype(Enum):
     MIX = "text/xml+mix"
 
+class Mimetype(Enum):
+    JPEG = "image/jpeg"
+    TIFF = "image/tiff"
+    JP2 = "image/jp2"
+    PLAINTEXT = "text/plain"
+    MIX = "text/xml+mix"
+
+
 
 class JHOVEStatus(Enum):
     VALID_OK = "Well-Formed and valid"
 
 
 @dataclass
-class ImageTechnicalMetadata:
-    mimetype: ImageMimetype
+class TechnicalMetadata:
+    mimetype: Mimetype
     metadata: ET.Element
     status: JHOVEStatus
     valid: bool
@@ -48,8 +56,42 @@ class ImageTechnicalMetadata:
     def create(cls, file_path: Path) -> Self:
         jhove_doc = JHOVEDoc.create(
             file_path,
-            JHOVE_IMAGE_METADATA_PROPERTY
+            cls.metadata_property()
         )
+
+        mimetype = jhove_doc.mimetype
+        if mimetype.startswith("image/"):
+            cls_ = ImageTechnicalMetadata
+        elif mimetype.startswith("text/"):
+            cls_ = TextTechnicalMetadata
+        else:
+            cls_ = cls
+
+        # set the metadata_property
+        jhove_doc.metadata_property = cls_.metadata_property()
+
+        return cls_(
+            mimetype=ImageMimetype(jhove_doc.mimetype),
+            metadata=jhove_doc.technical_metadata,
+            status=JHOVEStatus(jhove_doc.status),
+            valid=jhove_doc.valid
+        )
+    
+    @classmethod
+    def metadata_property(self):
+        return "/"
+    
+    def __str__(self):
+        return ET.tostring(self.metadata, encoding="unicode")
+
+    
+@dataclass
+class ImageTechnicalMetadata(TechnicalMetadata):
+
+    
+    @classmethod
+    def via(cls, jhove_doc: 'JHOVEDoc'):
+        jhove_doc.metadata_property = JHOVE_IMAGE_METADATA_PROPERTY
 
         return cls(
             mimetype=ImageMimetype(jhove_doc.mimetype),
@@ -58,6 +100,10 @@ class ImageTechnicalMetadata:
             valid=jhove_doc.valid
         )
     
+    @classmethod
+    def metadata_property(self):
+        return JHOVE_IMAGE_METADATA_PROPERTY
+
     @property
     def rotated(self) -> bool:
         orientation_elem = self.metadata.find(".//mix:ImageCaptureMetadata/mix:orientation", NS_MAP)
@@ -75,9 +121,13 @@ class ImageTechnicalMetadata:
     def metadata_mimetype(self) -> TechnicalMetadataMimetype:
         return TechnicalMetadataMimetype.MIX
 
-    def __str__(self):
-        return ET.tostring(self.metadata, encoding="unicode")
 
+@dataclass
+class TextTechnicalMetadata(TechnicalMetadata):
+    
+    @classmethod
+    def via(cls, jhove_doc: 'JHOVEDoc'):
+        pass
 
 class JHOVEDoc:
 
@@ -124,6 +174,9 @@ class JHOVEDoc:
     
     @property
     def technical_metadata(self) -> ET.Element:
+        if self.metadata_property == "/":
+            return self.jhove_elem
+        
         xpath = f'.//jhove:values[@type="{self.metadata_property}"]/jhove:value/*'
         elem = self.retrieve_element(xpath)
         return elem
