@@ -3,7 +3,13 @@ from pathlib import Path
 import pytest
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.process_basic_image import FileSetIdentifier, Preset, SourceFile, check_source_orientation, process_basic_image, process_service_file, process_source_file
+from dor.providers.process_basic_image import (
+    FileSetIdentifier,
+    Input,
+    Operation,
+    process_basic_image,
+    process_service_file
+)
 from dor.adapters.technical_metadata import ImageTechnicalMetadata
 
 @pytest.fixture
@@ -26,21 +32,17 @@ def output_path() -> Path:
 
 
 @pytest.fixture
-def image_source_file(input_path: Path) -> SourceFile:
-    presets = [
-        Preset(func=process_source_file, kwargs={ "source_path": input_path / "test_image_rotated.tiff" }),
-        Preset(func=check_source_orientation, kwargs={}),
-        Preset(func=process_service_file, kwargs={})
-    ]
-    return SourceFile(path=input_path, presets=presets)
+def image_input(input_path: Path) -> Input:
+    operations = [Operation(func=process_service_file, kwargs={})]
+    return Input(file_path=input_path / "test_image_rotated.tiff", operations=operations)
 
 
-def test_process_basic_image_creates_service_image(file_set_identifier, image_source_file, output_path):
+def test_process_basic_image_creates_service_image(file_set_identifier, image_input, output_path):
     service_image_file = output_path / file_set_identifier.identifier / "data" / \
         ("test_image_rotated.function:service.format:image.jp2")
     assert process_basic_image(
         file_set_identifier=file_set_identifier,
-        source_files=[image_source_file],
+        inputs=[image_input],
         output_path=output_path
     )
     assert service_image_file.exists()
