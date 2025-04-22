@@ -71,7 +71,7 @@ class TechnicalMetadata:
         jhove_doc.metadata_property = cls_.metadata_property()
 
         return cls_(
-            mimetype=ImageMimetype(jhove_doc.mimetype),
+            mimetype=Mimetype(jhove_doc.mimetype),
             metadata=jhove_doc.technical_metadata,
             status=JHOVEStatus(jhove_doc.status),
             valid=jhove_doc.valid
