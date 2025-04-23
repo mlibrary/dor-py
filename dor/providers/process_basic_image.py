@@ -275,7 +275,6 @@ class Input:
 
 @dataclass
 class CopySource(Operation):
-    # accumulator: Accumulator
     image_path: Path
 
     @staticmethod
