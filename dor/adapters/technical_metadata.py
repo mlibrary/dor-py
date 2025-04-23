@@ -49,7 +49,7 @@ class TechnicalMetadata:
     valid: bool
 
     @classmethod
-    def create(cls, file_path: Path) -> Self:
+    def create(cls, file_path: Path) -> "TechnicalMetadata":
         jhove_doc = JHOVEDoc.create(
             file_path,
             cls.metadata_property()
@@ -74,9 +74,13 @@ class TechnicalMetadata:
         )
     
     @classmethod
-    def metadata_property(self):
+    def metadata_property(cls):
         return "/"
-    
+
+    @property
+    def metadata_mimetype(self) -> TechnicalMetadataMimetype:
+        raise NotImplementedError
+
     def __str__(self):
         return ET.tostring(self.metadata, encoding="unicode")
 
@@ -87,6 +91,10 @@ class ImageTechnicalMetadata(TechnicalMetadata):
     @classmethod
     def metadata_property(cls):
         return JHOVE_IMAGE_METADATA_PROPERTY
+
+    @property
+    def metadata_mimetype(self) -> TechnicalMetadataMimetype:
+        return TechnicalMetadataMimetype.MIX
 
     @property
     def rotated(self) -> bool:
@@ -100,10 +108,6 @@ class ImageTechnicalMetadata(TechnicalMetadata):
         if compression_elem is None:
             return False
         return compression_elem.text != UNCOMPRESSED
-    
-    @property
-    def metadata_mimetype(self) -> TechnicalMetadataMimetype:
-        return TechnicalMetadataMimetype.MIX
 
 
 @dataclass
