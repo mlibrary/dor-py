@@ -40,8 +40,6 @@ from dor.settings import template_env
 
 ACCEPTED_IMAGE_MIMETYPES = [Mimetype.JPEG, Mimetype.TIFF, Mimetype.JP2]
 
-NOP_RETURN = (None, None, None, None)
-
 
 @dataclass
 class Operation:
@@ -221,33 +219,12 @@ def create_file_set_directories(file_set_directory: Path) -> None:
     file_provider.create_directory(file_set_directory / "descriptor")
 
 
-def get_source_file_info(
-    file_set_identifier: FileSetIdentifier, tech_metadata: TechnicalMetadata
-) -> FileInfo:
-    return FileInfo(
-        identifier=file_set_identifier.identifier,
-        basename=file_set_identifier.basename,
-        uses=[UseFunction.source, UseFormat.image],
-        mimetype=tech_metadata.mimetype.value,
-    )
-
-
-def get_service_file_info(file_set_identifier: FileSetIdentifier) -> FileInfo:
-    return FileInfo(
-        identifier=file_set_identifier.identifier,
-        basename=file_set_identifier.basename,
-        uses=[UseFunction.service, UseFormat.image],
-        mimetype=Mimetype.JP2.value
-    )
-
-
 def process_source_file(accumulator: Accumulator, image_path: Path):
     try:
         source_tech_metadata = TechnicalMetadata.create(image_path)
     except JHOVEDocError:
         return None
 
-    # source_file_info = get_source_file_info(transformer.file_set_identifier, source_tech_metadata)
     file_info = FileInfo(
         identifier=accumulator.file_set_identifier.identifier,
         basename=accumulator.file_set_identifier.basename,
