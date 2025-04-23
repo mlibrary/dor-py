@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from dor.adapters.technical_metadata import (
-    ImageMimetype, JHOVEDoc, JHOVEDocError, NS_MAP, TechnicalMetadataMimetype, ImageTechnicalMetadata
+    Mimetype, JHOVEDoc, JHOVEDocError, NS_MAP, TechnicalMetadataMimetype, ImageTechnicalMetadata
 )
 
 
@@ -22,7 +22,7 @@ def jhove_elem() -> ET.Element:
 def test_image_tech_metadata_retrieves_data_for_jpg(fixtures_path: Path):
     image_path = fixtures_path / "test_image.jpg"
     tech_metadata = ImageTechnicalMetadata.create(image_path)
-    assert tech_metadata.mimetype == ImageMimetype.JPEG
+    assert tech_metadata.mimetype == Mimetype.JPEG
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert not tech_metadata.rotated
     assert tech_metadata.compressed
@@ -32,7 +32,7 @@ def test_image_tech_metadata_retrieves_data_for_jpg(fixtures_path: Path):
 def test_image_tech_metadata_retrieves_data_for_tiff(fixtures_path: Path):
     image_path = fixtures_path / "test_image.tiff"
     tech_metadata = ImageTechnicalMetadata.create(image_path)
-    assert tech_metadata.mimetype == ImageMimetype.TIFF
+    assert tech_metadata.mimetype == Mimetype.TIFF
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert not tech_metadata.rotated
     assert not tech_metadata.compressed
@@ -42,7 +42,7 @@ def test_image_tech_metadata_retrieves_data_for_tiff(fixtures_path: Path):
 def test_image_tech_metadata_retrieves_data_for_rotated_tiff(fixtures_path: Path):
     image_path = fixtures_path / "test_image_rotated.tiff"
     tech_metadata = ImageTechnicalMetadata.create(image_path)
-    assert tech_metadata.mimetype == ImageMimetype.TIFF
+    assert tech_metadata.mimetype == Mimetype.TIFF
     assert tech_metadata.metadata_mimetype == TechnicalMetadataMimetype.MIX
     assert tech_metadata.rotated
     assert not tech_metadata.compressed

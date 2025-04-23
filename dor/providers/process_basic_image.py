@@ -15,6 +15,7 @@ from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
     ImageMimetype,
     ImageTechnicalMetadata,
+    TechnicalMetadata,
     JHOVEDocError,
 )
 from dor.builders.parts import (
@@ -86,7 +87,7 @@ class FileInfoAssociation:
 @dataclass
 class ResultFile:
     file_path: Path
-    tech_metadata: ImageTechnicalMetadata
+    tech_metadata: TechnicalMetadata
     file_info: FileInfo
     event: PreservationEvent
     source_file_result: Self | None = None
@@ -222,7 +223,7 @@ def create_file_set_directories(file_set_directory: Path) -> None:
 
 
 def get_source_file_info(
-    file_set_identifier: FileSetIdentifier, tech_metadata: ImageTechnicalMetadata
+    file_set_identifier: FileSetIdentifier, tech_metadata: TechnicalMetadata
 ) -> FileInfo:
     return FileInfo(
         identifier=file_set_identifier.identifier,
@@ -243,7 +244,7 @@ def get_service_file_info(file_set_identifier: FileSetIdentifier) -> FileInfo:
 
 def process_source_file(accumulator: Accumulator, image_path: Path):
     try:
-        source_tech_metadata = ImageTechnicalMetadata.create(image_path)
+        source_tech_metadata = TechnicalMetadata.create(image_path)
     except JHOVEDocError:
         return None
 

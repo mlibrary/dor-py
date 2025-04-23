@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from dor.adapters.make_intermediate_file import make_intermediate_file
-from dor.adapters.technical_metadata import ImageMimetype, ImageTechnicalMetadata
+from dor.adapters.technical_metadata import Mimetype, ImageTechnicalMetadata
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def test_make_intermediate_file_converts_jpg_to_uncompressed_tiff(fixtures_path)
         make_intermediate_file(image_path, temp_file_path)
         tech_metadata = ImageTechnicalMetadata.create(temp_file_path)
 
-    assert tech_metadata.mimetype == ImageMimetype.TIFF
+    assert tech_metadata.mimetype == Mimetype.TIFF
     assert not tech_metadata.compressed
 
 
@@ -32,7 +32,7 @@ def test_make_intermediate_file_unrotates_tiff(fixtures_path):
         make_intermediate_file(image_path, temp_file_path)
         tech_metadata = ImageTechnicalMetadata.create(temp_file_path)
 
-    assert tech_metadata.mimetype == ImageMimetype.TIFF
+    assert tech_metadata.mimetype == Mimetype.TIFF
     assert not tech_metadata.rotated
 
 
@@ -44,5 +44,5 @@ def test_make_intermediate_file_uncompresses_tiff(fixtures_path):
         make_intermediate_file(image_path, temp_file_path)
         tech_metadata = ImageTechnicalMetadata.create(temp_file_path)
 
-    assert tech_metadata.mimetype == ImageMimetype.TIFF
+    assert tech_metadata.mimetype == Mimetype.TIFF
     assert not tech_metadata.compressed
