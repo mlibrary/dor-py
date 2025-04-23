@@ -4,11 +4,11 @@ import pytest
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.process_basic_image import (
+    Command,
+    CompressSourceImage,
     FileSetIdentifier,
     Input,
-    Operation,
     process_basic_image,
-    process_service_file,
 )
 
 @pytest.fixture
@@ -32,8 +32,8 @@ def output_path() -> Path:
 
 @pytest.fixture
 def image_input(input_path: Path) -> Input:
-    operations = [Operation(func=process_service_file, kwargs={})]
-    return Input(file_path=input_path / "test_image.jpg", operations=operations)
+    commands = [Command(operation=CompressSourceImage, kwargs={})]
+    return Input(file_path=input_path / "test_image.jpg", commands=commands)
 
 
 def test_process_basic_image_copy_copies_input_file_to_output_file(file_set_identifier, image_input, output_path):

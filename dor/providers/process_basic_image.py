@@ -2,10 +2,11 @@ import hashlib
 import shutil
 import tempfile
 import uuid
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Callable, Any, Self
+from typing import Any, Self, Type
 
 from dor.adapters.generate_service_variant import (
     generate_service_variant,
@@ -40,18 +41,6 @@ from dor.settings import template_env
 
 
 ACCEPTED_IMAGE_MIMETYPES = [Mimetype.JPEG, Mimetype.TIFF, Mimetype.JP2]
-
-
-@dataclass
-class Operation:
-    func: Callable
-    kwargs: dict[str, Any]
-
-
-@dataclass
-class Input:
-    file_path: Path
-    operations: list[Operation]
 
 
 class FileSetIdentifier:
@@ -220,124 +209,8 @@ def create_file_set_directories(file_set_directory: Path) -> None:
     file_provider.create_directory(file_set_directory / "descriptor")
 
 
-def process_source_file(accumulator: Accumulator, image_path: Path):
-    try:
-        source_tech_metadata = TechnicalMetadata.create(image_path)
-    except JHOVEDocError:
-        return None
-
-    file_info = FileInfo(
-        identifier=accumulator.file_set_identifier.identifier,
-        basename=accumulator.file_set_identifier.basename,
-        uses=[UseFunction.source, UseFormat.image],
-        mimetype=source_tech_metadata.mimetype.value,
-    )
-
-    source_file_path = accumulator.file_set_directory / file_info.path
-    copy_source_file(source_path=image_path, destination_path=source_file_path)
-
-    event = create_preservation_event(
-        "copy source file", accumulator.collection_manager_email
-    )
-
-    accumulator.add_file(
-        ResultFile(
-            file_path=source_file_path,
-            tech_metadata=source_tech_metadata,
-            file_info=file_info,
-            event=event
-        )
-    )
-
-
-def check_source_orientation(accumulator: Accumulator):
-    source_result_file = accumulator.get_file(
-        function=[UseFunction.source], format=UseFormat.image
-    )
-    if source_result_file.file_path is None:
-        return None
-
-    if not isinstance(source_result_file.tech_metadata, ImageTechnicalMetadata):
-        return None
-
-    if not source_result_file.tech_metadata.rotated:
-        return None
-
-    temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".tiff", delete=False)
-    compressible_file_path = Path(temp_file.name)
-    make_intermediate_file(source_result_file.file_path, compressible_file_path)
-
-    try:
-        tech_metadata = TechnicalMetadata.create(compressible_file_path)
-    except JHOVEDocError:
-        return None
-
-    file_info = FileInfo(
-        identifier=accumulator.file_set_identifier.identifier,
-        basename=accumulator.file_set_identifier.basename,
-        uses=[UseFunction.intermediate, UseFormat.image],
-        mimetype=tech_metadata.mimetype.value,
-    )
-
-    event = create_preservation_event(
-        "rotated source file", accumulator.collection_manager_email
-    )
-
-    accumulator.add_file(
-        ResultFile(
-            file_path=compressible_file_path,
-            tech_metadata=tech_metadata,
-            file_info=file_info,
-            event=event
-        )
-    )
-
-
-def copy_source_file(source_path: Path, destination_path: Path) -> None:
-    shutil.copyfile(source_path, destination_path)
-
-
 def get_event_file_info(file_info: FileInfo):
     return file_info.metadata(use=UseFunction.event, mimetype="text/xml+premis")
-
-
-def process_service_file(accumulator: Accumulator):
-    source_result_file = accumulator.get_file(
-        function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
-    )
-
-    file_info = FileInfo(
-        identifier=accumulator.file_set_identifier.identifier,
-        basename=accumulator.file_set_identifier.basename,
-        uses=[UseFunction.service, UseFormat.image],
-        mimetype=Mimetype.JP2.value,
-    )
-
-    service_file_path = accumulator.file_set_directory / file_info.path
-    try:
-        generate_service_variant(source_result_file.file_path, service_file_path)
-    except ServiceImageProcessingError:
-        return None
-
-    try:
-        service_tech_metadata = TechnicalMetadata.create(service_file_path)
-    except JHOVEDocError:
-        return None
-
-    event = create_preservation_event(
-        "create JPEG2000 service file", accumulator.collection_manager_email
-    )
-
-    accumulator.add_file(
-        ResultFile(
-            file_path=service_file_path,
-            tech_metadata=service_tech_metadata,
-            file_info=file_info,
-            source_file_result=source_result_file,
-            event=event,
-        )
-    )
-
 
 def create_package_resource(
     file_set_identifier: FileSetIdentifier,
@@ -379,6 +252,153 @@ def create_package_resource(
     return resource
 
 
+@dataclass
+class Operation(ABC):
+    accumulator: Accumulator
+
+    @abstractmethod
+    def run(self) -> None:
+        pass
+
+
+@dataclass
+class Command:
+    operation: Type[Operation]
+    kwargs: dict[str, Any]
+
+
+@dataclass
+class Input:
+    file_path: Path
+    commands: list[Command]
+
+
+@dataclass
+class CopySource(Operation):
+    # accumulator: Accumulator
+    image_path: Path
+
+    @staticmethod
+    def copy_source_file(source_path: Path, destination_path: Path) -> None:
+        shutil.copyfile(source_path, destination_path)
+
+    def run(self) -> None:
+        try:
+            source_tech_metadata = TechnicalMetadata.create(self.image_path)
+        except JHOVEDocError:
+            return None
+
+        file_info = FileInfo(
+            identifier=self.accumulator.file_set_identifier.identifier,
+            basename=self.accumulator.file_set_identifier.basename,
+            uses=[UseFunction.source, UseFormat.image],
+            mimetype=source_tech_metadata.mimetype.value,
+        )
+
+        source_file_path = self.accumulator.file_set_directory / file_info.path
+        self.copy_source_file(source_path=self.image_path, destination_path=source_file_path)
+
+        event = create_preservation_event(
+            "copy source file", self.accumulator.collection_manager_email
+        )
+
+        self.accumulator.add_file(
+            ResultFile(
+                file_path=source_file_path,
+                tech_metadata=source_tech_metadata,
+                file_info=file_info,
+                event=event
+            )
+        )
+
+
+@dataclass
+class OrientSourceImage(Operation):
+
+    def run(self) -> None:
+        source_result_file = self.accumulator.get_file(
+            function=[UseFunction.source], format=UseFormat.image
+        )
+        if source_result_file.file_path is None:
+            return None
+
+        if not isinstance(source_result_file.tech_metadata, ImageTechnicalMetadata):
+            return None
+
+        if not source_result_file.tech_metadata.rotated:
+            return None
+
+        temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".tiff", delete=False)
+        compressible_file_path = Path(temp_file.name)
+        make_intermediate_file(source_result_file.file_path, compressible_file_path)
+
+        try:
+            tech_metadata = TechnicalMetadata.create(compressible_file_path)
+        except JHOVEDocError:
+            return None
+
+        file_info = FileInfo(
+            identifier=self.accumulator.file_set_identifier.identifier,
+            basename=self.accumulator.file_set_identifier.basename,
+            uses=[UseFunction.intermediate, UseFormat.image],
+            mimetype=tech_metadata.mimetype.value,
+        )
+
+        event = create_preservation_event(
+            "rotated source file", self.accumulator.collection_manager_email
+        )
+
+        self.accumulator.add_file(
+            ResultFile(
+                file_path=compressible_file_path,
+                tech_metadata=tech_metadata,
+                file_info=file_info,
+                event=event
+            )
+        )
+
+
+@dataclass
+class CompressSourceImage(Operation):
+
+    def run(self) -> None:
+        source_result_file = self.accumulator.get_file(
+            function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
+        )
+
+        file_info = FileInfo(
+            identifier=self.accumulator.file_set_identifier.identifier,
+            basename=self.accumulator.file_set_identifier.basename,
+            uses=[UseFunction.service, UseFormat.image],
+            mimetype=Mimetype.JP2.value,
+        )
+
+        service_file_path = self.accumulator.file_set_directory / file_info.path
+        try:
+            generate_service_variant(source_result_file.file_path, service_file_path)
+        except ServiceImageProcessingError:
+            return None
+
+        try:
+            service_tech_metadata = TechnicalMetadata.create(service_file_path)
+        except JHOVEDocError:
+            return None
+
+        event = create_preservation_event(
+            "create JPEG2000 service file", self.accumulator.collection_manager_email
+        )
+
+        self.accumulator.add_file(
+            ResultFile(
+                file_path=service_file_path,
+                tech_metadata=service_tech_metadata,
+                file_info=file_info,
+                source_file_result=source_result_file,
+                event=event,
+            )
+        )
+
+
 def process_basic_image(
     file_set_identifier: FileSetIdentifier,
     inputs: list[Input],
@@ -395,10 +415,10 @@ def process_basic_image(
     )
 
     for input in inputs:
-        process_source_file(accumulator=accumulator, image_path=input.file_path)
-        check_source_orientation(accumulator)
-        for operation in input.operations:
-            operation.func(accumulator=accumulator, **operation.kwargs)
+        CopySource(accumulator=accumulator, image_path=input.file_path).run()
+        OrientSourceImage(accumulator).run()
+        for command in input.commands:
+            command.operation(accumulator=accumulator, **command.kwargs).run()
 
     accumulator.write()
     return True
