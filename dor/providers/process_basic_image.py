@@ -13,6 +13,7 @@ from dor.adapters.generate_service_variant import (
 )
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
+    ImageTechnicalMetadata,
     JHOVEDocError,
     Mimetype,
     TechnicalMetadata,
@@ -254,6 +255,9 @@ def check_source_orientation(accumulator: Accumulator):
         function=[UseFunction.source], format=UseFormat.image
     )
     if source_result_file.file_path is None:
+        return None
+
+    if not isinstance(source_result_file.tech_metadata, ImageTechnicalMetadata):
         return None
 
     if not source_result_file.tech_metadata.rotated:
