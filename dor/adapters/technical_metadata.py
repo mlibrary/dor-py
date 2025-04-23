@@ -74,7 +74,7 @@ class TechnicalMetadata:
         )
     
     @classmethod
-    def metadata_property(cls):
+    def metadata_property(cls) -> str:
         return "/"
 
     @property
@@ -89,7 +89,7 @@ class TechnicalMetadata:
 class ImageTechnicalMetadata(TechnicalMetadata):
     
     @classmethod
-    def metadata_property(cls):
+    def metadata_property(cls) -> str:
         return JHOVE_IMAGE_METADATA_PROPERTY
 
     @property
@@ -114,7 +114,7 @@ class ImageTechnicalMetadata(TechnicalMetadata):
 class TextTechnicalMetadata(TechnicalMetadata):
 
     @classmethod
-    def metadata_property(cls):
+    def metadata_property(cls) -> str:
         return JHOVE_TEXT_METADATA_PROPERTY
 
     @property
