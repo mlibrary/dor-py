@@ -10,7 +10,7 @@ from dor.adapters.image_text_extractor import (
 
 @pytest.fixture
 def quick_brown() -> Path:
-    return Path("tests/fixtures/test_image_reader/quick-brown.tiff")
+    return Path("tests/fixtures/test_image_text_extractor/quick-brown.tiff")
 
 
 def test_image_text_extractor_fails_when_unknown_language_is_specified():
