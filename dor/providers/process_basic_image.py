@@ -12,6 +12,7 @@ from dor.adapters.generate_service_variant import (
     generate_service_variant,
     ServiceImageProcessingError,
 )
+from dor.adapters.image_text_extractor import ImageTextExtractor
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
     ImageTechnicalMetadata,
@@ -113,7 +114,9 @@ class Accumulator:
                     and format in result.file_info.uses
                 ):
                     return result
-        raise AccumulatorError("Result file not found")
+        raise AccumulatorError(
+            f"Result file not found for function {[str(use) for use in function]} and format {format}"
+        )
 
     def write(self):
         # write metadata files
@@ -400,6 +403,47 @@ class CompressSourceImage(Operation):
             )
         )
         return None
+
+
+@dataclass
+class ExtractImageText(Operation):
+    language: str = "eng"
+
+    def run(self) -> None:
+        service_result_file = self.accumulator.get_file(
+            function=[UseFunction.service], format=UseFormat.image
+        )
+
+        file_info = FileInfo(
+            identifier=self.accumulator.file_set_identifier.identifier,
+            basename=self.accumulator.file_set_identifier.basename,
+            uses=[UseFunction.service, UseFormat.text_plain],
+            mimetype=Mimetype.TXT_UTF8.value,
+        )
+
+        image_text = ImageTextExtractor(image_path=service_result_file.file_path, language=self.language).text
+
+        text_file_path = self.accumulator.file_set_directory / file_info.path
+        text_file_path.write_text(image_text)
+
+        try:
+            tech_metadata = TechnicalMetadata.create(text_file_path)
+        except JHOVEDocError:
+            return None
+
+        event = create_preservation_event(
+            "extract plain text with OCR", self.accumulator.collection_manager_email
+        )
+
+        self.accumulator.add_file(
+            ResultFile(
+                file_path=text_file_path,
+                tech_metadata=tech_metadata,
+                file_info=file_info,
+                source_file_result=service_result_file,
+                event=event,
+            )
+        )
 
 
 def process_basic_image(
