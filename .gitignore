@@ -28,3 +28,4 @@ tests/test_workspaces/
 tests/test_generate_service_variant_output/
 tests/test_process_basic_image_output/
 tests/test_basic_copy_needing_rotation/
+tests/test_process_image_with_ocr/

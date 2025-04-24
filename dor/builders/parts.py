@@ -180,7 +180,9 @@ class FileInfo:
                 return "jpg"
             case "image/tiff":
                 return "tiff"
-            case "text/plain":
+            case "text/plain; charset=US-ASCII":
+                return "txt"
+            case "text/plain; charset=UTF-8":
                 return "txt"
             case "text/xml+premis":
                 return "premis.xml"
