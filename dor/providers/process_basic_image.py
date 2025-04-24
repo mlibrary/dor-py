@@ -258,7 +258,7 @@ class Operation(ABC):
 
     @abstractmethod
     def run(self) -> None:
-        pass
+        raise NotImplementedError
 
 
 @dataclass
