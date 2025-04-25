@@ -184,6 +184,8 @@ class FileInfo:
                 return "txt"
             case "text/plain; charset=UTF-8":
                 return "txt"
+            case "text/xml":
+                return "xml"
             case "text/xml+premis":
                 return "premis.xml"
             case "text/xml+mix":

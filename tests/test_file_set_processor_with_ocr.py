@@ -7,6 +7,7 @@ from dor.providers.process_basic_image import (
     Command,
     CompressSourceImage,
     ExtractImageText,
+    ExtractImageTextCoordinates,
     FileSetIdentifier,
     Input,
     process_basic_image,
@@ -36,13 +37,48 @@ def output_path() -> Path:
 def image_with_ocr_input(input_path: Path) -> Input:
     commands = [
         Command(operation=CompressSourceImage, kwargs={}),
+        Command(operation=ExtractImageTextCoordinates, kwargs={}),
         Command(operation=ExtractImageText, kwargs={})
     ]
     return Input(file_path=input_path / "quick-brown.tiff", commands=commands)
 
 
+def test_process_creates_text_coordinates_file(file_set_identifier, image_with_ocr_input, output_path):
+    text_coordinates_file = output_path / file_set_identifier.identifier /  \
+        "data" / ("quick-brown.function:service.format:text-coordinate.xml")
+
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=[image_with_ocr_input],
+        output_path=output_path
+    )
+    assert text_coordinates_file.exists()
+
+
+def test_process_creates_technical_metadata_for_text_coordinates(file_set_identifier, image_with_ocr_input, output_path):
+    technical_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
+        ("quick-brown.function:service.format:text-coordinate.xml.function:technical.textmd.xml")
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=[image_with_ocr_input],
+        output_path=output_path
+    )
+    assert technical_metadata_file.exists()
+
+
+def test_process_creates_event_for_text_coordinates(file_set_identifier, image_with_ocr_input, output_path):
+    event_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
+        ("quick-brown.function:service.format:text-coordinate.xml.function:event.premis.xml")
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=[image_with_ocr_input],
+        output_path=output_path
+    )
+    assert event_metadata_file.exists()
+
+
 def test_process_creates_plain_text_file(file_set_identifier, image_with_ocr_input, output_path):
-    copy_of_source_file = output_path / file_set_identifier.identifier /  \
+    plain_text_file = output_path / file_set_identifier.identifier /  \
         "data" / ("quick-brown.function:service.format:text-plain.txt")
 
     assert process_basic_image(
@@ -50,7 +86,7 @@ def test_process_creates_plain_text_file(file_set_identifier, image_with_ocr_inp
         inputs=[image_with_ocr_input],
         output_path=output_path
     )
-    assert copy_of_source_file.exists()
+    assert plain_text_file.exists()
 
 
 def test_process_creates_technical_metadata_for_plain_text(file_set_identifier, image_with_ocr_input, output_path):

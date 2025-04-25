@@ -30,6 +30,7 @@ class Mimetype(Enum):
     JP2 = "image/jp2"
     TXT_ASCII = "text/plain; charset=US-ASCII"
     TXT_UTF8 = "text/plain; charset=UTF-8"
+    XML = "text/xml"
 
 
 class TechnicalMetadataMimetype(Enum):
