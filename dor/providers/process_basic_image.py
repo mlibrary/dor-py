@@ -12,7 +12,7 @@ from dor.adapters.generate_service_variant import (
     generate_service_variant,
     ServiceImageProcessingError,
 )
-from dor.adapters.image_text_extractor import ImageTextExtractor
+from dor.adapters.image_text_extractor import AltoDoc, ImageTextExtractor
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
     ImageTechnicalMetadata,
@@ -406,7 +406,7 @@ class CompressSourceImage(Operation):
 
 
 @dataclass
-class ExtractImageText(Operation):
+class ExtractImageTextCoordinates(Operation):
     language: str = "eng"
 
     def run(self) -> None:
@@ -417,14 +417,67 @@ class ExtractImageText(Operation):
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
             basename=self.accumulator.file_set_identifier.basename,
-            uses=[UseFunction.service, UseFormat.text_plain],
-            mimetype=Mimetype.TXT_UTF8.value,
+            uses=[UseFunction.service, UseFormat.text_coordinates],
+            mimetype=Mimetype.XML.value,
         )
 
-        image_text = ImageTextExtractor(image_path=service_result_file.file_path, language=self.language).text
+        alto_xml = ImageTextExtractor(image_path=service_result_file.file_path, language=self.language).alto
+
+        alto_file_path = self.accumulator.file_set_directory / file_info.path
+        alto_file_path.write_text(alto_xml)
+
+        try:
+            tech_metadata = TechnicalMetadata.create(alto_file_path)
+        except JHOVEDocError:
+            return None
+
+        event = create_preservation_event(
+            "extract text coordinates with OCR", self.accumulator.collection_manager_email
+        )
+
+        self.accumulator.add_file(
+            ResultFile(
+                file_path=alto_file_path,
+                tech_metadata=tech_metadata,
+                file_info=file_info,
+                source_file_result=service_result_file,
+                event=event,
+            )
+        )
+
+
+@dataclass
+class ExtractImageText(Operation):
+    language: str = "eng"
+
+    def run(self) -> None:
+        file_info = FileInfo(
+            identifier=self.accumulator.file_set_identifier.identifier,
+            basename=self.accumulator.file_set_identifier.basename,
+            uses=[UseFunction.service, UseFormat.text_plain],
+            mimetype=Mimetype.TXT_UTF8.value,  # Some weirdness here
+        )
+
+        service_result_file = self.accumulator.get_file(
+            function=[UseFunction.service], format=UseFormat.image
+        )
+
+        try:
+            text_coordinates_result_file = self.accumulator.get_file(
+                function=[UseFunction.service], format=UseFormat.text_coordinates
+            )
+        except AccumulatorError:
+            text_coordinates_result_file = None
+
+        if text_coordinates_result_file:
+            alto_xml = text_coordinates_result_file.file_path.read_text()
+            alto_doc = AltoDoc.create(alto_xml)
+            plain_text = alto_doc.plain_text
+        else:
+            plain_text = ImageTextExtractor(image_path=service_result_file.file_path, language=self.language).text
 
         text_file_path = self.accumulator.file_set_directory / file_info.path
-        text_file_path.write_text(image_text)
+        text_file_path.write_text(plain_text)
 
         try:
             tech_metadata = TechnicalMetadata.create(text_file_path)
