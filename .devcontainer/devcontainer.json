@@ -1,0 +1,12 @@
+{
+    "name": "Dev Container",
+    "dockerComposeFile": "../compose.yml",
+    "service": "app",
+    "workspaceFolder": "/app",
+    "extensions": [
+        // Add desired PyCharm extensions here, e.g.:
+    ],
+    "settings": {
+        // PyCharm settings go here
+    },
+}

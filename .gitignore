@@ -1,5 +1,7 @@
 .env
 .bash_history
+.idea
+.java
 .python_history
 .cache/
 .pytest_cache
@@ -25,3 +27,4 @@ tests/test_packager
 tests/test_workspaces/
 tests/test_generate_service_variant_output/
 tests/test_process_basic_image_output/
+tests/test_basic_copy_needing_rotation/
