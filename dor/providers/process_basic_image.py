@@ -165,11 +165,11 @@ class Accumulator:
 
 
 def create_preservation_event(
-    type: str, collection_manager_email: str, detail: str = ""
+    event_type: str, collection_manager_email: str, detail: str = ""
 ):
     event = PreservationEvent(
         identifier=str(uuid.uuid4()),
-        type=type,
+        type=event_type,
         datetime=datetime.now(tz=UTC),
         detail=detail,
         agent=Agent(role="image_processing", address=collection_manager_email),
@@ -291,7 +291,7 @@ class CopySource(Operation):
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
             basename=self.accumulator.file_set_identifier.basename,
-            uses=[UseFunction.source, UseFormat.image],
+            uses=[UseFunction.source, UseFormat.from_mimetype(source_tech_metadata.mimetype.value)],
             mimetype=source_tech_metadata.mimetype.value,
         )
 
@@ -310,6 +310,7 @@ class CopySource(Operation):
                 event=event
             )
         )
+        return None
 
 
 @dataclass
@@ -356,6 +357,7 @@ class OrientSourceImage(Operation):
                 event=event
             )
         )
+        return None
 
 
 @dataclass
@@ -397,6 +399,7 @@ class CompressSourceImage(Operation):
                 event=event,
             )
         )
+        return None
 
 
 def process_basic_image(
