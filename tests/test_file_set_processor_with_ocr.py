@@ -45,6 +45,15 @@ def image_with_ocr_input(input_path: Path) -> Input:
     return Input(file_path=input_path / "quick-brown.tiff", commands=commands)
 
 
+@pytest.fixture
+def image_with_plain_text_only_input(input_path: Path) -> Input:
+    commands = [
+        Command(operation=CompressSourceImage, kwargs={}),
+        Command(operation=ExtractImageText, kwargs={}),
+    ]
+    return Input(file_path=input_path / "quick-brown.tiff", commands=commands)
+
+
 def test_process_creates_text_coordinates_file(file_set_identifier, image_with_ocr_input, output_path):
     text_coordinates_file = output_path / file_set_identifier.identifier /  \
         "data" / ("quick-brown.function:service.format:text-coordinate.xml")
@@ -145,3 +154,15 @@ def test_process_creates_event_for_annotation_file(file_set_identifier, image_wi
         output_path=output_path
     )
     assert event_metadata_file.exists()
+
+
+def test_process_creates_plain_text_without_text_coordinates(file_set_identifier, image_with_plain_text_only_input, output_path):
+    plain_text_file = output_path / file_set_identifier.identifier /  \
+        "data" / ("quick-brown.function:service.format:text-plain.txt")
+
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=[image_with_plain_text_only_input],
+        output_path=output_path
+    )
+    assert plain_text_file.exists()
