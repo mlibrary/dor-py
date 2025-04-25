@@ -31,9 +31,16 @@ def test_image_text_extractor_can_create_alto_xml_for_simple_document(quick_brow
     assert alto is not None
 
 
+def test_alto_doc_can_create_plain_text(quick_brown):
+    expected_text = "The quick\nbrown fox\njumps over the\nlazy dog."
+    extractor = ImageTextExtractor.create(quick_brown)
+    alto_doc = AltoDoc.create(extractor.alto)
+    assert expected_text == alto_doc.plain_text
+
+
 def test_annotation_data_can_return_data_for_simple_document(quick_brown):
-    image_reader = ImageTextExtractor.create(quick_brown)
-    annotation_data = AnnotationData(AltoDoc.create(image_reader.alto))
+    extractor = ImageTextExtractor.create(quick_brown)
+    annotation_data = AnnotationData(AltoDoc.create(extractor.alto))
 
     expected_data = {
         "page": {"width": 1700, "height": 2200},

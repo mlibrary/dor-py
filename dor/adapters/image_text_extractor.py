@@ -53,6 +53,12 @@ class AltoDoc:
     def create(cls, alto_xml: str):
         return cls(ET.fromstring(alto_xml))
 
+    @staticmethod
+    def retrieve_attribute_value(elem: ET.Element, attribute: str):
+        value = elem.get(attribute)
+        if value is None: raise AltoDocError
+        return value
+
     def __str__(self) -> str:
         return ET.tostring(self.tree, encoding="unicode")
 
@@ -64,11 +70,22 @@ class AltoDoc:
     def find_string_elems(self) -> list[ET.Element]:
         return self.tree.findall(".//alto:String", self.ns_map)
 
-    @staticmethod
-    def retrieve_attribute_value(elem: ET.Element, attribute: str):
-        value = elem.get(attribute)
-        if value is None: raise AltoDocError
-        return value
+    def find_text_line_elems(self) -> list[ET.Element]:
+        return self.tree.findall(".//alto:TextLine", self.ns_map)
+
+    @property
+    def plain_text(self) -> str:
+        text_line_elems = self.find_text_line_elems()
+        lines = []
+        for text_line_elem in text_line_elems:
+            string_elems = text_line_elem.findall("./alto:String", self.ns_map)
+            line_words = [
+                self.retrieve_attribute_value(string_elem, "CONTENT")
+                for string_elem in string_elems
+            ]
+            line = " ".join(line_words)
+            lines.append(line)
+        return "\n".join(lines)
 
 
 @dataclass
