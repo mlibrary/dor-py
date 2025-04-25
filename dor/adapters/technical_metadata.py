@@ -31,6 +31,7 @@ class Mimetype(Enum):
     TXT_ASCII = "text/plain; charset=US-ASCII"
     TXT_UTF8 = "text/plain; charset=UTF-8"
     XML = "text/xml"
+    JSON = "application/json"
 
 
 class TechnicalMetadataMimetype(Enum):

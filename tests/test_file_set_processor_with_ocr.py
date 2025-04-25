@@ -6,6 +6,7 @@ from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.process_basic_image import (
     Command,
     CompressSourceImage,
+    CreateTextAnnotations,
     ExtractImageText,
     ExtractImageTextCoordinates,
     FileSetIdentifier,
@@ -38,7 +39,8 @@ def image_with_ocr_input(input_path: Path) -> Input:
     commands = [
         Command(operation=CompressSourceImage, kwargs={}),
         Command(operation=ExtractImageTextCoordinates, kwargs={}),
-        Command(operation=ExtractImageText, kwargs={})
+        Command(operation=ExtractImageText, kwargs={}),
+        Command(operation=CreateTextAnnotations, kwargs={})
     ]
     return Input(file_path=input_path / "quick-brown.tiff", commands=commands)
 
@@ -103,6 +105,40 @@ def test_process_creates_technical_metadata_for_plain_text(file_set_identifier, 
 def test_process_creates_event_for_plain_text(file_set_identifier, image_with_ocr_input, output_path):
     event_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
         ("quick-brown.function:service.format:text-plain.txt.function:event.premis.xml")
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=[image_with_ocr_input],
+        output_path=output_path
+    )
+    assert event_metadata_file.exists()
+
+
+def test_process_creates_annotation_file(file_set_identifier, image_with_ocr_input, output_path):
+    annotation_file = output_path / file_set_identifier.identifier /  \
+        "data" / ("quick-brown.function:service.format:text-annotation.json")
+
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=[image_with_ocr_input],
+        output_path=output_path
+    )
+    assert annotation_file.exists()
+
+
+def test_process_creates_technical_metadata_for_annotation_file(file_set_identifier, image_with_ocr_input, output_path):
+    technical_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
+        ("quick-brown.function:service.format:text-annotation.json.function:technical.textmd.xml")
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=[image_with_ocr_input],
+        output_path=output_path
+    )
+    assert technical_metadata_file.exists()
+
+
+def test_process_creates_event_for_annotation_file(file_set_identifier, image_with_ocr_input, output_path):
+    event_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
+        ("quick-brown.function:service.format:text-annotation.json.function:event.premis.xml")
     assert process_basic_image(
         file_set_identifier=file_set_identifier,
         inputs=[image_with_ocr_input],
