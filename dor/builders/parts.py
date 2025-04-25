@@ -92,6 +92,14 @@ class UseFormat(str, _Enum):
         # Strip any parameters from the mimetype (e.g., 'text/plain; charset=UTF-8' -> 'text/plain')
         base_mimetype = mimetype.split(';')[0].strip()
 
+        try:
+            subtype = base_mimetype.split('/')[1]
+        except IndexError:
+            raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
+
+        if not subtype:
+            raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
+
         # Check the main type (before the '/')
         main_type = base_mimetype.split('/')[0]
 
@@ -104,7 +112,6 @@ class UseFormat(str, _Enum):
                 return cls.audiovisual
             case "text":
                 # For text types, we need to check specific subtypes
-                subtype = base_mimetype.split('/')[1]
                 if subtype == "plain":
                     return cls.text_plain
                 elif "annotation" in subtype:
