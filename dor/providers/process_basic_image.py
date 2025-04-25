@@ -148,7 +148,7 @@ class Accumulator:
             metadata_file_infos.append(tech_metadata_file_info)
             file_info_associations.append(result.association)
 
-        # write descriptor file
+        # write the descriptor file
         resource = create_package_resource(
             file_set_identifier=self.file_set_identifier,
             metadata_file_infos=metadata_file_infos,
@@ -160,7 +160,7 @@ class Accumulator:
             / "descriptor"
             / f"{self.file_set_identifier.identifier}.file_set.mets2.xml"
         )
-        with (descriptor_file_path).open("w") as file:
+        with descriptor_file_path.open("w") as file:
             file.write(descriptor_xml)
 
 
@@ -211,6 +211,7 @@ def create_file_set_directories(file_set_directory: Path) -> None:
 
 def get_event_file_info(file_info: FileInfo):
     return file_info.metadata(use=UseFunction.event, mimetype="text/xml+premis")
+
 
 def create_package_resource(
     file_set_identifier: FileSetIdentifier,
@@ -275,7 +276,7 @@ class Input:
 
 @dataclass
 class CopySource(Operation):
-    image_path: Path
+    file_path: Path
 
     @staticmethod
     def copy_source_file(source_path: Path, destination_path: Path) -> None:
@@ -283,7 +284,7 @@ class CopySource(Operation):
 
     def run(self) -> None:
         try:
-            source_tech_metadata = TechnicalMetadata.create(self.image_path)
+            source_tech_metadata = TechnicalMetadata.create(self.file_path)
         except JHOVEDocError:
             return None
 
@@ -295,7 +296,7 @@ class CopySource(Operation):
         )
 
         source_file_path = self.accumulator.file_set_directory / file_info.path
-        self.copy_source_file(source_path=self.image_path, destination_path=source_file_path)
+        self.copy_source_file(source_path=self.file_path, destination_path=source_file_path)
 
         event = create_preservation_event(
             "copy source file", self.accumulator.collection_manager_email
@@ -414,7 +415,7 @@ def process_basic_image(
     )
 
     for input in inputs:
-        CopySource(accumulator=accumulator, image_path=input.file_path).run()
+        CopySource(accumulator=accumulator, file_path=input.file_path).run()
         OrientSourceImage(accumulator).run()
         for command in input.commands:
             command.operation(accumulator=accumulator, **command.kwargs).run()
