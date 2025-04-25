@@ -55,6 +55,7 @@ class _Enum(Enum):
     def __str__(self):
         return self.value
 
+
 class UseFunction(str, _Enum):
     service = "function:service"
     source = "function:source"
@@ -66,13 +67,54 @@ class UseFunction(str, _Enum):
 
 
 class UseFormat(str, _Enum):
-    image = "format:image"
-    audiovidual = "format:audiovisual"
     audio = "format:audio"
-    text_coordinates = "format:text-coordinate"
-    text_plain = "format:text-plain"
+    audiovisual = "format:audiovisual"
+    image = "format:image"
     text_annotations = "format:text-annotation"
+    text_coordinates = "format:text-coordinate"
     text_encoded = "format:text-encoded"
+    text_plain = "format:text-plain"
+
+    @classmethod
+    def from_mimetype(cls, mimetype: str) -> "UseFormat":
+        """
+        Creates a UseFormat instance based on the given MIME type.
+
+        Args:
+            mimetype: A string representing the MIME type (e.g., 'image/jpeg', 'audio/mp3')
+
+        Returns:
+            UseFormat: The corresponding UseFormat enum value
+
+        Raises:
+            ValueError: If the MIME type cannot be mapped to a UseFormat
+        """
+        # Strip any parameters from the mimetype (e.g., 'text/plain; charset=UTF-8' -> 'text/plain')
+        base_mimetype = mimetype.split(';')[0].strip()
+
+        # Check the main type (before the '/')
+        main_type = base_mimetype.split('/')[0]
+
+        match main_type:
+            case "image":
+                return cls.image
+            case "audio":
+                return cls.audio
+            case "video":
+                return cls.audiovisual
+            case "text":
+                # For text types, we need to check specific subtypes
+                subtype = base_mimetype.split('/')[1]
+                if subtype == "plain":
+                    return cls.text_plain
+                elif "annotation" in subtype:
+                    return cls.text_annotations
+                elif "coordinate" in subtype:
+                    return cls.text_coordinates
+                else:
+                    return cls.text_encoded
+            case _:
+                raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
 
 
 class StructureType(str, _Enum):
@@ -166,7 +208,7 @@ class FileInfo:
     @property
     def place(self):
         return "data"
-    
+
     @property
     def xmlid(self):
         return f"_{self.id}"
