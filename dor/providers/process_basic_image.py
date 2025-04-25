@@ -1,4 +1,5 @@
 import hashlib
+import json
 import shutil
 import tempfile
 import uuid
@@ -12,7 +13,7 @@ from dor.adapters.generate_service_variant import (
     generate_service_variant,
     ServiceImageProcessingError,
 )
-from dor.adapters.image_text_extractor import AltoDoc, ImageTextExtractor
+from dor.adapters.image_text_extractor import AltoDoc, AnnotationData, ImageTextExtractor
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import (
     ImageTechnicalMetadata,
@@ -487,6 +488,53 @@ class ExtractImageText(Operation):
         self.accumulator.add_file(
             ResultFile(
                 file_path=text_file_path,
+                tech_metadata=tech_metadata,
+                file_info=file_info,
+                source_file_result=service_result_file,
+                event=event,
+            )
+        )
+
+
+
+@dataclass
+class CreateTextAnnotations(Operation):
+
+    def run(self) -> None:
+        file_info = FileInfo(
+            identifier=self.accumulator.file_set_identifier.identifier,
+            basename=self.accumulator.file_set_identifier.basename,
+            uses=[UseFunction.service, UseFormat.text_annotations],
+            mimetype=Mimetype.JSON.value,
+        )
+
+        service_result_file = self.accumulator.get_file(
+            function=[UseFunction.service], format=UseFormat.image
+        )
+
+        text_coordinates_result_file = self.accumulator.get_file(
+            function=[UseFunction.service], format=UseFormat.text_coordinates
+        )
+
+        alto_xml = text_coordinates_result_file.file_path.read_text()
+        alto_doc = AltoDoc.create(alto_xml)
+        annotation_data = AnnotationData(alto_doc).data
+
+        annotation_file_path = self.accumulator.file_set_directory / file_info.path
+        annotation_file_path.write_text(json.dumps(annotation_data, indent=4))
+
+        try:
+            tech_metadata = TechnicalMetadata.create(annotation_file_path)
+        except JHOVEDocError:
+            return None
+
+        event = create_preservation_event(
+            "create annotation data from text coordinates", self.accumulator.collection_manager_email
+        )
+
+        self.accumulator.add_file(
+            ResultFile(
+                file_path=annotation_file_path,
                 tech_metadata=tech_metadata,
                 file_info=file_info,
                 source_file_result=service_result_file,
