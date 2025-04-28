@@ -28,6 +28,7 @@ class Mimetype(Enum):
     JPEG = "image/jpeg"
     TIFF = "image/tiff"
     JP2 = "image/jp2"
+    TXT = "text/plain"
     TXT_ASCII = "text/plain; charset=US-ASCII"
     TXT_UTF8 = "text/plain; charset=UTF-8"
     XML = "text/xml"

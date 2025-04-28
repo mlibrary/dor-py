@@ -419,7 +419,6 @@ class ExtractImageTextCoordinates(Operation):
         )
 
         alto_xml = ImageTextExtractor(image_path=service_result_file.file_path, language=self.language).alto
-
         alto_file_path = self.accumulator.file_set_directory / file_info.path
         alto_file_path.write_text(alto_xml)
 
@@ -452,7 +451,7 @@ class ExtractImageText(Operation):
             identifier=self.accumulator.file_set_identifier.identifier,
             basename=self.accumulator.file_set_identifier.basename,
             uses=[UseFunction.service, UseFormat.text_plain],
-            mimetype=Mimetype.TXT_UTF8.value,  # Some weirdness here
+            mimetype=Mimetype.TXT.value
         )
 
         service_result_file = self.accumulator.get_file(
@@ -494,7 +493,6 @@ class ExtractImageText(Operation):
                 event=event,
             )
         )
-
 
 
 @dataclass
