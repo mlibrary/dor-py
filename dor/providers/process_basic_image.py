@@ -411,15 +411,15 @@ class ExtractImageTextCoordinates(Operation):
     language: str = "eng"
 
     def run(self) -> None:
-        service_result_file = self.accumulator.get_file(
-            function=[UseFunction.service], format=UseFormat.image
-        )
-
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
             basename=self.accumulator.file_set_identifier.basename,
             uses=[UseFunction.service, UseFormat.text_coordinates],
             mimetype=Mimetype.XML.value,
+        )
+
+        service_result_file = self.accumulator.get_file(
+            function=[UseFunction.service], format=UseFormat.image
         )
 
         alto_xml = ImageTextExtractor(image_path=service_result_file.file_path, language=self.language).alto
@@ -500,7 +500,7 @@ class ExtractImageText(Operation):
 
 
 @dataclass
-class CreateTextAnnotations(Operation):
+class CreateTextAnnotationData(Operation):
 
     def run(self) -> None:
         file_info = FileInfo(
@@ -521,12 +521,11 @@ class CreateTextAnnotations(Operation):
         alto_xml = text_coordinates_result_file.file_path.read_text()
         alto_doc = AltoDoc.create(alto_xml)
         annotation_data = AnnotationData(alto_doc).data
-
-        annotation_file_path = self.accumulator.file_set_directory / file_info.path
-        annotation_file_path.write_text(json.dumps(annotation_data, indent=4))
+        annotation_data_file_path = self.accumulator.file_set_directory / file_info.path
+        annotation_data_file_path.write_text(json.dumps(annotation_data, indent=4))
 
         try:
-            tech_metadata = TechnicalMetadata.create(annotation_file_path)
+            tech_metadata = TechnicalMetadata.create(annotation_data_file_path)
         except JHOVEDocError:
             return None
 
@@ -536,7 +535,7 @@ class CreateTextAnnotations(Operation):
 
         self.accumulator.add_file(
             ResultFile(
-                file_path=annotation_file_path,
+                file_path=annotation_data_file_path,
                 tech_metadata=tech_metadata,
                 file_info=file_info,
                 source_file_result=service_result_file,
