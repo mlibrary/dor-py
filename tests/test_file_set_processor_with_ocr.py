@@ -6,7 +6,7 @@ from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.process_basic_image import (
     Command,
     CompressSourceImage,
-    CreateTextAnnotations,
+    CreateTextAnnotationData,
     ExtractImageText,
     ExtractImageTextCoordinates,
     FileSetIdentifier,
@@ -39,7 +39,7 @@ def image_with_ocr_input(input_path: Path) -> Input:
         Command(operation=CompressSourceImage, kwargs={}),
         Command(operation=ExtractImageTextCoordinates, kwargs={}),
         Command(operation=ExtractImageText, kwargs={}),
-        Command(operation=CreateTextAnnotations, kwargs={})
+        Command(operation=CreateTextAnnotationData, kwargs={})
     ]
     return Input(file_path=input_path / "quick-brown.tiff", commands=commands)
 
