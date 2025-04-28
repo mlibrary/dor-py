@@ -14,6 +14,7 @@ from dor.providers.process_basic_image import (
     process_basic_image,
 )
 
+
 @pytest.fixture
 def file_set_identifier() -> FileSetIdentifier:
     return FileSetIdentifier(project_id="collid", file_name="quick-brown.tiff")
@@ -39,7 +40,7 @@ def image_with_ocr_input(input_path: Path) -> Input:
         Command(operation=CompressSourceImage, kwargs={}),
         Command(operation=ExtractImageTextCoordinates, kwargs={}),
         Command(operation=ExtractImageText, kwargs={}),
-        Command(operation=CreateTextAnnotationData, kwargs={})
+        Command(operation=CreateTextAnnotationData, kwargs={}),
     ]
     return Input(file_path=input_path / "quick-brown.tiff", commands=commands)
 
@@ -90,7 +91,6 @@ def test_process_creates_event_for_text_coordinates(file_set_identifier, image_w
 def test_process_creates_plain_text_file(file_set_identifier, image_with_ocr_input, output_path):
     plain_text_file = output_path / file_set_identifier.identifier /  \
         "data" / ("quick-brown.function:service.format:text-plain.txt")
-
     assert process_basic_image(
         file_set_identifier=file_set_identifier,
         inputs=[image_with_ocr_input],
@@ -121,10 +121,9 @@ def test_process_creates_event_for_plain_text(file_set_identifier, image_with_oc
     assert event_metadata_file.exists()
 
 
-def test_process_creates_annotation_file(file_set_identifier, image_with_ocr_input, output_path):
+def test_process_creates_annotation_data_file(file_set_identifier, image_with_ocr_input, output_path):
     annotation_file = output_path / file_set_identifier.identifier /  \
         "data" / ("quick-brown.function:service.format:text-annotation.json")
-
     assert process_basic_image(
         file_set_identifier=file_set_identifier,
         inputs=[image_with_ocr_input],
@@ -133,7 +132,7 @@ def test_process_creates_annotation_file(file_set_identifier, image_with_ocr_inp
     assert annotation_file.exists()
 
 
-def test_process_creates_technical_metadata_for_annotation_file(file_set_identifier, image_with_ocr_input, output_path):
+def test_process_creates_technical_metadata_for_annotation_data_file(file_set_identifier, image_with_ocr_input, output_path):
     technical_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
         ("quick-brown.function:service.format:text-annotation.json.function:technical.textmd.xml")
     assert process_basic_image(
@@ -144,7 +143,7 @@ def test_process_creates_technical_metadata_for_annotation_file(file_set_identif
     assert technical_metadata_file.exists()
 
 
-def test_process_creates_event_for_annotation_file(file_set_identifier, image_with_ocr_input, output_path):
+def test_process_creates_event_for_annotation_data_file(file_set_identifier, image_with_ocr_input, output_path):
     event_metadata_file = output_path / file_set_identifier.identifier / "metadata" / \
         ("quick-brown.function:service.format:text-annotation.json.function:event.premis.xml")
     assert process_basic_image(
@@ -158,7 +157,6 @@ def test_process_creates_event_for_annotation_file(file_set_identifier, image_wi
 def test_process_creates_plain_text_without_text_coordinates(file_set_identifier, image_with_plain_text_only_input, output_path):
     plain_text_file = output_path / file_set_identifier.identifier /  \
         "data" / ("quick-brown.function:service.format:text-plain.txt")
-
     assert process_basic_image(
         file_set_identifier=file_set_identifier,
         inputs=[image_with_plain_text_only_input],
