@@ -21,8 +21,7 @@ def file_set_identifier() -> FileSetIdentifier:
 
 @pytest.fixture
 def input_path() -> Path:
-    # Update this later
-    return Path("tests/fixtures/test_image_text_extractor")
+    return Path("tests/fixtures/test_basic_copy_with_ocr")
 
 
 @pytest.fixture
