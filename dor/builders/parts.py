@@ -13,6 +13,8 @@ from faker.factory import Factory
 
 from dor.settings import S
 
+from typing import Self
+
 
 class Fakish:
     def __init__(self, seed=-1):
@@ -76,7 +78,7 @@ class UseFormat(str, _Enum):
     text_plain = "format:text-plain"
 
     @classmethod
-    def from_mimetype(cls, mimetype: str) -> "UseFormat":
+    def from_mimetype(cls, mimetype: str) -> Self:
         """
         Creates a UseFormat instance based on the given MIME type.
 
@@ -104,12 +106,17 @@ class UseFormat(str, _Enum):
         main_type = base_mimetype.split('/')[0]
 
         match main_type:
-            case "image":
-                return cls.image
+            case "application":
+                # For application types, we need to check specific subtypes
+                match subtype:
+                    case _ if "annotation+json" in subtype:
+                        return cls.text_annotations
+                    case _:
+                        raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
             case "audio":
                 return cls.audio
-            case "video":
-                return cls.audiovisual
+            case "image":
+                return cls.image
             case "text":
                 # For text types, we need to check specific subtypes
                 match subtype:
@@ -119,8 +126,14 @@ class UseFormat(str, _Enum):
                         return cls.text_annotations
                     case _ if "coordinate" in subtype:
                         return cls.text_coordinates
-                    case _:
+                    case _ if "xml" in subtype:
                         return cls.text_encoded
+                    case _ if "html" in subtype:
+                        return cls.text_encoded
+                    case _:
+                        raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
+            case "video":
+                return cls.audiovisual
             case _:
                 raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
 

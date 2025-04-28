@@ -2,12 +2,15 @@ import pytest
 from dor.builders.parts import UseFormat
 
 
-def test_from_mimetype_image():
-    # Test various image MIME types
-    assert UseFormat.from_mimetype("image/jpeg") == UseFormat.image
-    assert UseFormat.from_mimetype("image/png") == UseFormat.image
-    assert UseFormat.from_mimetype("image/tiff") == UseFormat.image
-    assert UseFormat.from_mimetype("image/gif") == UseFormat.image
+def test_from_mimetype_application():
+    # Test audio MIME types
+    assert UseFormat.from_mimetype("application/annotation+json") == UseFormat.text_annotations
+
+    with pytest.raises(ValueError):
+        UseFormat.from_mimetype("application/json")
+
+    with pytest.raises(ValueError):
+        UseFormat.from_mimetype("application/xml")
 
 
 def test_from_mimetype_audio():
@@ -17,11 +20,12 @@ def test_from_mimetype_audio():
     assert UseFormat.from_mimetype("audio/ogg") == UseFormat.audio
 
 
-def test_from_mimetype_video():
-    # Test video MIME types (should return audiovisual)
-    assert UseFormat.from_mimetype("video/mp4") == UseFormat.audiovisual
-    assert UseFormat.from_mimetype("video/mpeg") == UseFormat.audiovisual
-    assert UseFormat.from_mimetype("video/quicktime") == UseFormat.audiovisual
+def test_from_mimetype_image():
+    # Test various image MIME types
+    assert UseFormat.from_mimetype("image/jpeg") == UseFormat.image
+    assert UseFormat.from_mimetype("image/png") == UseFormat.image
+    assert UseFormat.from_mimetype("image/tiff") == UseFormat.image
+    assert UseFormat.from_mimetype("image/gif") == UseFormat.image
 
 
 def test_from_mimetype_text():
@@ -32,6 +36,13 @@ def test_from_mimetype_text():
     assert UseFormat.from_mimetype("text/coordinate") == UseFormat.text_coordinates
     assert UseFormat.from_mimetype("text/html") == UseFormat.text_encoded
     assert UseFormat.from_mimetype("text/xml") == UseFormat.text_encoded
+
+
+def test_from_mimetype_video():
+    # Test video MIME types (should return audiovisual)
+    assert UseFormat.from_mimetype("video/mp4") == UseFormat.audiovisual
+    assert UseFormat.from_mimetype("video/mpeg") == UseFormat.audiovisual
+    assert UseFormat.from_mimetype("video/quicktime") == UseFormat.audiovisual
 
 
 def test_from_mimetype_with_parameters():
