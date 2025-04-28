@@ -13,6 +13,8 @@ from faker.factory import Factory
 
 from dor.settings import S
 
+from typing import Self
+
 
 class Fakish:
     def __init__(self, seed=-1):
@@ -55,6 +57,7 @@ class _Enum(Enum):
     def __str__(self):
         return self.value
 
+
 class UseFunction(str, _Enum):
     service = "function:service"
     source = "function:source"
@@ -66,13 +69,73 @@ class UseFunction(str, _Enum):
 
 
 class UseFormat(str, _Enum):
-    image = "format:image"
-    audiovidual = "format:audiovisual"
     audio = "format:audio"
-    text_coordinates = "format:text-coordinate"
-    text_plain = "format:text-plain"
+    audiovisual = "format:audiovisual"
+    image = "format:image"
     text_annotations = "format:text-annotation"
+    text_coordinates = "format:text-coordinate"
     text_encoded = "format:text-encoded"
+    text_plain = "format:text-plain"
+
+    @classmethod
+    def from_mimetype(cls, mimetype: str) -> Self:
+        """
+        Creates a UseFormat instance based on the given MIME type.
+
+        Args:
+            mimetype: A string representing the MIME type (e.g., 'image/jpeg', 'audio/mp3')
+
+        Returns:
+            UseFormat: The corresponding UseFormat enum value
+
+        Raises:
+            ValueError: If the MIME type cannot be mapped to a UseFormat
+        """
+        # Strip any parameters from the mimetype (e.g., 'text/plain; charset=UTF-8' -> 'text/plain')
+        base_mimetype = mimetype.split(';')[0].strip()
+
+        try:
+            subtype = base_mimetype.split('/')[1]
+        except IndexError:
+            raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
+
+        if not subtype:
+            raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
+
+        # Check the main type (before the '/')
+        main_type = base_mimetype.split('/')[0]
+
+        match main_type:
+            case "application":
+                # For application types, we need to check specific subtypes
+                match subtype:
+                    case "annotation+json":
+                        return cls.text_annotations
+                    case _:
+                        raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
+            case "audio":
+                return cls.audio
+            case "image":
+                return cls.image
+            case "text":
+                # For text types, we need to check specific subtypes
+                match subtype:
+                    case "plain":
+                        return cls.text_plain
+                    case _ if "annotation" in subtype:
+                        return cls.text_annotations
+                    case _ if "coordinate" in subtype:
+                        return cls.text_coordinates
+                    case _ if "xml" in subtype:
+                        return cls.text_encoded
+                    case _ if "html" in subtype:
+                        return cls.text_encoded
+                    case _:
+                        raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
+            case "video":
+                return cls.audiovisual
+            case _:
+                raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
 
 
 class StructureType(str, _Enum):
@@ -166,7 +229,7 @@ class FileInfo:
     @property
     def place(self):
         return "data"
-    
+
     @property
     def xmlid(self):
         return f"_{self.id}"
