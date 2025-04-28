@@ -112,14 +112,15 @@ class UseFormat(str, _Enum):
                 return cls.audiovisual
             case "text":
                 # For text types, we need to check specific subtypes
-                if subtype == "plain":
-                    return cls.text_plain
-                elif "annotation" in subtype:
-                    return cls.text_annotations
-                elif "coordinate" in subtype:
-                    return cls.text_coordinates
-                else:
-                    return cls.text_encoded
+                match subtype:
+                    case "plain":
+                        return cls.text_plain
+                    case _ if "annotation" in subtype:
+                        return cls.text_annotations
+                    case _ if "coordinate" in subtype:
+                        return cls.text_coordinates
+                    case _:
+                        return cls.text_encoded
             case _:
                 raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
 
