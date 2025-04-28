@@ -109,7 +109,7 @@ class UseFormat(str, _Enum):
             case "application":
                 # For application types, we need to check specific subtypes
                 match subtype:
-                    case _ if "annotation+json" in subtype:
+                    case "annotation+json":
                         return cls.text_annotations
                     case _:
                         raise ValueError(f"Unable to determine UseFormat for MIME type: {mimetype}")
