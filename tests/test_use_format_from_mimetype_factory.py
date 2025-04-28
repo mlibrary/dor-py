@@ -37,7 +37,7 @@ def test_from_mimetype_text():
 def test_from_mimetype_with_parameters():
     # Test MIME types with parameters
     assert UseFormat.from_mimetype("text/plain; charset=UTF-8") == UseFormat.text_plain
-    assert UseFormat.from_mimetype("text/plain;charset=US-ASCII") == UseFormat.text_plain
+    assert UseFormat.from_mimetype("text/plain; charset=US-ASCII") == UseFormat.text_plain
 
 
 def test_from_mimetype_invalid():
