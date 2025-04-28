@@ -407,6 +407,8 @@ class ExtractImageTextCoordinates(Operation):
     language: str = "eng"
 
     def run(self) -> None:
+        # TODO: reevaluate how we're constructing file_info before
+        # TechnicalMetadata.create captures the actual mimetype.
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
             basename=self.accumulator.file_set_identifier.basename,
@@ -447,6 +449,8 @@ class ExtractImageText(Operation):
     language: str = "eng"
 
     def run(self) -> None:
+        # TODO: reevaluate how we're constructing file_info before
+        # TechnicalMetadata.create captures the actual mimetype.
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
             basename=self.accumulator.file_set_identifier.basename,
@@ -499,6 +503,8 @@ class ExtractImageText(Operation):
 class CreateTextAnnotationData(Operation):
 
     def run(self) -> None:
+        # TODO: reevaluate how we're constructing file_info before
+        # TechnicalMetadata.create captures the actual mimetype.
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
             basename=self.accumulator.file_set_identifier.basename,
