@@ -3,7 +3,7 @@ from dor.builders.parts import UseFormat
 
 
 def test_from_mimetype_application():
-    # Test audio MIME types
+    # Test application MIME types
     assert UseFormat.from_mimetype("application/annotation+json") == UseFormat.text_annotations
 
     with pytest.raises(ValueError):
@@ -21,7 +21,7 @@ def test_from_mimetype_audio():
 
 
 def test_from_mimetype_image():
-    # Test various image MIME types
+    # Test image MIME types
     assert UseFormat.from_mimetype("image/jpeg") == UseFormat.image
     assert UseFormat.from_mimetype("image/png") == UseFormat.image
     assert UseFormat.from_mimetype("image/tiff") == UseFormat.image
@@ -29,7 +29,7 @@ def test_from_mimetype_image():
 
 
 def test_from_mimetype_text():
-    # Test various text MIME types
+    # Test text MIME types
     assert UseFormat.from_mimetype("text/plain") == UseFormat.text_plain
     assert UseFormat.from_mimetype("text/plain; charset=UTF-8") == UseFormat.text_plain
     assert UseFormat.from_mimetype("text/annotation+xml") == UseFormat.text_annotations
