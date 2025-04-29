@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Type
 
-from dor.providers.accumulator import Accumulator, FileSetIdentifier
+from dor.providers.accumulator import Accumulator
+from dor.providers.file_set_identifier import FileSetIdentifier
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.operations import CopySource, Operation, OrientSourceImage
 
