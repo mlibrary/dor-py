@@ -2,14 +2,16 @@ from pathlib import Path
 
 import pytest
 
+from dor.providers.accumulator import FileSetIdentifier
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.process_basic_image import (
-    Command,
+from dor.providers.operations import (
     CompressSourceImage,
     CreateTextAnnotationData,
     ExtractImageText,
     ExtractImageTextCoordinates,
-    FileSetIdentifier,
+)
+from dor.providers.process_basic_image import (
+    Command,
     Input,
     process_basic_image,
 )
