@@ -2,15 +2,16 @@ from pathlib import Path
 
 import pytest
 
+from dor.adapters.technical_metadata import ImageTechnicalMetadata
+from dor.providers.accumulator import FileSetIdentifier
 from dor.providers.file_system_file_provider import FilesystemFileProvider
+from dor.providers.operations import CompressSourceImage
 from dor.providers.process_basic_image import (
     Command,
-    CompressSourceImage,
-    FileSetIdentifier,
     Input,
     process_basic_image,
 )
-from dor.adapters.technical_metadata import ImageTechnicalMetadata
+
 
 @pytest.fixture
 def file_set_identifier() -> FileSetIdentifier:
@@ -49,5 +50,3 @@ def test_process_basic_image_creates_service_image(file_set_identifier, image_in
 
     tech_metadata = ImageTechnicalMetadata.create(service_image_file)
     assert tech_metadata.rotated is False
-
-
