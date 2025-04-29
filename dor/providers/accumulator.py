@@ -23,7 +23,6 @@ from dor.providers.serializers import PreservationEventSerializer
 from dor.settings import template_env
 
 
-
 @dataclass
 class FileInfoAssociation:
     file_info: FileInfo
