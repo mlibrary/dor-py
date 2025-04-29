@@ -1,5 +1,3 @@
-import uuid
-import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +11,7 @@ from dor.builders.parts import (
     UseFormat,
     UseFunction
 )
+from dor.providers.file_set_identifier import FileSetIdentifier
 from dor.providers.models import (
     AlternateIdentifier,
     FileMetadata,
@@ -21,29 +20,8 @@ from dor.providers.models import (
     PreservationEvent,
 )
 from dor.providers.serializers import PreservationEventSerializer
-from dor.providers.utilities import sanitize_basename
 from dor.settings import template_env
 
-
-class FileSetIdentifier:
-
-    def __init__(self, project_id: str, file_name: str):
-        self.project_id = project_id
-        self.file_name = file_name
-        self.basename = sanitize_basename(Path(file_name).stem)
-
-    @property
-    def alternate_identifier(self) -> str:
-        return f"{self.project_id}:{self.basename}"
-
-    @property
-    def uuid(self) -> uuid.UUID:
-        hex_string = hashlib.md5(self.alternate_identifier.encode("UTF-8")).hexdigest()
-        return uuid.UUID(hex=hex_string)
-
-    @property
-    def identifier(self) -> str:
-        return str(self.uuid)
 
 
 @dataclass
