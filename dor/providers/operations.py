@@ -52,10 +52,14 @@ class CopySource(Operation):
         except JHOVEDocError:
             return None
 
+        use_functions = [UseFunction.source]
+        if source_tech_metadata.mimetype == Mimetype.JP2:
+            use_functions.append(UseFunction.service)
+
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
             basename=self.accumulator.file_set_identifier.basename,
-            uses=[UseFunction.source, UseFormat.from_mimetype(source_tech_metadata.mimetype.value)],
+            uses=use_functions + [UseFormat.from_mimetype(source_tech_metadata.mimetype.value)],
             mimetype=source_tech_metadata.mimetype.value,
         )
 
@@ -131,6 +135,9 @@ class CompressSourceImage(Operation):
         source_result_file = self.accumulator.get_file(
             function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
         )
+
+        if UseFunction.service in source_result_file.file_info.uses:
+            return None
 
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
