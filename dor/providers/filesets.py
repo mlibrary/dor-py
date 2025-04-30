@@ -21,17 +21,22 @@ from rq import Queue
 
 from dor.config import config
 
+# FIXME: Move redis connection to a service?
 redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
+
+# TODO: Move profile registry? Build out as a member of something? Leave here?
 profiles: dict[str, Queue] = {
     "basic-image": Queue("fileset.basic-image", connection=redis),
     "bogus-profile": Queue("fileset.bogus-profile", connection=redis),
 }
 
 
+# Utility method, where should it live?
 def fileset_workdir(id: str):
     return config.filesets_path / id
 
 
+# Setup is used to drop the source files as they come in, needed from API
 def setup_job_dir(id: str, files: list[UploadFile]) -> Path:
     basepath = fileset_workdir(id)
     basepath.mkdir(parents=True, exist_ok=True)
@@ -56,9 +61,12 @@ def setup_job_dir(id: str, files: list[UploadFile]) -> Path:
     return job_dir
 
 
+# FIXME: how do we ask what time is "now", globally?
 def now():
     return datetime.now().isoformat()
 
+
+# This is the real "job":
 def process_fileset(id: str, job_idx: int, collection: str, name: str, profile: str):
     job_dir = fileset_workdir(id) / str(job_idx)
     src_dir = job_dir / "src"
@@ -67,7 +75,7 @@ def process_fileset(id: str, job_idx: int, collection: str, name: str, profile: 
     (build_dir / "technical.md").write_text(f'technical metadata for {name}\n')
     (build_dir / "descriptive.mets.xml").write_text(f'<?xml version="1.0" encoding="UTF-8" ?>\n<mets>descriptive metadata for {name}</mets>\n')
     for file in src_dir.glob('*'):
-        _ = (build_dir / file.name).write_bytes(file.read_bytes())
+        (build_dir / file.name).write_bytes(file.read_bytes())
 
     with (job_dir / "fileset.log").open("a") as log:
         log.write(f'[{now()}] - (totally fake) {profile} - File Set tagged as destined for collection: {collection}.\n')

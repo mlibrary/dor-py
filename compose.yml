@@ -94,7 +94,7 @@ services:
         POETRY_VERSION: ${POETRY_VERSION:-1.8.4}
     env_file:
       - .env
-    command: ["poetry", "run", "python", "generic-worker.py"]
+    command: ["poetry", "run", "python", "bin/generic-worker.py"]
     volumes:
       - .:/app
       - fileset-data:/data/filesets

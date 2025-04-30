@@ -1,13 +1,8 @@
-import uuid
-import hashlib
-
-from datetime import datetime
-from pathlib import Path
 from typing import Annotated
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 
-from dor.config import config
-from dor.jobs import profiles, fileset_workdir, setup_job_dir, now, process_fileset
+from dor.providers.filesets import profiles, setup_job_dir, now, process_fileset
+from dor.providers.file_set_identifier import FileSetIdentifier
 
 filesets_router = APIRouter(prefix="/filesets")
 
@@ -22,7 +17,7 @@ async def create_fileset(
     if profile not in profiles:
         raise HTTPException(status_code=400, detail="Invalid File Set Profile requested")
 
-    id = str(uuid.UUID(hashlib.md5(f'{collection}:{name}'.encode()).hexdigest()))
+    id = FileSetIdentifier(project_id=collection, file_name=name).identifier
     job_dir = setup_job_dir(id, files)
     job_idx = job_dir.name
 
