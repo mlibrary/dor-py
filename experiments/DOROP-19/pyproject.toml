@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "dor-mockyrie"
 version = "0.1.0"
-description = "DOR experiment: database storage"
+description = "DOR scripts"
 authors = ["Roger Espinosa <roger@umich.edu>"]
 readme = "README.md"
 packages = [{include = "dor"}]
@@ -11,8 +11,8 @@ dor = "dor.cli.main:app"
 
 
 [tool.poetry.dependencies]
-python = "^3.12"
-bagit = {version = "^1.9b2", allow-prereleases = true}
+python = "^3.11"
+bagit = "^1.8.1"
 faker = "^30.3.0"
 faker-biology = "^0.6.4"
 pillow = "^10.4.0"
@@ -20,24 +20,15 @@ typer = "^0.12.5"
 uuid6 = "^2024.7.10"
 python-ulid = "^2.7.0"
 jinja2 = "^3.1.4"
-psycopg = "^3.2.3"
+jsonmodels = "^2.7.0"
+pydantic = "^2.9.2"
+marshmallow = "^3.23.0"
 sqlalchemy = "^2.0.36"
-fastapi = {extras = ["standard"], version = "^0.115.6"}
-cattrs = "^24.1.2"
-requests = "^2.26.0"
-pytesseract = "^0.3.13"
+psycopg = "^3.2.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
 ruff = "^0.2.2"
-pytest-bdd = "^8.1.0"
-pytest-env = "^1.1.5"
-autopep8 = "^2.3.2"
-
-[tool.autopep8]
-max_line_length = 120
-in-place = true
-recursive = true
 
 [build-system]
 requires = ["poetry-core"]
