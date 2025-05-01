@@ -20,6 +20,7 @@ from redis import Redis
 from rq import Queue
 
 from dor.config import config
+from dor.providers.file_set_identifier import FileSetIdentifier
 
 # FIXME: Move redis connection to a service?
 redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
@@ -32,13 +33,13 @@ profiles: dict[str, Queue] = {
 
 
 # Utility method, where should it live?
-def fileset_workdir(id: str):
-    return config.filesets_path / id
+def fileset_workdir(fsid: FileSetIdentifier):
+    return config.filesets_path / fsid.identifier
 
 
 # Setup is used to drop the source files as they come in, needed from API
-def setup_job_dir(id: str, files: list[UploadFile]) -> Path:
-    basepath = fileset_workdir(id)
+def setup_job_dir(fsid: FileSetIdentifier, files: list[UploadFile]) -> Path:
+    basepath = fileset_workdir(fsid)
     basepath.mkdir(parents=True, exist_ok=True)
     p = re.compile(r'\d+')
     jobs = [int(d.name) for d in
@@ -67,18 +68,18 @@ def now():
 
 
 # This is the real "job":
-def process_fileset(id: str, job_idx: int, collection: str, name: str, profile: str):
-    job_dir = fileset_workdir(id) / str(job_idx)
+def process_fileset(fsid: FileSetIdentifier, job_idx: int, profile: str):
+    job_dir = fileset_workdir(fsid) / str(job_idx)
     src_dir = job_dir / "src"
     build_dir = job_dir / "build"
 
-    (build_dir / "technical.md").write_text(f'technical metadata for {name}\n')
-    (build_dir / "descriptive.mets.xml").write_text(f'<?xml version="1.0" encoding="UTF-8" ?>\n<mets>descriptive metadata for {name}</mets>\n')
+    (build_dir / "technical.md").write_text(f'technical metadata for {fsid.basename}\n')
+    (build_dir / "descriptive.mets.xml").write_text(f'<?xml version="1.0" encoding="UTF-8" ?>\n<mets>descriptive metadata for {fsid.basename}</mets>\n')
     for file in src_dir.glob('*'):
         (build_dir / file.name).write_bytes(file.read_bytes())
 
     with (job_dir / "fileset.log").open("a") as log:
-        log.write(f'[{now()}] - (totally fake) {profile} - File Set tagged as destined for collection: {collection}.\n')
+        log.write(f'[{now()}] - (totally fake) {profile} - File Set tagged as part of project: {fsid.project_id}\n')
         log.write(f'[{now()}] - (totally fake) {profile} - Doing some pretend work...\n')
         time.sleep(2)
         log.write(f'[{now()}] - (totally fake) {profile} - File Set processing complete in <some amount of time>\n')
