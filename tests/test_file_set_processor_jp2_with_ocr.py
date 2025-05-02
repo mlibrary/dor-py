@@ -59,3 +59,25 @@ def test_process_creates_source_service_image_for_jp2(
     image_file = output_path / file_set_identifier.identifier /  \
         "data" / ("quick-brown.function:source.function:service.format:image.jp2")
     assert image_file.exists()
+
+
+def test_process_creates_ocr_data_files(
+    file_set_identifier, jp2_image_with_ocr_input, output_path
+):
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=[jp2_image_with_ocr_input],
+        output_path=output_path
+    )
+
+    text_coordinates_file = output_path / file_set_identifier.identifier /  \
+        "data" / ("quick-brown.function:service.format:text-coordinate.xml")
+    text_coordinates_file.exists()
+
+    plain_text_file = output_path / file_set_identifier.identifier /  \
+        "data" / ("quick-brown.function:service.format:text-plain.txt")
+    plain_text_file.exists()
+
+    annotation_file = output_path / file_set_identifier.identifier /  \
+        "data" / ("quick-brown.function:service.format:text-annotation.json")
+    annotation_file.exists()
