@@ -169,6 +169,18 @@ class PackageGenerator:
                 missing_file_set_ids.append(file_set_id)
         return incorporated_file_set_ids, missing_file_set_ids
 
+    def search_for_file_sets(self, file_set_ids: list[str]) -> Tuple[list[str], list[str]]:
+        referenced_file_set_ids: list[str] = []
+        missing_file_set_ids: list[str] = []
+        for file_set_id in file_set_ids:
+            search_result = self.op_client.search_for_file_set(file_set_id)
+            if search_result:
+                referenced_file_set_ids.append(file_set_id)
+            else:
+                missing_file_set_ids.append(file_set_id)
+        return referenced_file_set_ids, missing_file_set_ids
+
+
     def create_root_descriptor_file(
         self,
         resource: PackageResource,
@@ -216,18 +228,8 @@ class PackageGenerator:
             )
         physical_struct_map = physical_struct_maps[0]
         incorporated_file_set_ids, not_local_file_set_ids = self.incorporate_file_sets(physical_struct_map)
-
-        file_set_ids = incorporated_file_set_ids
-
-        referenced_file_set_ids: list[str] = []
-        missing_file_set_ids: list[str] = []
-        for file_set_id in not_local_file_set_ids:
-            search_result = self.op_client.search_for_file_set(file_set_id)
-            if search_result:
-                referenced_file_set_ids.append(file_set_id)
-            else:
-                missing_file_set_ids.append(file_set_id)
-        file_set_ids.extend(referenced_file_set_ids)
+        referenced_file_set_ids, missing_file_set_ids = self.search_for_file_sets(not_local_file_set_ids)
+        file_set_ids = incorporated_file_set_ids + referenced_file_set_ids
 
         if len(missing_file_set_ids) > 0:
             self.clear_package_path()
