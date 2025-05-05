@@ -9,27 +9,28 @@ filesets_router = APIRouter(prefix="/filesets")
 
 @filesets_router.post("/")
 async def create_fileset(
-    files: Annotated[list[UploadFile], File(description="Source files to process into a fileset; often a single file, but may include supplemental configuration or metadata. The first will be considered primary.")],
-    name: Annotated[str, Form(description="The name of the fileset; typically the name of the primary file")],
-    collection: Annotated[str, Form(description="The collection to which this file or item will notionally belong")],
+    files: Annotated[list[UploadFile], File(description="Source files to process into a fileset; often a single file, but may include supplemental configuration or metadata. [DECIDE: Handle primary/supplemental together? Use first file as primary? Allow fileset name/id to be supplied separately?]")],
+    name: Annotated[str, Form(description="PROVISIONAL: The name of the fileset; typically the name of the primary file")],
+    project_id: Annotated[str, Form(description="The 'project' under which this file is being handled; often a shorthand for an upcoming collection to which this file or item will notionally belong")],
     profile: Annotated[str, Form(description="The profile of this file/fileset; determines the processing to conduct and type of result")],
 ):
     if profile not in profiles:
         raise HTTPException(status_code=400, detail="Invalid File Set Profile requested")
 
-    id = FileSetIdentifier(project_id=collection, file_name=name).identifier
-    job_dir = setup_job_dir(id, files)
+    fsid = FileSetIdentifier(project_id=project_id, file_name=name)
+    job_dir = setup_job_dir(fsid, files)
     job_idx = job_dir.name
 
     with (job_dir / "fileset.log").open("a") as log:
-        log.write(f'[{now()}] - (totally fake) {profile} - Processing Queued for fileset: {name}\n')
+        log.write(f'[{now()}] - (totally fake) {profile} - Processing Queued for fileset: {name} [fsid: {fsid.identifier}]\n')
 
-    profiles.get(profile).enqueue(process_fileset, id, int(job_idx), collection, name, profile)
+    profiles.get(profile).enqueue(process_fileset, fsid, int(job_idx), profile)
 
     return {
-        "id": id,
-        "coll": collection,
+        "id": fsid.identifier,
+        "project_id": project_id,
         "name": name,
+        "alt_id": fsid.alternate_identifier,
         "profile": profile,
         "files": [file.filename for file in files],
         "job_path": job_dir.absolute(),
