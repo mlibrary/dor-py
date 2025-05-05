@@ -57,12 +57,12 @@ class PackageGenerator:
     def __init__(
         self,
         file_provider: FileProvider,
+        op_client: OPClient,
         metadata: dict[str, Any],
         deposit_group: DepositGroup,
         output_path: Path,
         file_set_path: Path,
         timestamp: datetime,
-        op_client: OPClient | None = None
     ):
         self.file_provider = file_provider
         self.metadata = metadata
@@ -219,18 +219,15 @@ class PackageGenerator:
 
         file_set_ids = incorporated_file_set_ids
 
-        if self.op_client:
-            referenced_file_set_ids: list[str] = []
-            missing_file_set_ids: list[str] = []
-            for file_set_id in not_local_file_set_ids:
-                search_result = self.op_client.search_for_file_set(file_set_id)
-                if search_result:
-                    referenced_file_set_ids.append(file_set_id)
-                else:
-                    missing_file_set_ids.append(file_set_id)
-            file_set_ids.extend(referenced_file_set_ids)
-        else:
-            missing_file_set_ids = not_local_file_set_ids
+        referenced_file_set_ids: list[str] = []
+        missing_file_set_ids: list[str] = []
+        for file_set_id in not_local_file_set_ids:
+            search_result = self.op_client.search_for_file_set(file_set_id)
+            if search_result:
+                referenced_file_set_ids.append(file_set_id)
+            else:
+                missing_file_set_ids.append(file_set_id)
+        file_set_ids.extend(referenced_file_set_ids)
 
         if len(missing_file_set_ids) > 0:
             self.clear_package_path()
