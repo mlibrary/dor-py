@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
+from dor.providers.op_client import FileSetSearchResult, OPClient
 from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
 
 
@@ -66,6 +67,44 @@ def test_generator_generates_package(
     descriptor_path = package_data_path / root_identifier / "descriptor"
     descriptor_file = f"{root_identifier}.monograph.mets2.xml"
     assert (descriptor_path / descriptor_file).exists()
+
+    # Package result returned
+    assert result == PackageResult(
+        package_identifier=package_identifier,
+        deposit_group_identifier=deposit_group.identifier,
+        success=True,
+        message="Generated package successfully!"
+    )
+
+
+class FakeOPClient(OPClient):
+
+    def search_for_file_set(self, file_set_identifier: str) -> FileSetSearchResult | None:
+        return FileSetSearchResult(
+            file_set_identifier="00000000-0000-0000-0000-000000002001",
+            bin_identifier="00000000-0000-0000-0000-000000000001"
+        )
+
+
+def test_generator_generates_package_with_referenced_dorop_fileset(
+    fixtures_path: Path, test_output_path: Path, deposit_group: DepositGroup
+) -> None:
+    metadata_path = fixtures_path / "sample_package_metadata_with_referenced_file_set.json"
+    metadata = json.loads(metadata_path.read_text())
+
+    generator = PackageGenerator(
+        file_provider=FilesystemFileProvider(),
+        metadata=metadata,
+        deposit_group=deposit_group,
+        output_path=test_output_path,
+        file_set_path=fixtures_path / "file_sets",
+        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC),
+        op_client=FakeOPClient()
+    )
+    result = generator.generate()
+
+    root_identifier = "00000000-0000-0000-0000-000000000001"
+    package_identifier = f"{root_identifier}_19700101000000"
 
     # Package result returned
     assert result == PackageResult(
