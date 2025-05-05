@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.op_client import FileSetSearchResult, OPClient
+from dor.providers.op_client import FakeOPClient, FileSetSearchResult, OPClient
 from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
 
 
@@ -31,12 +31,6 @@ def deposit_group() -> DepositGroup:
     )
 
 
-class FakeOPClientWithNoResults(OPClient):
-
-    def search_for_file_set(self, file_set_identifier: str) -> FileSetSearchResult | None:
-        return None
-
-
 def test_generator_generates_package(
     fixtures_path: Path, test_output_path: Path, deposit_group: DepositGroup
 ) -> None:
@@ -45,7 +39,7 @@ def test_generator_generates_package(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
-        op_client=FakeOPClientWithNoResults(),
+        op_client=FakeOPClient(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
@@ -133,7 +127,7 @@ def test_generator_fails_when_metadata_references_missing_file_set(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
-        op_client=FakeOPClientWithNoResults(),
+        op_client=FakeOPClient(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
@@ -160,7 +154,7 @@ def test_generator_fails_when_metadata_is_missing_file_data(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
-        op_client=FakeOPClientWithNoResults(),
+        op_client=FakeOPClient(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
@@ -190,7 +184,7 @@ def test_generator_fails_when_metadata_is_missing_struct_map(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
-        op_client=FakeOPClientWithNoResults(),
+        op_client=FakeOPClient(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
