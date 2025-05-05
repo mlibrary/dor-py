@@ -29,7 +29,6 @@ def create_preservation_event(
     return event
 
 
-
 @dataclass
 class Operation(ABC):
     accumulator: Accumulator
@@ -309,3 +308,16 @@ class CreateTextAnnotationData(Operation):
                 event=event,
             )
         )
+
+
+@dataclass
+class AppendUses(Operation):
+    target: dict
+    uses: list[UseFunction]
+
+    def run(self) -> None:
+        target_result_file = self.accumulator.get_file(function=self.target["function"], format=self.target["format"])
+        for use in self.uses:
+            target_result_file.file_info.uses.append(UseFunction(use))
+        target_result_file.file_path.rename(self.accumulator.file_set_directory / target_result_file.file_info.path)
+        return None
