@@ -31,6 +31,12 @@ def deposit_group() -> DepositGroup:
     )
 
 
+class FakeOPClientWithNoResults(OPClient):
+
+    def search_for_file_set(self, file_set_identifier: str) -> FileSetSearchResult | None:
+        return None
+
+
 def test_generator_generates_package(
     fixtures_path: Path, test_output_path: Path, deposit_group: DepositGroup
 ) -> None:
@@ -39,6 +45,7 @@ def test_generator_generates_package(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClientWithNoResults(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
@@ -77,13 +84,16 @@ def test_generator_generates_package(
     )
 
 
-class FakeOPClient(OPClient):
-
-    def search_for_file_set(self, file_set_identifier: str) -> FileSetSearchResult | None:
-        return FileSetSearchResult(
+class FakeOPClientWithResult(OPClient):
+    results: dict[str, FileSetSearchResult] = {
+        "00000000-0000-0000-0000-000000002001": FileSetSearchResult(
             file_set_identifier="00000000-0000-0000-0000-000000002001",
             bin_identifier="00000000-0000-0000-0000-000000000001"
         )
+    }
+
+    def search_for_file_set(self, file_set_identifier: str) -> FileSetSearchResult | None:
+        return self.results.get(file_set_identifier)
 
 
 def test_generator_generates_package_with_referenced_dorop_fileset(
@@ -94,12 +104,12 @@ def test_generator_generates_package_with_referenced_dorop_fileset(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClientWithResult(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
         file_set_path=fixtures_path / "file_sets",
-        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC),
-        op_client=FakeOPClient()
+        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
 
@@ -123,6 +133,7 @@ def test_generator_fails_when_metadata_references_missing_file_set(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClientWithNoResults(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
@@ -149,6 +160,7 @@ def test_generator_fails_when_metadata_is_missing_file_data(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClientWithNoResults(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
@@ -178,6 +190,7 @@ def test_generator_fails_when_metadata_is_missing_struct_map(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClientWithNoResults(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
