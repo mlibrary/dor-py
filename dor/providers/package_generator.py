@@ -180,7 +180,6 @@ class PackageGenerator:
                 missing_file_set_ids.append(file_set_id)
         return referenced_file_set_ids, missing_file_set_ids
 
-
     def create_root_descriptor_file(
         self,
         resource: PackageResource,
