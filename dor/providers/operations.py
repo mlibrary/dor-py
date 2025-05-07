@@ -81,9 +81,13 @@ class CopySource(Operation):
 class OrientSourceImage(Operation):
 
     def run(self) -> None:
-        source_result_file = self.accumulator.get_file(
-            function=[UseFunction.source], format=UseFormat.image
-        )
+        try:
+            source_result_file = self.accumulator.get_file(
+                function=[UseFunction.source], format=UseFormat.image
+            )
+        except AccumulatorError:
+            return None
+
         if source_result_file.file_path is None:
             return None
 
