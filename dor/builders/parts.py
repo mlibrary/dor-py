@@ -264,9 +264,26 @@ class FileInfo:
             case _:
                 return "bin"
 
+    @classmethod
+    def use_sort_key(cls, x):
+        if isinstance(x, UseFunction):
+            # First priority: UseFunction comes before UseFormat (prefix with '1')
+            priority = "1"
+
+            # Special order for source and service
+            if x == UseFunction.source:
+                return priority + "1"
+            elif x == UseFunction.service:
+                return priority + "2"
+            # All other UseFunction values sorted alphabetically after source and service
+            return priority + "3" + x.value
+
+        # UseFormat items come after (prefix with '2') and are sorted alphabetically
+        return "2" + x.value
+
     @property
     def filename(self):
-        return f"{self.basename}.{flatten_use(*self.uses, delim='.')}.{self.ext}"
+        return f"{self.basename}.{flatten_use(*sorted(self.uses, key=self.use_sort_key), delim='.')}.{self.ext}"
 
     @property
     def locref(self):
