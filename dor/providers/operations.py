@@ -134,6 +134,7 @@ class CompressSourceImage(Operation):
 
         if source_result_file.tech_metadata.mimetype == Mimetype.JP2:
             source_result_file.file_info.uses.append(UseFunction.service)
+            # TODO: Revisit once file-naming scheme is assessed
             new_file_path = self.accumulator.file_set_directory / source_result_file.file_info.path
             source_result_file.file_path.rename(new_file_path)
             source_result_file.file_path = new_file_path
