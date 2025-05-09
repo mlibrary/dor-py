@@ -1,6 +1,7 @@
 services:
   app:
     depends_on:
+      - api
       - db
       - pocketbase
     build: 
