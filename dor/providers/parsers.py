@@ -62,11 +62,11 @@ class DescriptorFileParser:
         record_status = header.get_optional("RECORDSTATUS")
         return record_status == "root"
 
-    def get_alternate_identifier(self) -> AlternateIdentifier:
-        alt_record_id = self.tree.find("METS:metsHdr/METS:altRecordID")
-        return AlternateIdentifier(
-            type=alt_record_id.get("TYPE"), id=alt_record_id.text
-        )
+    def get_alternate_identifier(self) -> list[AlternateIdentifier]:
+        return [
+            AlternateIdentifier(type=elem.get('TYPE'), id=elem.text)
+            for elem in self.tree.findall("METS:metsHdr/METS:altRecordID")
+        ]
 
     def get_preservation_event_paths(self) -> list[str]:
         locrefs = []
