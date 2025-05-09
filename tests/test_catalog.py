@@ -50,6 +50,18 @@ def test_memory_catalog_returns_latest_for_alternate_identifier(
     revision = catalog.get_by_alternate_identifier("xyzzy:00000001")
     assert revision == sample_revision_two
 
+@pytest.mark.usefixtures("sample_revision", "referenced_revision")
+def test_memory_catalog_returns_latest_by_file_set_identifier(
+    sample_revision, referenced_revision
+) -> None:
+    catalog = MemoryCatalog()
+    catalog.add(sample_revision)
+    catalog.add(referenced_revision)
+
+    revisions = catalog.find_by_file_set("00000000-0000-0000-0000-000000001001")
+    assert sample_revision in revisions
+    assert referenced_revision in revisions
+
 @pytest.mark.usefixtures("sample_revision", "sample_revision_two")
 def test_memory_catalog_gets_revisions(
     sample_revision, sample_revision_two
@@ -188,6 +200,23 @@ def test_catalog_returns_none_when_no_alternate_identifier_matches(db_session, s
 
     revision = catalog.get_by_alternate_identifier("xyzzy:00000001.404")
     assert revision is None
+
+@pytest.mark.usefixtures("db_session", "sample_revision", "referenced_revision")
+def test_catalog_returns_latest_for_alternate_identifier(
+    db_session, sample_revision, referenced_revision
+) -> None:
+    catalog = SqlalchemyCatalog(db_session)
+    with db_session.begin():
+        catalog.add(sample_revision)
+        db_session.commit()
+
+    with db_session.begin():
+        catalog.add(referenced_revision)
+        db_session.commit()
+
+    revisions = catalog.find_by_file_set("00000000-0000-0000-0000-000000001001")
+    assert sample_revision in revisions
+    assert referenced_revision in revisions
 
 @pytest.mark.usefixtures("db_session", "sample_revision", "sample_revision_two")
 def test_catalog_gets_revisions(

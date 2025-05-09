@@ -4,7 +4,7 @@ from datetime import datetime
 
 import sqlalchemy.exc
 from sqlalchemy import (
-    Column, DateTime, Integer, select, String, Uuid
+    Column, DateTime, Index, Integer, cast, or_, select, String, Uuid
 )
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.orm import Mapped
@@ -14,7 +14,7 @@ from sqlalchemy.ext.mutable import MutableList
 from dor.adapters.converter import converter
 from dor.adapters.sqlalchemy import Base
 from dor.domain import models
-from dor.providers.models import PackageResource
+from dor.providers.models import PackageResource, AlternateIdentifier
 
 
 class Revision(Base):
@@ -38,6 +38,14 @@ class CurrentRevision(Base):
     common_metadata: Mapped[dict] = mapped_column(JSONB)
     package_resources: Mapped[dict] = mapped_column(JSONB)
 
+    __table_args__ = (
+        Index(
+            'index_catalog_on_package_resources_jsonb_path_ops_idx',  # Give your index a meaningful name
+            package_resources,
+            postgresql_using='gin',
+            postgresql_ops={'payload': 'jsonb_path_ops'}
+        ),
+    )
 
 class Catalog(ABC):
 
@@ -51,6 +59,10 @@ class Catalog(ABC):
 
     @abstractmethod
     def get_by_alternate_identifier(self, identifier: str) -> models.Revision | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def find_by_file_set(self, file_set_identifier: str) -> list[models.Revision]:
         raise NotImplementedError
 
     @abstractmethod
@@ -84,6 +96,22 @@ class MemoryCatalog(Catalog):
             ):
                 latest_revision = revision
         return latest_revision
+
+    def find_by_file_set(self, requested_identifier: str) -> list[models.Revision]:
+        revisions = []
+        file_set_identifier = uuid.UUID(requested_identifier)
+        referenced_file_set_identifier = AlternateIdentifier(
+            type="function:version",
+            id=requested_identifier
+        )
+        for revision in self.revisions:
+            for resource in revision.package_resources:
+                if resource.id == file_set_identifier:
+                    revisions.append(revision)
+                elif resource.has_alternate_identifier(referenced_file_set_identifier):
+                    revisions.append(revision)
+
+        return revisions
 
     def get_revisions(self, identifier: str) -> list[models.Revision]:
         return [revision for revision in self.revisions if str(revision.identifier) == identifier]
@@ -134,6 +162,35 @@ class SqlalchemyCatalog(Catalog):
     def get_by_alternate_identifier(self, identifier: str) -> models.Revision | None:
         statement = select(CurrentRevision).filter(CurrentRevision.alternate_identifiers.contains([identifier]))
         return self._fetch_one(statement)
+
+    def find_by_file_set(self, requested_identifier: str) -> list[models.Revision]:
+        statement = select(CurrentRevision).where(
+            or_(
+                CurrentRevision.package_resources.op('@>')(
+                    cast([{"type":"File Set", "id":requested_identifier}], JSONB)
+                ),
+                CurrentRevision.package_resources.op('@>')(
+                    cast([{
+                        "type":"File Set", 
+                        "alternate_identifier": [
+                            {"id":requested_identifier, "type":"function:version"}
+                        ]
+                    }], JSONB)
+                ),
+            )
+        )
+
+        return [
+            models.Revision(
+                identifier=result.identifier,
+                alternate_identifiers=result.alternate_identifiers,
+                revision_number=result.revision_number,
+                created_at=result.created_at,
+                common_metadata=result.common_metadata,
+                package_resources=converter.structure(result.package_resources, list[PackageResource])
+            )            
+            for result in self.session.execute(statement).scalars().all()
+        ]
 
     def _fetch_one(self, statement):
         try:
