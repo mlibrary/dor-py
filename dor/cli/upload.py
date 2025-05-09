@@ -90,7 +90,7 @@ def upload(
     try:
         # Send POST request to the API
         response = httpx.post(
-            "http://api:8000/api/v1/filesets/",
+            "http://0.0.0.0:8000/api/v1/filesets/",
             files=upload_files,
             data=data,
         )
