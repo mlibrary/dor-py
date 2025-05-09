@@ -54,7 +54,7 @@ class DescriptorFileParserTest(TestCase):
     def test_parser_can_get_alternate_identifier(self):
         parser = DescriptorFileParser(self.descriptor_path)
 
-        expected_identifier = AlternateIdentifier(type="DLXS", id="xyzzy:00000001")
+        expected_identifier = [AlternateIdentifier(type="DLXS", id="xyzzy:00000001")]
 
         self.assertEqual(parser.get_alternate_identifier(), expected_identifier)
 
