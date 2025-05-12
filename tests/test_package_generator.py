@@ -79,15 +79,16 @@ def test_generator_generates_package(
 
 
 class FakeOPClientWithResult(OPClient):
-    results: dict[str, FileSetSearchResult] = {
-        "00000000-0000-0000-0000-000000002001": FileSetSearchResult(
+    results: dict[str, list[FileSetSearchResult]] = {
+        "00000000-0000-0000-0000-000000002001": [
+            FileSetSearchResult(
             file_set_identifier="00000000-0000-0000-0000-000000002001",
             bin_identifier="00000000-0000-0000-0000-000000000001"
-        )
+        )]
     }
 
-    def search_for_file_set(self, file_set_identifier: str) -> FileSetSearchResult | None:
-        return self.results.get(file_set_identifier)
+    def search_for_file_set(self, file_set_identifier: str) -> list[FileSetSearchResult]:
+        return self.results[file_set_identifier]
 
 
 def test_generator_generates_package_with_referenced_dorop_fileset(
