@@ -192,7 +192,7 @@ class PackageGenerator:
         with (descriptor_path / descriptor_file_name).open("w") as file:
             file.write(xmldata)
 
-    def generate(self) -> PackageResult:        
+    def generate(self) -> PackageResult:
         # Validate metadata?
 
         self.file_provider.create_directory(self.package_path)
@@ -231,7 +231,8 @@ class PackageGenerator:
         try:
             descriptive_data = self.get_metadata_file_data(use="function:source")
             descriptive_file_path = self.get_metadata_file_path(".function:source.json")
-            descriptive_file_metadata = self.get_file_metadata(file_path=descriptive_file_path, metadata_data=descriptive_data)
+            descriptive_file_metadata = self.get_file_metadata(
+                file_path=descriptive_file_path, metadata_data=descriptive_data)
             self.create_root_metadata_file(
                 file_path=descriptive_file_path,
                 data=descriptive_data["data"],
@@ -251,7 +252,8 @@ class PackageGenerator:
 
             provenance_data = self.get_metadata_file_data(use="function:provenance")
             provenance_file_path = self.get_metadata_file_path(".function:provenance.premis.xml")
-            provenance_file_metadata = self.get_file_metadata(file_path=provenance_file_path, metadata_data=provenance_data)
+            provenance_file_metadata = self.get_file_metadata(
+                file_path=provenance_file_path, metadata_data=provenance_data)
             self.create_root_metadata_file(
                 file_path=provenance_file_path,
                 data=provenance_data["data"],
@@ -267,9 +269,9 @@ class PackageGenerator:
             id=uuid.UUID(self.root_resource_identifier),
             type=self.type,
             root=True,
-            alternate_identifier=AlternateIdentifier(
+            alternate_identifiers=[AlternateIdentifier(
                 id=alternate_identifier, type="DLXS"
-            ),
+            )],
             events=[],
             metadata_files=metadata_file_metadatas,
             data_files=[],

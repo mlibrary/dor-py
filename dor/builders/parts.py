@@ -66,6 +66,7 @@ class UseFunction(str, _Enum):
     event = "function:event"
     technical = "function:technical"
     intermediate = "function:intermediate"
+    copy_of = "function:copy-of"
 
 
 class UseFormat(str, _Enum):

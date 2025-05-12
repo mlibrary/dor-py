@@ -7,7 +7,7 @@ from dor.adapters.technical_metadata import TechnicalMetadata
 from dor.builders.parts import (
     FileInfo,
     flatten_use,
-    MetadataFileInfo, 
+    MetadataFileInfo,
     UseFormat,
     UseFunction
 )
@@ -180,9 +180,9 @@ def create_package_resource(
     resource = PackageResource(
         id=file_set_identifier.uuid,
         type="File Set",
-        alternate_identifier=AlternateIdentifier(
+        alternate_identifiers=[AlternateIdentifier(
             id=file_set_identifier.alternate_identifier, type="DLXS"
-        ),
+        )],
         events=[],
         metadata_files=[
             convert_metadata_file_info_to_file_metadata(metadata_file_info)
