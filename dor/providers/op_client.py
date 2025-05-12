@@ -11,11 +11,11 @@ class FileSetSearchResult:
 class OPClient(ABC):
 
     @abstractmethod
-    def search_for_file_set(self, file_set_identifier: str) -> FileSetSearchResult | None:
+    def search_for_file_set(self, file_set_identifier: str) -> list[FileSetSearchResult]:
         raise NotImplementedError
 
 
 class FakeOPClient(OPClient):
 
-    def search_for_file_set(self, file_set_identifier: str) -> FileSetSearchResult | None:
-        return None
+    def search_for_file_set(self, file_set_identifier: str) -> list[FileSetSearchResult]:
+        return []
