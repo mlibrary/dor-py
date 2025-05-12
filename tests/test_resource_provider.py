@@ -45,7 +45,7 @@ class ResourceProviderTest(TestCase):
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
             type="Monograph",
             root=True,
-            alternate_identifier=[AlternateIdentifier(id="xyzzy:00000001", type="DLXS")],
+            alternate_identifiers=[AlternateIdentifier(id="xyzzy:00000001", type="DLXS")],
             events=[
                 PreservationEvent(
                     identifier="8c1e311a-e477-409f-aed3-d0ddbcfbc3fa",
@@ -125,7 +125,7 @@ class ResourceProviderTest(TestCase):
         expected_resource = PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
             type="File Set",
-            alternate_identifier=[AlternateIdentifier(
+            alternate_identifiers=[AlternateIdentifier(
                 id="xyzzy:00000001:00000001", type="DLXS"
             )],
             events=[

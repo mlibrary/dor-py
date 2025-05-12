@@ -11,6 +11,7 @@ from dor.providers.models import (
     PreservationEvent, StructMap, StructMapItem, StructMapType
 )
 
+
 @pytest.mark.usefixtures("sample_revision")
 def test_catalog_generates_summary(sample_revision):
     expected_summary = converter.unstructure(dict(
@@ -23,6 +24,7 @@ def test_catalog_generates_summary(sample_revision):
     summary = summarize(sample_revision)
     assert expected_summary == summary
 
+
 @pytest.mark.usefixtures("sample_revision")
 def test_catalog_lists_file_sets(sample_revision):
     file_sets = get_file_sets(sample_revision)
@@ -33,12 +35,13 @@ def test_catalog_lists_file_sets(sample_revision):
 
     assert file_sets == expected_file_sets
 
+
 def test_catalog_has_empty_file_sets():
     no_file_sets_revision = Revision(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"),
         revision_number=1,
         created_at=datetime(2025, 2, 5, 12, 0, 0, 0, tzinfo=UTC),
-        alternate_identifiers=["xyzzy:00000001"], 
+        alternate_identifiers=["xyzzy:00000001"],
         common_metadata={
             "@schema": "urn:umich.edu:dor:schema:common",
             "title": "Discussion also Republican owner hot already itself.",
@@ -54,7 +57,7 @@ def test_catalog_has_empty_file_sets():
                 id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 type="Monograph",
                 root=True,
-                alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
+                alternate_identifiers=[AlternateIdentifier(id="xyzzy:00000001", type="DLXS")],
                 events=[
                     PreservationEvent(
                         identifier="abdcb901-721a-4be0-a981-14f514236633",

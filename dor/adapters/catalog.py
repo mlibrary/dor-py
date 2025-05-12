@@ -13,6 +13,7 @@ from sqlalchemy.ext.mutable import MutableList
 
 from dor.adapters.converter import converter
 from dor.adapters.sqlalchemy import Base
+from dor.builders.parts import UseFunction
 from dor.domain import models
 from dor.providers.models import PackageResource, AlternateIdentifier
 
@@ -47,6 +48,7 @@ class CurrentRevision(Base):
         ),
     )
 
+
 class Catalog(ABC):
 
     @abstractmethod
@@ -73,25 +75,25 @@ class Catalog(ABC):
 class MemoryCatalog(Catalog):
     def __init__(self):
         self.revisions = []
-        
+
     def add(self, revision: models.Revision) -> None:
         self.revisions.append(revision)
-        
+
     def get(self, identifier: str) -> models.Revision | None:
         latest_revision = None
         for revision in self.revisions:
             if (
-                str(revision.identifier) == identifier and \
+                str(revision.identifier) == identifier and
                 (latest_revision is None or revision.revision_number > latest_revision.revision_number)
             ):
                 latest_revision = revision
         return latest_revision
-    
+
     def get_by_alternate_identifier(self, identifier: str) -> models.Revision | None:
         latest_revision = None
         for revision in self.revisions:
             if (
-                identifier in revision.alternate_identifiers and \
+                identifier in revision.alternate_identifiers and
                 (latest_revision is None or revision.revision_number > latest_revision.revision_number)
             ):
                 latest_revision = revision
@@ -101,7 +103,7 @@ class MemoryCatalog(Catalog):
         revisions = []
         file_set_identifier = uuid.UUID(requested_identifier)
         referenced_file_set_identifier = AlternateIdentifier(
-            type="function:version",
+            type=UseFunction.copy_of.value,
             id=requested_identifier
         )
         for revision in self.revisions:
@@ -118,7 +120,7 @@ class MemoryCatalog(Catalog):
 
 
 class SqlalchemyCatalog(Catalog):
-    
+
     def __init__(self, session):
         self.session = session
 
@@ -167,13 +169,13 @@ class SqlalchemyCatalog(Catalog):
         statement = select(CurrentRevision).where(
             or_(
                 CurrentRevision.package_resources.op('@>')(
-                    cast([{"type":"File Set", "id":requested_identifier}], JSONB)
+                    cast([{"type": "File Set", "id": requested_identifier}], JSONB)
                 ),
                 CurrentRevision.package_resources.op('@>')(
                     cast([{
-                        "type":"File Set", 
-                        "alternate_identifier": [
-                            {"id":requested_identifier, "type":"function:version"}
+                        "type": "File Set",
+                        "alternate_identifiers": [
+                            {"id": requested_identifier, "type": UseFunction.copy_of.value}
                         ]
                     }], JSONB)
                 ),
@@ -188,7 +190,7 @@ class SqlalchemyCatalog(Catalog):
                 created_at=result.created_at,
                 common_metadata=result.common_metadata,
                 package_resources=converter.structure(result.package_resources, list[PackageResource])
-            )            
+            )
             for result in self.session.execute(statement).scalars().all()
         ]
 

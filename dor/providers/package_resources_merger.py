@@ -1,5 +1,6 @@
 from dor.providers.models import PackageResource, StructMapType
 
+
 class PackageResourcesMerger:
     def __init__(self, incoming: list[PackageResource], current: list[PackageResource]):
         self.incoming = incoming
@@ -64,7 +65,7 @@ class PackageResourcesMerger:
         return PackageResource(
             id=incoming_resource.id,
             type=incoming_resource.type,
-            alternate_identifier=incoming_resource.alternate_identifier,
+            alternate_identifiers=incoming_resource.alternate_identifiers,
             events=merged_events,
             metadata_files=merged_metadata_files,
             data_files=merged_data_files,
@@ -76,7 +77,8 @@ class PackageResourcesMerger:
         index = self._index(b, attr)
         for value in a + b:
             key = getattr(value, attr)
-            if value in merged: continue
+            if value in merged:
+                continue
             elif key in index:
                 merged.append(index[key])
             elif not value in merged:
@@ -88,10 +90,11 @@ class PackageResourcesMerger:
         index = {}
         for value in b:
             index[value.ref.locref] = value
-        
+
         for value in a + b:
             key = value.ref.locref
-            if value in merged: continue
+            if value in merged:
+                continue
             elif key in index:
                 merged.append(index[key])
             elif not value in merged:

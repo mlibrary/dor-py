@@ -62,7 +62,7 @@ class DescriptorFileParser:
         record_status = header.get_optional("RECORDSTATUS")
         return record_status == "root"
 
-    def get_alternate_identifier(self) -> list[AlternateIdentifier]:
+    def get_alternate_identifiers(self) -> list[AlternateIdentifier]:
         return [
             AlternateIdentifier(type=elem.get('TYPE'), id=elem.text)
             for elem in self.tree.findall("METS:metsHdr/METS:altRecordID")
