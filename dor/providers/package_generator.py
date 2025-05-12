@@ -217,8 +217,8 @@ class PackageGenerator:
             if incorporated:
                 file_set_ids.append(file_set_id)
             else:
-                search_result = self.op_client.search_for_file_set(file_set_id)
-                if search_result:
+                search_results = self.op_client.search_for_file_set(file_set_id)
+                if search_results:
                     file_set_ids.append(file_set_id)
                 else:
                     missing_file_set_ids.append(file_set_id)
