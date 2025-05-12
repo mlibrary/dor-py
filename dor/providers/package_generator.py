@@ -61,14 +61,14 @@ class PackageGenerator:
         metadata: dict[str, Any],
         deposit_group: DepositGroup,
         output_path: Path,
-        file_set_path: Path,
+        file_sets_path: Path,
         timestamp: datetime,
     ):
         self.file_provider = file_provider
         self.metadata = metadata
         self.deposit_group = deposit_group
         self.output_path = output_path
-        self.file_set_path = file_set_path
+        self.file_sets_path = file_sets_path
         self.timestamp = timestamp
         self.op_client = op_client
 
@@ -76,6 +76,11 @@ class PackageGenerator:
         self.type: str = self.metadata["type"]
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
+
+        self.file_set_directories = [
+            entry.name for entry in self.file_sets_path.iterdir()
+            if entry.is_dir()
+        ]
 
     def clear_package_path(self):
         self.file_provider.delete_dir_and_contents(self.package_path)
@@ -148,37 +153,14 @@ class PackageGenerator:
             )
         return struct_maps
 
-    def incorporate_file_sets(self, physical_struct_map: StructMap) -> Tuple[list[str], list[str]]:
-        """Copy in file set resources, keeping track of those incorporated and missing"""
-
-        file_set_directories = [
-            entry.name for entry in self.file_set_path.iterdir()
-            if entry.is_dir()
-        ]
-        incorporated_file_set_ids = []
-        missing_file_set_ids = []
-        for struct_map_item in physical_struct_map.items:
-            file_set_id = struct_map_item.file_set_id
-            if file_set_id in file_set_directories:
-                self.file_provider.clone_directory_structure(
-                    self.file_set_path / file_set_id,
-                    self.package_path / file_set_id
-                )
-                incorporated_file_set_ids.append(file_set_id)
-            else:
-                missing_file_set_ids.append(file_set_id)
-        return incorporated_file_set_ids, missing_file_set_ids
-
-    def search_for_file_sets(self, file_set_ids: list[str]) -> Tuple[list[str], list[str]]:
-        referenced_file_set_ids: list[str] = []
-        missing_file_set_ids: list[str] = []
-        for file_set_id in file_set_ids:
-            search_result = self.op_client.search_for_file_set(file_set_id)
-            if search_result:
-                referenced_file_set_ids.append(file_set_id)
-            else:
-                missing_file_set_ids.append(file_set_id)
-        return referenced_file_set_ids, missing_file_set_ids
+    def incorporate_file_set(self, file_set_id: str) -> bool:
+        if file_set_id in self.file_set_directories:
+            self.file_provider.clone_directory_structure(
+                self.file_sets_path / file_set_id,
+                self.package_path / file_set_id
+            )
+            return True
+        return False
 
     def create_root_descriptor_file(
         self,
@@ -226,9 +208,20 @@ class PackageGenerator:
                 )
             )
         physical_struct_map = physical_struct_maps[0]
-        incorporated_file_set_ids, not_local_file_set_ids = self.incorporate_file_sets(physical_struct_map)
-        referenced_file_set_ids, missing_file_set_ids = self.search_for_file_sets(not_local_file_set_ids)
-        file_set_ids = incorporated_file_set_ids + referenced_file_set_ids
+
+        missing_file_set_ids = []
+        file_set_ids = []
+        for struct_map_item in physical_struct_map.items:
+            file_set_id = struct_map_item.file_set_id
+            incorporated = self.incorporate_file_set(file_set_id)
+            if incorporated:
+                file_set_ids.append(file_set_id)
+            else:
+                search_result = self.op_client.search_for_file_set(file_set_id)
+                if search_result:
+                    file_set_ids.append(file_set_id)
+                else:
+                    missing_file_set_ids.append(file_set_id)
 
         if len(missing_file_set_ids) > 0:
             self.clear_package_path()
