@@ -95,9 +95,9 @@ def sample_resources():
         PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
             type="File Set",
-            alternate_identifiers=AlternateIdentifier(
+            alternate_identifiers=[AlternateIdentifier(
                 id="xyzzy:00000001:00000001", type="DLXS"
-            ),
+            )],
             events=[
                 PreservationEvent(
                     identifier="fe4c76e5-dbf1-4934-97fb-52ef5a68f073",
