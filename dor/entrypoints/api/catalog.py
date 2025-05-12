@@ -57,3 +57,19 @@ def get_revision_filesets(file_set_identifier: str, session=Depends(get_db_sessi
         return JSONResponse(status_code=status.HTTP_200_OK, content=mapping)
     else:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="No items were found")
+
+
+@catalog_router.get("/revisions/search/file_set/{file_set_identifier}")
+def get_revision_filesets(file_set_identifier: str, session=Depends(get_db_session)) -> JSONResponse:
+    try:
+        uuid_identifier = uuid.UUID(file_set_identifier)
+    except ValueError:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content="File set identifier is not a valid UUID.")
+
+    catalog = SqlalchemyCatalog(session)
+    revisions = catalog.find_by_file_set(str(uuid_identifier))
+    if len(revisions):
+        summaries = catalog_service.summarize_with_file_sets(revisions, uuid_identifier)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=summaries)
+    else:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="No items were found")
