@@ -5,7 +5,7 @@ import pytest
 
 from dor.adapters.converter import converter
 from dor.builders.parts import UseFunction
-from dor.service_layer.catalog_service import summarize, get_file_sets, index_by_file_set
+from dor.service_layer.catalog_service import summarize, get_file_sets, index_by_file_set, summarize_by_file_set
 from dor.domain.models import Revision
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
@@ -142,3 +142,42 @@ def test_catalog_index_by_file_set(sample_revision, referenced_revision):
     }
 
     assert expected_mapping == mapping
+
+
+@pytest.mark.usefixtures("sample_revision", "referenced_revision")
+def test_catalog_search_with_file_sets(sample_revision, referenced_revision):
+    file_set_identifier = "00000000-0000-0000-0000-000000001001"
+    summaries = summarize_by_file_set([sample_revision, referenced_revision], uuid.UUID(file_set_identifier))
+
+    referenced_file_set_identifier = AlternateIdentifier(
+        type=UseFunction.copy_of.value,
+        id=file_set_identifier
+    )
+    expected_summaries = [
+        converter.unstructure(dict(
+            identifier=sample_revision.identifier,
+            revision_number=sample_revision.revision_number,
+            created_at=sample_revision.created_at,
+            alternate_identifiers=sample_revision.alternate_identifiers,
+            common_metadata=sample_revision.common_metadata,
+            file_sets=[
+                str(resource.id)
+                for resource in sample_revision.package_resources
+                if str(resource.id) == file_set_identifier or referenced_file_set_identifier in resource.alternate_identifiers
+            ]
+        )),
+        converter.unstructure(dict(
+            identifier=referenced_revision.identifier,
+            revision_number=referenced_revision.revision_number,
+            created_at=referenced_revision.created_at,
+            alternate_identifiers=referenced_revision.alternate_identifiers,
+            common_metadata=referenced_revision.common_metadata,
+            file_sets=[
+                str(resource.id)
+                for resource in referenced_revision.package_resources
+                if resource.id == file_set_identifier or referenced_file_set_identifier in resource.alternate_identifiers
+            ]
+        )),
+    ]
+
+    assert expected_summaries == summaries
