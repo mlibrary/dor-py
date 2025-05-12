@@ -5,7 +5,7 @@ import pytest
 
 from dor.adapters.converter import converter
 from dor.builders.parts import UseFunction
-from dor.service_layer.catalog_service import summarize, get_file_sets, index_by_file_set, summarize_by_file_set
+from dor.service_layer.catalog_service import summarize, get_file_sets, index_by_file_set, summarize_with_file_sets
 from dor.domain.models import Revision
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
@@ -147,7 +147,7 @@ def test_catalog_index_by_file_set(sample_revision, referenced_revision):
 @pytest.mark.usefixtures("sample_revision", "referenced_revision")
 def test_catalog_search_with_file_sets(sample_revision, referenced_revision):
     file_set_identifier = "00000000-0000-0000-0000-000000001001"
-    summaries = summarize_by_file_set([sample_revision, referenced_revision], uuid.UUID(file_set_identifier))
+    summaries = summarize_with_file_sets([sample_revision, referenced_revision], uuid.UUID(file_set_identifier))
 
     referenced_file_set_identifier = AlternateIdentifier(
         type=UseFunction.copy_of.value,
