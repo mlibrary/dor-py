@@ -4,7 +4,8 @@ from datetime import datetime, UTC
 import pytest
 
 from dor.adapters.converter import converter
-from dor.service_layer.catalog_service import summarize, get_file_sets
+from dor.builders.parts import UseFunction
+from dor.service_layer.catalog_service import summarize, get_file_sets, index_by_file_set
 from dor.domain.models import Revision
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
@@ -115,3 +116,29 @@ def test_catalog_has_empty_file_sets():
 
     file_sets = get_file_sets(no_file_sets_revision)
     assert file_sets == []
+
+
+@pytest.mark.usefixtures("sample_revision", "referenced_revision")
+def test_catalog_index_by_file_set(sample_revision, referenced_revision):
+    file_set_identifier = "00000000-0000-0000-0000-000000001001"
+    mapping = index_by_file_set([sample_revision, referenced_revision], uuid.UUID(file_set_identifier))
+
+    referenced_file_set_identifier = AlternateIdentifier(
+        type=UseFunction.copy_of.value,
+        id=file_set_identifier
+    )
+    expected_mapping = {
+        file_set_identifier: [
+            dict(
+                bin_identifier=str(sample_revision.identifier),
+                file_set_identifier=file_set_identifier
+            ),
+            dict(
+                bin_identifier=str(referenced_revision.identifier),
+                file_set_identifier=str(
+                    [resource for resource in referenced_revision.package_resources if referenced_file_set_identifier in resource.alternate_identifiers][0].id)
+            ),
+        ]
+    }
+
+    assert expected_mapping == mapping

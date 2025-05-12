@@ -2,7 +2,9 @@ import pytest
 
 from dor.adapters.catalog import SqlalchemyCatalog
 from dor.adapters.converter import converter
+from dor.builders.parts import UseFunction
 from dor.domain.models import Revision
+from dor.providers.models import AlternateIdentifier
 
 
 @pytest.mark.usefixtures("sample_revision", "db_session", "test_client")
@@ -41,3 +43,41 @@ def test_catalog_api_returns_200_and_file_sets(
     assert response.status_code == 200
     expected_file_sets = converter.unstructure([sample_revision.package_resources[1]])
     assert response.json() == expected_file_sets
+
+
+@pytest.mark.usefixtures("sample_revision", "referenced_revision", "db_session", "test_client")
+def test_catalog_api_returns_200_and_index_by_file_set(
+    sample_revision: Revision, referenced_revision: Revision, db_session, test_client
+) -> None:
+    catalog = SqlalchemyCatalog(db_session)
+    with db_session.begin():
+        catalog.add(sample_revision)
+        db_session.commit()
+    with db_session.begin():
+        catalog.add(referenced_revision)
+        db_session.commit()
+
+    file_set_identifier = "00000000-0000-0000-0000-000000001001"
+    response = test_client.get(f"/api/v1/catalog/revisions/index/{file_set_identifier}")
+
+    assert response.status_code == 200
+
+    referenced_file_set_identifier = AlternateIdentifier(
+        type=UseFunction.copy_of.value,
+        id=file_set_identifier
+    )
+    expected_mapping = {
+        file_set_identifier: [
+            dict(
+                bin_identifier=str(sample_revision.identifier),
+                file_set_identifier=file_set_identifier
+            ),
+            dict(
+                bin_identifier=str(referenced_revision.identifier),
+                file_set_identifier=str(
+                    [resource for resource in referenced_revision.package_resources if referenced_file_set_identifier in resource.alternate_identifiers][0].id)
+            ),
+        ]
+    }
+
+    assert response.json() == expected_mapping
