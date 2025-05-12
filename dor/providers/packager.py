@@ -37,7 +37,7 @@ class Packager:
             metadata=metadata,
             deposit_group=self.deposit_group,
             output_path=self.inbox_path,
-            file_set_path=self.pending_path,
+            file_sets_path=self.pending_path,
             timestamp=self.timestamper()
         ).generate()
         return result
