@@ -30,7 +30,7 @@ def input_path() -> Path:
 @pytest.fixture
 def output_path() -> Path:
     file_provider = FilesystemFileProvider()
-    output_path = Path("tests/test_process_image_jp2_with_ocr")
+    output_path = Path("tests/output/test_file_set_processor_jp2_with_ocr")
     file_provider.delete_dir_and_contents(output_path)
     file_provider.create_directory(output_path)
     return output_path

@@ -26,7 +26,7 @@ def input_path() -> Path:
 @pytest.fixture
 def output_path() -> Path:
     file_provider = FilesystemFileProvider()
-    output_path = Path("tests/test_basic_copy_needing_rotation")
+    output_path = Path("tests/output/test_file_set_processor_needing_rotation")
     file_provider.delete_dir_and_contents(output_path)
     file_provider.create_directory(output_path)
     return output_path
