@@ -57,14 +57,14 @@ UPLOADS = [
         "name": "file3.txt",
         "status": "failed",
         "project": "dor123",
-        "isid": "batch003",
+        "isid": "batch001",
         "date": "2025-05-03",
     },
     {
         "name": "file4.txt",
         "status": "completed",
-        "project": "project",
-        "isid": "dor1234",
+        "project": "dor123",
+        "isid": "batch005",
         "date": "2025-05-04",
     },
     {

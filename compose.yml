@@ -1,9 +1,9 @@
 services:
   app:
     depends_on:
-      - api
       - db
       - pocketbase
+      - redis
     build: 
       context: .
       target: development

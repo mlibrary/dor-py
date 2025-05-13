@@ -34,7 +34,7 @@ class Config:
     database: DatabaseConfig
     pocketbase: PocketbaseConfig
     redis: RedisConfig
-
+    api_url: str
 
     @classmethod
     def from_env(cls):
@@ -47,18 +47,19 @@ class Config:
                 user=os.getenv("POSTGRES_USER", "postgres"),
                 password=os.getenv("POSTGRES_PASSWORD", "postgres"),
                 host=os.getenv("POSTGRES_HOST", "db"),
-                database=os.getenv("POSTGRES_DATABASE", "dor_local")
+                database=os.getenv("POSTGRES_DATABASE", "dor_local"),
             ),
-            pocketbase=PocketbaseConfig( 
+            pocketbase=PocketbaseConfig(
                 pb_username=os.getenv("POCKET_BASE_USERNAME", "test@umich.edu"),
                 pb_password=os.getenv("POCKET_BASE_PASSWORD", "testumich"),
-                pb_url=os.getenv("POCKET_BASE_URL", "http://pocketbase:8080")
+                pb_url=os.getenv("POCKET_BASE_URL", "http://pocketbase:8080"),
             ),
             redis=RedisConfig(
                 host=os.getenv("REDIS_HOST", "redis"),
                 port=int(os.getenv("REDIS_PORT", "6379")),
                 db=int(os.getenv("REDIS_DB", "0")),
             ),
+            api_url=os.getenv("API_URL", "http://api:8000"),
         )
 
     def _make_database_engine_url(self, database: str):
