@@ -114,11 +114,11 @@ def test_catalog_search_with_file_sets(sample_revision, referenced_revision, db_
             created_at=sample_revision.created_at,
             alternate_identifiers=sample_revision.alternate_identifiers,
             common_metadata=sample_revision.common_metadata,
-            file_sets=[
+            file_set_identifier=[
                 str(resource.id)
                 for resource in sample_revision.package_resources
                 if str(resource.id) == file_set_identifier or referenced_file_set_identifier in resource.alternate_identifiers
-            ]
+            ][0]
         )),
         converter.unstructure(dict(
             identifier=referenced_revision.identifier,
@@ -126,14 +126,12 @@ def test_catalog_search_with_file_sets(sample_revision, referenced_revision, db_
             created_at=referenced_revision.created_at,
             alternate_identifiers=referenced_revision.alternate_identifiers,
             common_metadata=referenced_revision.common_metadata,
-            file_sets=[
+            file_set_identifier=[
                 str(resource.id)
                 for resource in referenced_revision.package_resources
                 if resource.id == file_set_identifier or referenced_file_set_identifier in resource.alternate_identifiers
-            ]
+            ][0]
         )),
     ]
-
-    print(response.json())
 
     assert response.json() == expected_summaries
