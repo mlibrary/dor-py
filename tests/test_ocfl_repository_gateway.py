@@ -43,7 +43,7 @@ class OcflRepositoryGatewayTest(TestCase):
             ],
         )
 
-        self.storage_path = Path("tests/test_storage")
+        self.storage_path = Path("tests/output/test_ocfl_repository_gateway")
         self.pres_storage = self.storage_path / "test_preservation_storage"
         self.extensions_path = self.pres_storage / "extensions" / "rocfl-staging"
         self.file_provider = FilesystemFileProvider()

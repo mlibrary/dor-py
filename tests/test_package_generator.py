@@ -16,7 +16,7 @@ def fixtures_path() -> Path:
 @pytest.fixture
 def test_output_path() -> Path:
     file_provider = FilesystemFileProvider()
-    test_output_path = Path("tests/test_package_generator")
+    test_output_path = Path("tests/output/test_package_generator")
     file_provider.delete_dir_and_contents(test_output_path)
     file_provider.create_directory(test_output_path)
     return test_output_path
