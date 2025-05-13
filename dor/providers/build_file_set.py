@@ -29,12 +29,13 @@ def create_file_set_directories(file_set_directory: Path) -> None:
 
 
 def build_file_set(
-    file_set_identifier: FileSetIdentifier,
-    inputs: list[Input],
-    output_path: Path,
+    file_set_identifier: FileSetIdentifier, # fsid
+    inputs: list[Input], # a.k.a. [Input(file_path=./src/file_set_identifier.file_name, commands=[]]
+    output_path: Path, # a.k.a. ./build
     collection_manager_email: str = "example@org.edu",
 ) -> bool:
     file_set_directory = output_path / file_set_identifier.identifier
+    # file_set_identifier.file_name == primary source file
     create_file_set_directories(file_set_directory)
 
     accumulator = Accumulator(
