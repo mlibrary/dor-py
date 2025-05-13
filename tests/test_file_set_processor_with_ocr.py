@@ -10,7 +10,7 @@ from dor.providers.operations import (
     ExtractImageText,
     ExtractImageTextCoordinates,
 )
-from dor.providers.process_basic_image import (
+from dor.providers.build_file_set import (
     Command,
     Input,
     build_file_set,
