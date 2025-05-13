@@ -6,7 +6,7 @@ from dor.providers.file_set_identifier import FileSetIdentifier
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.operations import (
     AppendUses,
-    CompressSourceImage,
+    CompressSourceImage, BitonalSourceImage,
 )
 
 from dor.providers.process_basic_image import (
@@ -40,6 +40,7 @@ def inputs(input_path: Path) -> list[Input]:
     return [
         Input(file_path=input_path / "image.tiff", commands=[
             Command(operation=CompressSourceImage, kwargs={}),
+            Command(operation=BitonalSourceImage, kwargs={}),
         ]),
         Input(file_path=input_path / "text.txt", commands=[
             Command(operation=AppendUses, kwargs={
@@ -108,6 +109,25 @@ def test_process_contone_transcribed_creates_service_files(file_set_identifier, 
     assert service_text_file.exists()
     assert service_text_event_metadata.exists()
     assert service_text_technical_metadata.exists()
+
+
+def test_process_contone_transcribed_creates_preservation_files(file_set_identifier, inputs, output_path):
+    preservation_image_file = output_path / file_set_identifier.identifier / "data" / \
+        "image.function:preservation.format:image.tiff"
+    preservation_image_event_metadata = output_path / file_set_identifier.identifier / "metadata" / \
+        "image.function:preservation.format:image.tiff.function:event.premis.xml"
+    preservation_image_technical_metadata = output_path / file_set_identifier.identifier / "metadata" / \
+        "image.function:preservation.format:image.tiff.function:technical.mix.xml"
+
+    assert process_basic_image(
+        file_set_identifier=file_set_identifier,
+        inputs=inputs,
+        output_path=output_path
+    )
+
+    assert preservation_image_file.exists()
+    assert preservation_image_event_metadata.exists()
+    assert preservation_image_technical_metadata.exists()
 
 
 def test_process_contone_transcribed_creates_descriptor_file(file_set_identifier, inputs, output_path):
