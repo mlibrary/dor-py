@@ -13,7 +13,7 @@ from dor.providers.operations import (
 from dor.providers.process_basic_image import (
     Command,
     Input,
-    process_basic_image,
+    build_file_set,
 )
 
 
@@ -59,7 +59,7 @@ def image_with_plain_text_only_input(input_path: Path) -> Input:
 def test_process_creates_text_coordinates_file_and_metadata(
     file_set_identifier, image_with_ocr_input, output_path
 ):
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=[image_with_ocr_input],
         output_path=output_path
@@ -81,7 +81,7 @@ def test_process_creates_text_coordinates_file_and_metadata(
 def test_process_creates_plain_text_file_and_metadata(
     file_set_identifier, image_with_ocr_input, output_path
 ):
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=[image_with_ocr_input],
         output_path=output_path
@@ -103,7 +103,7 @@ def test_process_creates_plain_text_file_and_metadata(
 def test_process_creates_annotation_data_file_and_metadata(
     file_set_identifier, image_with_ocr_input, output_path
 ):
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=[image_with_ocr_input],
         output_path=output_path
@@ -125,7 +125,7 @@ def test_process_creates_annotation_data_file_and_metadata(
 def test_process_creates_plain_text_without_text_coordinates(
     file_set_identifier, image_with_plain_text_only_input, output_path
 ):
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=[image_with_plain_text_only_input],
         output_path=output_path

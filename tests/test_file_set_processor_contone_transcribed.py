@@ -12,7 +12,7 @@ from dor.providers.operations import (
 from dor.providers.process_basic_image import (
     Command,
     Input,
-    process_basic_image,
+    build_file_set,
 )
 
 
@@ -68,7 +68,7 @@ def test_process_contone_transcribed_copies_source_files(file_set_identifier, in
     source_text_technical_metadata = output_path / file_set_identifier.identifier / "metadata" / \
         "image.function:source.function:service.format:text-plain.txt.function:technical.textmd.xml"
 
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=inputs,
         output_path=output_path
@@ -97,7 +97,7 @@ def test_process_contone_transcribed_creates_service_files(file_set_identifier, 
     service_text_technical_metadata = output_path / file_set_identifier.identifier / "metadata" / \
         "image.function:source.function:service.format:text-plain.txt.function:technical.textmd.xml"
 
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=inputs,
         output_path=output_path
@@ -119,7 +119,7 @@ def test_process_contone_transcribed_creates_preservation_files(file_set_identif
     preservation_image_technical_metadata = output_path / file_set_identifier.identifier / "metadata" / \
         "image.function:preservation.format:image.tiff.function:technical.mix.xml"
 
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=inputs,
         output_path=output_path
@@ -134,7 +134,7 @@ def test_process_contone_transcribed_creates_descriptor_file(file_set_identifier
     descriptor_file = output_path / file_set_identifier.identifier / \
         "descriptor" / f"{file_set_identifier.uuid}.file_set.mets2.xml"
 
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=inputs,
         output_path=output_path

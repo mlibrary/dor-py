@@ -13,7 +13,7 @@ from dor.providers.operations import (
 from dor.providers.process_basic_image import (
     Command,
     Input,
-    process_basic_image,
+    build_file_set,
 )
 
 
@@ -50,7 +50,7 @@ def jp2_image_with_ocr_input(input_path: Path) -> Input:
 def test_process_creates_source_service_image_for_jp2(
     file_set_identifier, jp2_image_with_ocr_input, output_path
 ):
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=[jp2_image_with_ocr_input],
         output_path=output_path
@@ -64,7 +64,7 @@ def test_process_creates_source_service_image_for_jp2(
 def test_process_creates_ocr_data_files(
     file_set_identifier, jp2_image_with_ocr_input, output_path
 ):
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=[jp2_image_with_ocr_input],
         output_path=output_path

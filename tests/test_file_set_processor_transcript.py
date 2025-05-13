@@ -11,7 +11,7 @@ from dor.providers.operations import (
 from dor.providers.process_basic_image import (
     Command,
     Input,
-    process_basic_image,
+    build_file_set,
 )
 
 
@@ -56,7 +56,7 @@ def test_process_transcript_copies_source_files(file_set_identifier, inputs, out
     source_text_technical_metadata = output_path / file_set_identifier.identifier / "metadata" / \
         "text.function:source.function:service.format:text-plain.txt.function:technical.textmd.xml"
 
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=inputs,
         output_path=output_path
@@ -75,7 +75,7 @@ def test_process_transcript_creates_service_files(file_set_identifier, inputs, o
     service_text_technical_metadata = output_path / file_set_identifier.identifier / "metadata" / \
         "text.function:source.function:service.format:text-plain.txt.function:technical.textmd.xml"
 
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=inputs,
         output_path=output_path
@@ -90,7 +90,7 @@ def test_process_transcript_creates_descriptor_file(file_set_identifier, inputs,
     descriptor_file = output_path / file_set_identifier.identifier / \
         "descriptor" / f"{file_set_identifier.uuid}.file_set.mets2.xml"
 
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=inputs,
         output_path=output_path
