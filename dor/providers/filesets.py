@@ -68,18 +68,19 @@ def now():
 
 
 # This is the real "job":
-def process_fileset(fsid: FileSetIdentifier, job_idx: int, profile: str):
+def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx: int, profile: str):
     job_dir = fileset_workdir(fsid) / str(job_idx)
     src_dir = job_dir / "src"
     build_dir = job_dir / "build"
 
-    (build_dir / "technical.md").write_text(f'technical metadata for {fsid.basename}\n')
-    (build_dir / "descriptive.mets.xml").write_text(f'<?xml version="1.0" encoding="UTF-8" ?>\n<mets>descriptive metadata for {fsid.basename}</mets>\n')
-    for file in src_dir.glob('*'):
-        (build_dir / file.name).write_bytes(file.read_bytes())
+    # (build_dir / "technical.md").write_text(f'technical metadata for {fsid.basename}\n')
+    # (build_dir / "descriptive.mets.xml").write_text(f'<?xml version="1.0" encoding="UTF-8" ?>\n<mets>descriptive metadata for {fsid.basename}</mets>\n')
+    # for file in src_dir.glob('*'):
+    #     (build_dir / file.name).write_bytes(file.read_bytes())
+    #
+    # with (job_dir / "fileset.log").open("a") as log:
+    #     log.write(f'[{now()}] - (totally fake) {profile} - File Set tagged as part of project: {fsid.project_id}\n')
+    #     log.write(f'[{now()}] - (totally fake) {profile} - Doing some pretend work...\n')
+    #     time.sleep(2)
+    #     log.write(f'[{now()}] - (totally fake) {profile} - File Set processing complete in <some amount of time>\n')
 
-    with (job_dir / "fileset.log").open("a") as log:
-        log.write(f'[{now()}] - (totally fake) {profile} - File Set tagged as part of project: {fsid.project_id}\n')
-        log.write(f'[{now()}] - (totally fake) {profile} - Doing some pretend work...\n')
-        time.sleep(2)
-        log.write(f'[{now()}] - (totally fake) {profile} - File Set processing complete in <some amount of time>\n')
