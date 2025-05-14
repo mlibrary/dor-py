@@ -15,10 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up fileset-data volume
+      - name: Debug permissions
         run: |
-          docker volume create dor-py_fileset-data
-          docker run --rm -v dor-py_fileset-data:/data alpine sh -c "mkdir -p /data/filesets && chown -R 1000:1000 /data && chmod -R 775 /data"
+          docker run --rm -v dor-py_fileset-data:/data alpine sh -c "ls -ld /data/filesets && whoami"
+      - name: Set up fileset-data permissions
+        run: docker compose up fix_ownership
+      - name: Debug permissions
+        run: |
+          docker run --rm -v dor-py_fileset-data:/data alpine sh -c "ls -ld /data/filesets && whoami"
       - name: Run tests
         run: |
           ./init.sh
