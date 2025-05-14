@@ -6,7 +6,7 @@ import pytest
 def test_filesets_api_returns_200_and_summary(
     test_client
 ) -> None:
-    file_path = "/app/tests/fixtures/test_basic_copy/test_image.jpg"
+    file_path = "tests/fixtures/test_basic_copy/test_image.jpg"
     upload_files = []
     upload_files.append(
         (
@@ -37,7 +37,7 @@ def test_filesets_api_returns_200_and_summary(
 def test_filesets_api_returns_200_and_summary_for_image_with_ocr(
     test_client
 ) -> None:
-    file_path = "/app/tests/fixtures/test_basic_copy_with_ocr/quick-brown.tiff"
+    file_path = "tests/fixtures/test_basic_copy_with_ocr/quick-brown.tiff"
     upload_files = []
     upload_files.append(
         (
