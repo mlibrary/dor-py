@@ -15,9 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Debug permissions
-        run: |
-          docker run --rm -v dor-py_fileset-data:/data alpine sh -c "ls -ld /data/filesets && whoami"
       - name: Set up fileset-data permissions
         run: docker compose up fix_ownership
       - name: Debug permissions
