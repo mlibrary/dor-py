@@ -3,6 +3,8 @@ services:
     depends_on:
       - db
       - pocketbase
+      - redis
+      - jobs
     build: 
       context: .
       target: development
