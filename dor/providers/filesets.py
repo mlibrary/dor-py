@@ -27,10 +27,9 @@ from dor.providers.file_set_identifier import FileSetIdentifier
 # FIXME: Move redis connection to a service?
 redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
 
-# TODO: Move profile registry? Build out as a member of something? Leave here?
-profiles: dict[str, Queue] = {
-    "basic-image": Queue("fileset.basic-image", connection=redis),
-    "bogus-profile": Queue("fileset.bogus-profile", connection=redis),
+# TODO: Move queue registry? Build out as a member of something? Leave here?
+queues: dict[str, Queue] = {
+    "fileset": Queue("fileset", connection=redis)
 }
 
 
@@ -82,12 +81,5 @@ def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx:
             for command in command_data[key]
         ]
         inputs.append(Input(file_path=src_dir / key, commands=commands))
-
-    # def build_file_set(
-    #         file_set_identifier: FileSetIdentifier,  # fsid
-    #         inputs: list[Input],  # a.k.a. [Input(file_path=./src/file_set_identifier.file_name, commands=[]]
-    #         output_path: Path,  # a.k.a. ./build
-    #         collection_manager_email: str = "example@org.edu",
-    # ) -> bool:
 
     success = build_file_set(file_set_identifier=fsid, inputs=inputs, output_path=build_dir)

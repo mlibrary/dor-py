@@ -3,7 +3,7 @@ import json
 from typing import Annotated
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 
-from dor.providers.filesets import profiles, setup_job_dir, now, creates_a_file_set_from_uploaded_materials
+from dor.providers.filesets import queues, setup_job_dir, creates_a_file_set_from_uploaded_materials
 from dor.providers.file_set_identifier import FileSetIdentifier
 
 filesets_router = APIRouter(prefix="/filesets")
@@ -25,7 +25,7 @@ async def create_fileset(
     # with (job_dir / "fileset.log").open("a") as log:
     #     log.write(f'[{now()}] - (totally fake) {profile} - Processing Queued for fileset: {name} [fsid: {fsid.identifier}]\n')
 
-    profiles.get("basic-image").enqueue(creates_a_file_set_from_uploaded_materials, fsid, int(job_idx), command_data)
+    queues.get("fileset").enqueue(creates_a_file_set_from_uploaded_materials, fsid, int(job_idx), command_data)
 
     return {
         "id": fsid.identifier,
