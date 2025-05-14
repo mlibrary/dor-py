@@ -19,7 +19,6 @@ services:
     volumes:
       - .:/app
       - fileset-data:/data/filesets
-
     tty: true
     stdin_open: true
   api:
@@ -51,7 +50,7 @@ services:
     image: alpine
     volumes:
       - fileset-data:/data/filesets
-    command: sh -c "chown -R ${UID:-1000}:${GID:-1000} /data/filesets && chmod -R 775 /data/filesets"
+    command: chown -R ${UID:-1000}:${GID:-1000} /data/filesets
   db:
     ports:
       - "5432:5432"
