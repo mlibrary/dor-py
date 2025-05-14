@@ -31,3 +31,49 @@ def test_filesets_api_returns_200_and_summary(
     response = test_client.post("api/v1/filesets", files=upload_files, data=data)
 
     assert response.status_code == 200
+
+
+@pytest.mark.usefixtures("test_client")
+def test_filesets_api_returns_200_and_summary_for_image_with_ocr(
+    test_client
+) -> None:
+    file_path = "/app/tests/fixtures/test_basic_copy_with_ocr/quick-brown.tiff"
+    upload_files = []
+    upload_files.append(
+        (
+            "files",
+            (
+                "quick-brown.tiff",
+                open(file_path, "rb"),
+                "image/tiff",
+            ),
+        )
+    )
+    data = {
+        "name": "quick-brown",
+        "project_id": "today",
+        "command_data": json.dumps({
+            "quick-brown.tiff": [
+                {
+                    "operation": "CompressSourceImage",
+                    "args": {}
+                },
+                {
+                    "operation": "ExtractImageTextCoordinates",
+                    "args": {}
+                },
+                {
+                    "operation": "ExtractImageText",
+                    "args": {}
+                },
+                {
+                    "operation": "CreateTextAnnotationData",
+                    "args": {}
+                },
+            ]
+        })
+    }
+
+    response = test_client.post("api/v1/filesets", files=upload_files, data=data)
+
+    assert response.status_code == 200
