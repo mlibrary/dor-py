@@ -17,3 +17,10 @@ docker compose build
 
 echo "📦 Build python packages"
 docker compose run --rm app poetry install
+
+FILESET_DIR="data/filesets"
+if [ ! -d "$FILESET_DIR" ]; then
+  echo "Creating directory: $FILESET_DIR"
+  mkdir -p "$FILESET_DIR"
+  chmod 755 "$FILESET_DIR"
+fi
