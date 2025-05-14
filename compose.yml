@@ -4,6 +4,7 @@ services:
       - db
       - pocketbase
       - redis
+      - jobs
     build: 
       context: .
       target: development
