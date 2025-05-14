@@ -1,29 +1,5 @@
 import pytest
 
-
-# 00001.tif
-# 00001.txt
-#
-# -> { "0001": [ "0001.tif", "0001.txt" ] }
-#
-# op = { "0001.tif": "basic-image", "0001.txt": "append-service" }
-#
-# POST /upload?name=0001&files=[]&config=
-#
-# {
-# 	"image/*": ["CompressSourceImage"],
-# 	"text/*": [
-# 		"AppendUses", {
-# 			"target": {
-# 				"function": ["function:source"],
-# 				"format": "format:text-plain"
-# 			},
-# 			"uses": [ "function:service" ]
-# 		}
-# 	]
-# }
-
-
 @pytest.mark.usefixtures("test_client")
 def test_filesets_api_returns_200_and_summary(
     test_client
@@ -49,3 +25,26 @@ def test_filesets_api_returns_200_and_summary(
     response = test_client.post("api/v1/filesets", files=upload_files, data=data)
 
     assert response.status_code == 200
+
+
+# 00001.tif
+# 00001.txt
+#
+# -> { "0001": [ "0001.tif", "0001.txt" ] }
+#
+# op = { "0001.tif": "basic-image", "0001.txt": "append-service" }
+#
+# POST /upload?name=0001&files=[]&config=
+#
+# {
+# 	"image/*": ["CompressSourceImage"],
+# 	"text/*": [
+# 		"AppendUses", {
+# 			"target": {
+# 				"function": ["function:source"],
+# 				"format": "format:text-plain"
+# 			},
+# 			"uses": [ "function:service" ]
+# 		}
+# 	]
+# }
