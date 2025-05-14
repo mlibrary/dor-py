@@ -11,7 +11,7 @@
 # it from the worker out in fileset-processor.py. Everything can be moved around
 # and partitioned better as we go.
 import re
-import time
+from typing import Any
 
 from pathlib import Path
 from datetime import datetime
@@ -20,9 +20,9 @@ from redis import Redis
 from rq import Queue
 
 from dor.config import config
+from dor.providers import operations
 from dor.providers.build_file_set import build_file_set, Input, Command
 from dor.providers.file_set_identifier import FileSetIdentifier
-from dor.providers.operations import CompressSourceImage
 
 # FIXME: Move redis connection to a service?
 redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
@@ -70,16 +70,18 @@ def now():
 
 
 # This is the real "job":
-def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx: int, profile: str):
+def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx: int, command_data: dict[str, Any]):
     job_dir = fileset_workdir(fsid) / str(job_idx)
     src_dir = job_dir / "src"
     build_dir = job_dir / "build"
 
-    profile = {"test_image.jpg": "basic-image"}
-
     inputs = []
-    for key in profile.keys():
-        inputs.append(Input(src_dir/key, [Command(operation=CompressSourceImage, kwargs={})]))
+    for key in command_data.keys():
+        commands = [
+            Command(operation=getattr(operations, command["operation"]), kwargs=command["args"])
+            for command in command_data[key]
+        ]
+        inputs.append(Input(file_path=src_dir / key, commands=commands))
 
     # def build_file_set(
     #         file_set_identifier: FileSetIdentifier,  # fsid
