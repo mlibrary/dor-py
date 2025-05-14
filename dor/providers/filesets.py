@@ -20,7 +20,9 @@ from redis import Redis
 from rq import Queue
 
 from dor.config import config
+from dor.providers.build_file_set import build_file_set, Input, Command
 from dor.providers.file_set_identifier import FileSetIdentifier
+from dor.providers.operations import CompressSourceImage
 
 # FIXME: Move redis connection to a service?
 redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
@@ -73,14 +75,17 @@ def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx:
     src_dir = job_dir / "src"
     build_dir = job_dir / "build"
 
-    # (build_dir / "technical.md").write_text(f'technical metadata for {fsid.basename}\n')
-    # (build_dir / "descriptive.mets.xml").write_text(f'<?xml version="1.0" encoding="UTF-8" ?>\n<mets>descriptive metadata for {fsid.basename}</mets>\n')
-    # for file in src_dir.glob('*'):
-    #     (build_dir / file.name).write_bytes(file.read_bytes())
-    #
-    # with (job_dir / "fileset.log").open("a") as log:
-    #     log.write(f'[{now()}] - (totally fake) {profile} - File Set tagged as part of project: {fsid.project_id}\n')
-    #     log.write(f'[{now()}] - (totally fake) {profile} - Doing some pretend work...\n')
-    #     time.sleep(2)
-    #     log.write(f'[{now()}] - (totally fake) {profile} - File Set processing complete in <some amount of time>\n')
+    profile = {"test_image.jpg": "basic-image"}
 
+    inputs = []
+    for key in profile.keys():
+        inputs.append(Input(src_dir/key, [Command(operation=CompressSourceImage, kwargs={})]))
+
+    # def build_file_set(
+    #         file_set_identifier: FileSetIdentifier,  # fsid
+    #         inputs: list[Input],  # a.k.a. [Input(file_path=./src/file_set_identifier.file_name, commands=[]]
+    #         output_path: Path,  # a.k.a. ./build
+    #         collection_manager_email: str = "example@org.edu",
+    # ) -> bool:
+
+    success = build_file_set(file_set_identifier=fsid, inputs=inputs, output_path=build_dir)
