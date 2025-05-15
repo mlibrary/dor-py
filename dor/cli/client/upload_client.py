@@ -61,24 +61,23 @@ async def run_upload_fileset(
 
     finally:
         # Ensure all file streams are closed
-        for _, (_, upload_file) in upload_files:
-            upload_file.close()
+        for _, (_, upload_file_fh) in upload_files:
+            upload_file_fh.close()
 
 def prepare_files(file_paths: List[str]) -> List[Tuple[str, Tuple[str, Any]]]:
     upload_files = []
     for file_path in file_paths:
         if not os.path.exists(file_path):
             raise UploadError(f"File '{file_path}' does not exist.", code=404)
-        upload_files.append(
+        upload_files.append((
+            "files",
             (
-                "file",
-                (
-                    os.path.basename(file_path),  
-                    open(file_path, "rb"),  
-                ),
-            )
-        )
+                os.path.basename(file_path),  
+                open(file_path, "rb"),
+            ),
+        ))
     return upload_files
+
 
 async def upload_individual_files(
     client: httpx.AsyncClient,
@@ -90,18 +89,14 @@ async def upload_individual_files(
 
     for upload_file in upload_files:
         params_data = copy.deepcopy(params)
-        print("upload file:",upload_file)
-        # file_name = upload_file[1][0]
-        _, (file_basename, _) = upload_file
+        (file_basename, _) = upload_file[1]
         file_name = file_basename
         
         params_data["commands"] = params_data["commands"].format(file_path=file_name)
-        print(params_data)
         response = await client.post(
             f"{base_url}/api/v1/filesets", files=[upload_file], data=params_data
         )
         
-        print ("response:",response)
         response.raise_for_status()
         response_bodies.append(response.json())
 
