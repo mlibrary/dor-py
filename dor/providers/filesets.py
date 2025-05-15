@@ -69,17 +69,17 @@ def now():
 
 
 # This is the real "job":
-def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx: int, command_data: dict[str, Any]):
+def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx: int, commands: dict[str, Any]):
     job_dir = fileset_workdir(fsid) / str(job_idx)
     src_dir = job_dir / "src"
     build_dir = job_dir / "build"
 
     inputs = []
-    for key in command_data.keys():
-        commands = [
+    for file_name in commands.keys():
+        file_commands = [
             Command(operation=getattr(operations, command["operation"]), kwargs=command["args"])
-            for command in command_data[key]
+            for command in commands[file_name]
         ]
-        inputs.append(Input(file_path=src_dir / key, commands=commands))
+        inputs.append(Input(file_path=src_dir / file_name, commands=file_commands))
 
     success = build_file_set(file_set_identifier=fsid, inputs=inputs, output_path=build_dir)

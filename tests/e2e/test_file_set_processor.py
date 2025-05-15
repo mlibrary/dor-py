@@ -21,7 +21,7 @@ def test_filesets_api_returns_200_and_summary(
     data = {
         "name": "test_image",
         "project_id": "today",
-        "command_data": json.dumps({
+        "commands": json.dumps({
             "test_image.jpg": [{
                 "operation": "CompressSourceImage",
                 "args": {}
@@ -52,7 +52,7 @@ def test_filesets_api_returns_200_and_summary_for_image_with_ocr(
     data = {
         "name": "quick-brown",
         "project_id": "today",
-        "command_data": json.dumps({
+        "commands": json.dumps({
             "quick-brown.tiff": [
                 {
                     "operation": "CompressSourceImage",
