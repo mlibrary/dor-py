@@ -1,4 +1,5 @@
 import ast
+import json
 from dor.providers.operations import Operation
 import pytest
 import tempfile
@@ -44,26 +45,33 @@ async def test_run_upload_fileset():
             temp_files.append(temp_file.name)
 
         async with AsyncClient(app=mock_api, base_url="http://test") as client:
-            file = temp_files
-            folder = None
-            name = "Test Fileset"
-            project_id = "Test Collection"
-            commands = "basic-image"
-
             result = await run_upload_fileset(
                 client,
                 base_url="http://test",
-                file=file,
-                folder=folder,
-                name=name,
-                project_id=project_id,
-                commands=commands,
+                file=temp_files,  # Provide the list of files here
+                folder=None,
+                name="Test Fileset",
+                project_id="Test Collection",
+                commands="""
+                {{
+                    "{file_path}": {{
+                        "operation": "AppendUses",
+                        "args": {{
+                            "target": {{
+                                "function": ["function:source"],
+                                "format": "format:text-plain"
+                            }},
+                            "uses": ["function:service"]
+                        }}
+                    }}
+                }}
+                """,
             )
-
-            assert "fileset_id" in result
-            assert result["fileset_id"] == "fileset001"
-            assert result["status"] == "uploaded"
-            assert result["message"] == "Fileset uploaded successfully"
+            output = result[0]
+            assert "fileset_id" in output
+            assert output["fileset_id"] == "fileset001"
+            assert output["status"] == "uploaded"
+            assert output["message"] == "Fileset uploaded successfully"
     finally:
         for temp_file in temp_files:
             os.remove(temp_file)
@@ -99,46 +107,45 @@ def start_fastapi_server():
 
 
 def test_upload_single_file_command(start_fastapi_server):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file:
-        temp_file.write(b"Sample content for testing.")
-        file_path = temp_file.name
-
     try:
-        result = runner.invoke(
-            app,
-            [
-                "upload",
-                "run",
-                "--file",
-                file_path,
-                "--name",
-                "Test Fileset",
-                "--project-id",
-                "Test Collection",
-                "--commands", 
-                f'''
-                {{
-                    "{file_path}": {{
-                        "operation": "AppendUses",
-                        "args": {{
-                            "target": {{
-                                "function": ["function:source"],
-                                "format": "format:text-plain"
-                            }},
-                            "uses": ["function:service"]
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file:
+            temp_file.write(b"Sample content for testing.")
+            test_file = temp_file.name
+            result = runner.invoke(
+                app,
+                [
+                    "upload",
+                    "run",
+                    "--file",
+                    test_file,
+                    "--name",
+                    "Test Fileset",
+                    "--project-id",
+                    "Test Collection",
+                    "--commands",
+                    """
+                    {{
+                        "{file_path}": {{
+                            "operation": "AppendUses",
+                            "args": {{
+                                "target": {{
+                                    "function": ["function:source"],
+                                    "format": "format:text-plain"
+                                }},
+                                "uses": ["function:service"]
+                            }}
                         }}
                     }}
-                }}
-                '''
+                    """,
                 ],
-        )
-        print(result.output)
-        assert (
-            result.exit_code == 0
-        ), f"Command failed with exit code {result.exit_code}."
-        assert "Fileset created successfully" in result.output
+            )
+            print(result.stderr)
+            assert (
+                result.exit_code == 0
+            ), f"Command failed with exit code {result.exit_code}."
+            assert "Fileset created successfully" in result.output
     finally:
-        os.remove(file_path)
+        os.remove(test_file)
 
 
 # def test_upload_command_with_multiple_files(start_fastapi_server):
@@ -206,10 +213,10 @@ def test_upload_single_file_command(start_fastapi_server):
 #             parsed["coll"] == project_id
 #         ), f"Expected project_id '{project_id}', got '{parsed['coll']}'."
 
-#         assert "comands" in parsed, "Expected 'comands' key in response."
+#         assert "commands" in parsed, "Expected 'commands' key in response."
 #         assert (
-#             parsed["comands"] == commands
-#         ), f"Expected comands '{commands}', got '{parsed['comands']}'."
+#             parsed["commands"] == commands
+#         ), f"Expected commands '{commands}', got '{parsed['commands']}'."
 
 #         assert "files" in parsed, "Expected 'files' key in response."
 #         assert (
@@ -245,6 +252,20 @@ def test_upload_command_from_folder(start_fastapi_server):
             if os.path.isfile(os.path.join(folder_path, f))
         ]
 
+        commands = {
+            file: {
+                "operation": "AppendUses",
+                "args": {
+                    "target": {
+                        "function": ["function:source"],
+                        "format": "format:text-plain",
+                    },
+                    "uses": ["function:service"],
+                },
+            }
+            for file in files
+        }
+
         result = runner.invoke(
             app,
             [
@@ -257,20 +278,7 @@ def test_upload_command_from_folder(start_fastapi_server):
                 "--project-id",
                 project_id,
                 "--commands",
-                """
-                {{
-                    "{file_path}": {{
-                        "operation": "AppendUses",
-                        "args": {{
-                            "target": {{
-                                "function": ["function:source"],
-                                "format": "format:text-plain"
-                            }},
-                            "uses": ["function:service"]
-                        }}
-                    }}
-                }}
-                """,
+                json.dumps(commands),
             ],
         )
 
@@ -283,8 +291,8 @@ def test_upload_command_from_folder(start_fastapi_server):
             parsed["coll"] == project_id
         ), f"Expected project_id '{project_id}', got '{parsed['coll']}'."
         assert (
-            parsed["comands"] == commands
-        ), f"Expected comands '{comands}', got '{parsed['comands']}'."
+            parsed["commands"] == commands
+        ), f"Expected commands '{commands}', got '{parsed['commands']}'."
         assert len(parsed["files"]) == len(
             files
         ), f"Expected {len(files)} files, got {len(parsed['files'])}."

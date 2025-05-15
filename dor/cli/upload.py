@@ -58,7 +58,7 @@ async def _run_upload(
         raise typer.Exit(1)
 
     except httpx.HTTPStatusError as exc:
-        typer.echo(
+        typer.echo( 
             f"HTTP error occurred: {exc.response.status_code} - {exc.response.text}",
             err=True,
         )
