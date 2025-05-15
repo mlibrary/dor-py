@@ -1,6 +1,6 @@
 import json
 
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 
 from dor.providers.filesets import queues, setup_job_dir, creates_a_file_set_from_uploaded_materials
