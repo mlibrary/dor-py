@@ -1,3 +1,4 @@
+import copy
 import httpx
 import typer
 import os
@@ -21,11 +22,11 @@ async def run_upload_fileset(
     file: List[str],
     folder: str = None,
     name: str = None,
-    collection: str = None,
-    profile: str = None,
+    project_id: str = None,
+    commands: str = None,
 ) -> Any:
     upload_files = []
-
+    response_bodies = []
     try:
         if folder:
             if not os.path.exists(folder) or not os.path.isdir(folder):
@@ -72,20 +73,25 @@ async def run_upload_fileset(
 
         params = {
             "name": name,
-            "collection": collection,
-            "profile": profile,
+            "project_id": project_id,
+            "commands": commands,
         }
         params = {k: v for k, v in params.items() if v is not None}
+        for upload_file in upload_files: 
+            params_data= copy.deepcopy(params)
+            params_data["commands"] = params_data["commands"].format(
+                file_path=upload_file[0][1]
+            )
 
-        # Perform the HTTP request
-        response = await client.post(
-            f"{base_url}/api/v1/filesets", files=upload_files, data=params
-        )
+            response = await client.post(
+                f"{base_url}/api/v1/filesets", files=upload_file, data=params
+            )
+            response.raise_for_status()
+            response_bodies.append(response.json())
 
-        response.raise_for_status()
-        return response.json()
+        return response_bodies
 
     finally:
         # Ensure all file streams are closed
-        for _, (_, file) in upload_files:
-            file.close()
+        for _, (_, upload_file) in upload_files:
+            upload_file.close()

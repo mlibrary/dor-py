@@ -20,45 +20,22 @@ def run_upload(
         None, help="Path to a folder containing files to upload."
     ),
     name: str = typer.Option(..., help="Name of the file or fileset."),
-    collection: str = typer.Option(..., help="Collection to upload to."),
-    profile: str = typer.Option(..., help="Profile to use for the upload."),
+    project_id: str = typer.Option(..., help="Collection to upload to."),
+    commands: str = typer.Option(..., help="Profile to use for the upload."),
 ):
-    asyncio.run(_run_upload(file, folder, name, collection, profile))
+    asyncio.run(_run_upload(file, folder, name, project_id, commands))
 
 
 async def _run_upload(
     file: List[str],
     folder: str,
     name: str,
-    collection: str,
-    profile: str,
+    project_id: str,
+    commands: str,
 ):
     base_url = config.api_url
 
     try:
-        if not file and not folder:
-            raise UploadError("Either 'file' or 'folder' must be provided.", code=400)
-        if not name:
-            raise UploadError("Name is a required parameter.", code=400)
-        if not collection:
-            raise UploadError("Collection is a required parameter.", code=400)           
-        if not profile:
-            raise UploadError("Profile is a required parameter.", code=400)
-        # if folder:
-        #     if not os.path.exists(folder) or not os.path.isdir(folder):
-        #         raise UploadError(f"Folder '{folder}' does not exist or is not a directory.", code=404)
-        #     files = [
-        #         os.path.join(folder, f)
-        #         for f in os.listdir(folder)
-        #         if os.path.isfile(os.path.join(folder, f))
-        #     ]
-        #     if not files:
-        #         raise UploadError(f"No files found in folder '{folder}'.", code=404)
-        #     file = files
-        # if not file:
-        #     raise UploadError("No files to upload.", code=404)
-  
-
         async with httpx.AsyncClient(follow_redirects=True) as client:
             result = await run_upload_fileset(
                 client,
@@ -66,8 +43,8 @@ async def _run_upload(
                 file,
                 folder=folder,
                 name=name,
-                collection=collection,
-                profile=profile,
+                project_id=project_id,
+                commands=commands,
             )
         typer.echo(f"Fileset created successfully: {result}")
 
