@@ -111,6 +111,12 @@ def test_upload_single_file_command(start_fastapi_server):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file:
             temp_file.write(b"Sample content for testing.")
             test_file = temp_file.name
+
+            f = open("/app/tmp/wtf.txt", "w")
+            f.write("HEY SOMETHING")
+            f.close()
+            test_file = "/app/tmp/wtf.txt"
+
             result = runner.invoke(
                 app,
                 [
@@ -119,9 +125,9 @@ def test_upload_single_file_command(start_fastapi_server):
                     "--file",
                     test_file,
                     "--name",
-                    "Test Fileset",
+                    "TestFileset",
                     "--project-id",
-                    "Test Collection",
+                    "TestCollection",
                     "--commands",
                     """
                     {{
@@ -139,7 +145,6 @@ def test_upload_single_file_command(start_fastapi_server):
                     """,
                 ],
             )
-            print(result.stderr)
             assert (
                 result.exit_code == 0
             ), f"Command failed with exit code {result.exit_code}."
