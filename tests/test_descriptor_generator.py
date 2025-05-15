@@ -190,7 +190,7 @@ def sample_resources():
 
 def test_generator_can_create_descriptor_files(sample_resources):
     file_provider = FilesystemFileProvider()
-    package_path = Path("./tests/test_descriptor_generator")
+    package_path = Path("./tests/output/test_descriptor_generator")
     file_provider.delete_dir_and_contents(package_path)
 
     generator = DescriptorGenerator(package_path=package_path, resources=sample_resources)
@@ -201,7 +201,7 @@ def test_generator_can_create_descriptor_files(sample_resources):
 
 def test_generator_can_return_entries(sample_resources):
     file_provider = FilesystemFileProvider()
-    package_path = Path("./tests/test_descriptor_generator")
+    package_path = Path("./tests/output/test_descriptor_generator")
     file_provider.delete_dir_and_contents(package_path)
 
     generator = DescriptorGenerator(package_path=package_path, resources=sample_resources)

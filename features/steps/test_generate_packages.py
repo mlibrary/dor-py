@@ -43,7 +43,7 @@ def _(logger: Logger):
     """a JSONL dump file and file sets in pending."""
 
     file_provider = FilesystemFileProvider()
-    test_path = Path("tests/test_packager")
+    test_path = Path("tests/output/test_packager")
     inbox_path = test_path / Path("inbox")
 
     file_provider.delete_dir_and_contents(path=test_path)

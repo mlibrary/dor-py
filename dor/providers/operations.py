@@ -9,6 +9,7 @@ from pathlib import Path
 
 from dor.adapters.generate_service_variant import generate_service_variant, ServiceImageProcessingError
 from dor.adapters.image_text_extractor import AltoDoc, AnnotationData, ImageTextExtractor
+from dor.adapters.make_bitonal_file import make_fake_bitonal_file, BitonalFileError, make_bitonal_file
 from dor.adapters.make_intermediate_file import make_intermediate_file
 from dor.adapters.technical_metadata import ImageTechnicalMetadata, JHOVEDocError, Mimetype, TechnicalMetadata
 from dor.builders.parts import FileInfo, UseFormat, UseFunction
@@ -27,7 +28,6 @@ def create_preservation_event(
         agent=Agent(role="image_processing", address=collection_manager_email),
     )
     return event
-
 
 
 @dataclass
@@ -82,9 +82,13 @@ class CopySource(Operation):
 class OrientSourceImage(Operation):
 
     def run(self) -> None:
-        source_result_file = self.accumulator.get_file(
-            function=[UseFunction.source], format=UseFormat.image
-        )
+        try:
+            source_result_file = self.accumulator.get_file(
+                function=[UseFunction.source], format=UseFormat.image
+            )
+        except AccumulatorError:
+            return None
+
         if source_result_file.file_path is None:
             return None
 
@@ -132,6 +136,14 @@ class CompressSourceImage(Operation):
         source_result_file = self.accumulator.get_file(
             function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
         )
+
+        if source_result_file.tech_metadata.mimetype == Mimetype.JP2:
+            source_result_file.file_info.uses.append(UseFunction.service)
+            # TODO: Revisit once file-naming scheme is assessed
+            new_file_path = self.accumulator.file_set_directory / source_result_file.file_info.path
+            source_result_file.file_path.rename(new_file_path)
+            source_result_file.file_path = new_file_path
+            return None
 
         file_info = FileInfo(
             identifier=self.accumulator.file_set_identifier.identifier,
@@ -309,3 +321,58 @@ class CreateTextAnnotationData(Operation):
                 event=event,
             )
         )
+
+
+@dataclass
+class AppendUses(Operation):
+    target: dict
+    uses: list[UseFunction]
+
+    def run(self) -> None:
+        target_result_file = self.accumulator.get_file(function=self.target["function"], format=self.target["format"])
+        for use in self.uses:
+            target_result_file.file_info.uses.append(UseFunction(use))
+        target_result_file.file_path.rename(self.accumulator.file_set_directory / target_result_file.file_info.path)
+        return None
+
+
+@dataclass
+class BitonalSourceImage(Operation):
+
+    def run(self) -> None:
+        source_result_file = self.accumulator.get_file(
+            function=[UseFunction.intermediate, UseFunction.source], format=UseFormat.image
+        )
+
+        file_info = FileInfo(
+            identifier=self.accumulator.file_set_identifier.identifier,
+            basename=self.accumulator.file_set_identifier.basename,
+            uses=[UseFunction.preservation, UseFormat.image],
+            mimetype=Mimetype.TIFF.value,
+        )
+
+        preservation_file_path = self.accumulator.file_set_directory / file_info.path
+        try:
+            make_bitonal_file(source_result_file.file_path, preservation_file_path)
+        except BitonalFileError:
+            return None
+
+        try:
+            preservation_tech_metadata = TechnicalMetadata.create(preservation_file_path)
+        except JHOVEDocError:
+            return None
+
+        event = create_preservation_event(
+            "create Bitonal preservation file", self.accumulator.collection_manager_email
+        )
+
+        self.accumulator.add_file(
+            ResultFile(
+                file_path=preservation_file_path,
+                tech_metadata=preservation_tech_metadata,
+                file_info=file_info,
+                source_file_result=source_result_file,
+                event=event,
+            )
+        )
+        return None

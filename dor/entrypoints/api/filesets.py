@@ -1,7 +1,9 @@
-from typing import Annotated, Optional
+import json
+
+from typing import Annotated
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 
-from dor.providers.filesets import profiles, setup_job_dir, now, process_fileset
+from dor.providers.filesets import queues, setup_job_dir, creates_a_file_set_from_uploaded_materials
 from dor.providers.file_set_identifier import FileSetIdentifier
 
 filesets_router = APIRouter(prefix="/filesets")
@@ -9,28 +11,29 @@ filesets_router = APIRouter(prefix="/filesets")
 
 @filesets_router.post("/")
 async def create_fileset(
-    files: Annotated[list[UploadFile], File(description="Source files to process into a fileset; often a single file, but may include supplemental configuration or metadata. The first will be considered primary.")],
-    name: Annotated[str, Form(description="The name of the fileset; typically the name of the primary file")],
-    collection: Annotated[str, Form(description="The collection to which this file or item will notionally belong")],
-    profile: Annotated[str, Form(description="The profile of this file/fileset; determines the processing to conduct and type of result")],
+    files: Annotated[list[UploadFile], File(description="Source files to process into a fileset; often a single file, but may include supplemental configuration or metadata. [DECIDE: Handle primary/supplemental together? Use first file as primary? Allow fileset name/id to be supplied separately?]")],
+    name: Annotated[str, Form(description="PROVISIONAL: The name of the fileset; typically the name of the primary file")],
+    project_id: Annotated[str, Form(description="The 'project' under which this file is being handled; often a shorthand for an upcoming collection to which this file or item will notionally belong")],
+    commands: Annotated[str, Form(description="The commands (operations and arguments) to run on the provided files")]
 ):
-    if profile not in profiles:
-        raise HTTPException(status_code=400, detail="Invalid File Set Profile requested")
+    commands_ = json.loads(commands)
 
-    id = FileSetIdentifier(project_id=collection, file_name=name).identifier
-    job_dir = setup_job_dir(id, files)
+    fsid = FileSetIdentifier(project_id=project_id, file_name=name)
+    job_dir = setup_job_dir(fsid, files)
     job_idx = job_dir.name
 
-    with (job_dir / "fileset.log").open("a") as log:
-        log.write(f'[{now()}] - (totally fake) {profile} - Processing Queued for fileset: {name}\n')
+    # TODO: Think about how we want to handle logging
+    # with (job_dir / "fileset.log").open("a") as log:
+    #     log.write(f'[{now()}] - (totally fake) {profile} - Processing Queued for fileset: {name} [fsid: {fsid.identifier}]\n')
 
-    profiles.get(profile).enqueue(process_fileset, id, int(job_idx), collection, name, profile)
+    queues.get("fileset").enqueue(creates_a_file_set_from_uploaded_materials, fsid, int(job_idx), commands_)
 
     return {
-        "id": id,
-        "coll": collection,
+        "id": fsid.identifier,
+        "project_id": project_id,
         "name": name,
-        "profile": profile,
+        "alt_id": fsid.alternate_identifier,
+        "commands": commands_,
         "files": [file.filename for file in files],
         "job_path": job_dir.absolute(),
         "job_index": job_idx,

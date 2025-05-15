@@ -11,7 +11,7 @@
 # it from the worker out in fileset-processor.py. Everything can be moved around
 # and partitioned better as we go.
 import re
-import time
+from typing import Any
 
 from pathlib import Path
 from datetime import datetime
@@ -20,25 +20,27 @@ from redis import Redis
 from rq import Queue
 
 from dor.config import config
+from dor.providers import operations
+from dor.providers.build_file_set import build_file_set, Input, Command
+from dor.providers.file_set_identifier import FileSetIdentifier
 
 # FIXME: Move redis connection to a service?
 redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
 
-# TODO: Move profile registry? Build out as a member of something? Leave here?
-profiles: dict[str, Queue] = {
-    "basic-image": Queue("fileset.basic-image", connection=redis),
-    "bogus-profile": Queue("fileset.bogus-profile", connection=redis),
+# TODO: Move queue registry? Build out as a member of something? Leave here?
+queues: dict[str, Queue] = {
+    "fileset": Queue("fileset", connection=redis)
 }
 
 
 # Utility method, where should it live?
-def fileset_workdir(id: str):
-    return config.filesets_path / id
+def fileset_workdir(fsid: FileSetIdentifier):
+    return config.filesets_path / fsid.identifier
 
 
 # Setup is used to drop the source files as they come in, needed from API
-def setup_job_dir(id: str, files: list[UploadFile]) -> Path:
-    basepath = fileset_workdir(id)
+def setup_job_dir(fsid: FileSetIdentifier, files: list[UploadFile]) -> Path:
+    basepath = fileset_workdir(fsid)
     basepath.mkdir(parents=True, exist_ok=True)
     p = re.compile(r'\d+')
     jobs = [int(d.name) for d in
@@ -67,18 +69,17 @@ def now():
 
 
 # This is the real "job":
-def process_fileset(id: str, job_idx: int, collection: str, name: str, profile: str):
-    job_dir = fileset_workdir(id) / str(job_idx)
+def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx: int, commands: dict[str, Any]):
+    job_dir = fileset_workdir(fsid) / str(job_idx)
     src_dir = job_dir / "src"
     build_dir = job_dir / "build"
 
-    (build_dir / "technical.md").write_text(f'technical metadata for {name}\n')
-    (build_dir / "descriptive.mets.xml").write_text(f'<?xml version="1.0" encoding="UTF-8" ?>\n<mets>descriptive metadata for {name}</mets>\n')
-    for file in src_dir.glob('*'):
-        (build_dir / file.name).write_bytes(file.read_bytes())
+    inputs = []
+    for file_name in commands.keys():
+        file_commands = [
+            Command(operation=getattr(operations, command["operation"]), kwargs=command["args"])
+            for command in commands[file_name]
+        ]
+        inputs.append(Input(file_path=src_dir / file_name, commands=file_commands))
 
-    with (job_dir / "fileset.log").open("a") as log:
-        log.write(f'[{now()}] - (totally fake) {profile} - File Set tagged as destined for collection: {collection}.\n')
-        log.write(f'[{now()}] - (totally fake) {profile} - Doing some pretend work...\n')
-        time.sleep(2)
-        log.write(f'[{now()}] - (totally fake) {profile} - File Set processing complete in <some amount of time>\n')
+    success = build_file_set(file_set_identifier=fsid, inputs=inputs, output_path=build_dir)

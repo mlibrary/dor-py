@@ -28,7 +28,7 @@ def create_file_set_directories(file_set_directory: Path) -> None:
     file_provider.create_directory(file_set_directory / "descriptor")
 
 
-def process_basic_image(
+def build_file_set(
     file_set_identifier: FileSetIdentifier,
     inputs: list[Input],
     output_path: Path,

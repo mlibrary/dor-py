@@ -19,6 +19,7 @@ services:
     volumes:
       - .:/app
       - fileset-data:/data/filesets
+      
     tty: true
     stdin_open: true
   api:

@@ -94,7 +94,7 @@ def test_read_dor_info_when_missing(
 
 @pytest.fixture
 def payload_path():
-    payload_path = Path("tests/test_payload")
+    payload_path = Path("tests/output/test_bag_adapter")
     file_provider = FilesystemFileProvider()
     file_provider.delete_dir_and_contents(payload_path)
     file_provider.create_directory(payload_path)

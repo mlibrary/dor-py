@@ -8,7 +8,7 @@ from dor.providers.translocator import Translocator
 
 @pytest.fixture
 def workspaces_path() -> Path:
-    return Path("tests/test_workspaces")
+    return Path("tests/output/test_workspaces")
 
 
 @pytest.fixture

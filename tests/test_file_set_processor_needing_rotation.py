@@ -6,10 +6,10 @@ from dor.adapters.technical_metadata import ImageTechnicalMetadata
 from dor.providers.file_set_identifier import FileSetIdentifier
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.operations import CompressSourceImage
-from dor.providers.process_basic_image import (
+from dor.providers.build_file_set import (
     Command,
     Input,
-    process_basic_image,
+    build_file_set,
 )
 
 
@@ -26,7 +26,7 @@ def input_path() -> Path:
 @pytest.fixture
 def output_path() -> Path:
     file_provider = FilesystemFileProvider()
-    output_path = Path("tests/test_basic_copy_needing_rotation")
+    output_path = Path("tests/output/test_file_set_processor_needing_rotation")
     file_provider.delete_dir_and_contents(output_path)
     file_provider.create_directory(output_path)
     return output_path
@@ -41,7 +41,7 @@ def image_input(input_path: Path) -> Input:
 def test_process_basic_image_creates_service_image(file_set_identifier, image_input, output_path):
     service_image_file = output_path / file_set_identifier.identifier / "data" / \
         ("test_image_rotated.function:service.format:image.jp2")
-    assert process_basic_image(
+    assert build_file_set(
         file_set_identifier=file_set_identifier,
         inputs=[image_input],
         output_path=output_path
