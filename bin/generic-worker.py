@@ -6,5 +6,5 @@ from dor.providers.filesets import redis
 # it would be specific to fileset processing or overall orchestration; we
 # simply have not made any decisions on the dispatch or job-type boundaries.
 
-w = Worker(['fileset.basic-image'], connection=redis)
+w = Worker(['fileset'], connection=redis)
 w.work()
