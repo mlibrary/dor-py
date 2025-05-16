@@ -5,9 +5,9 @@
     <METS:agent ROLE="CREATOR" TYPE="ORGANIZATION">
       <METS:name>University of Michigan - Library Information Technology - Digital Collection Services</METS:name>
     </METS:agent>
-    {% if resource.alternate_identifier %}
-    <METS:altRecordID TYPE="{{ resource.alternate_identifier.type }}">{{ resource.alternate_identifier.id }}</METS:altRecordID>
-    {% endif %}
+    {% for alternate_identifier in resource.alternate_identifiers %}
+    <METS:altRecordID TYPE="{{ alternate_identifier.type }}">{{ alternate_identifier.id }}</METS:altRecordID>
+    {% endfor %}
   </METS:metsHdr>
 
   {% include "partials/_md_sec.fragment.xml" %}

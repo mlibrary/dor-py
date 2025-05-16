@@ -13,7 +13,7 @@ class ResourceProvider:
 
     def __init__(self, file_provider: FileProvider, resource_path: Path):
         self.file_provider: FileProvider = file_provider
-        self.resource_path: Path = resource_path 
+        self.resource_path: Path = resource_path
 
     def get_descriptor_path(self) -> Path:
         file_paths = list((self.resource_path / "descriptor").iterdir())
@@ -34,7 +34,7 @@ class ResourceProvider:
 
         return PackageResource(
             id=descriptor_file_parser.get_id(),
-            alternate_identifier=descriptor_file_parser.get_alternate_identifier(),
+            alternate_identifiers=descriptor_file_parser.get_alternate_identifiers(),
             type=descriptor_file_parser.get_type(),
             root=descriptor_file_parser.get_root(),
             events=pres_events,

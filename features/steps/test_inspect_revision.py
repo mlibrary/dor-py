@@ -53,9 +53,9 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
                 id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 type="Monograph",
                 root=True,
-                alternate_identifier=AlternateIdentifier(
+                alternate_identifiers=[AlternateIdentifier(
                     id="xyzzy:00000001", type="DLXS"
-                ),
+                )],
                 events=[
                     PreservationEvent(
                         identifier="abdcb901-721a-4be0-a981-14f514236633",
@@ -112,9 +112,9 @@ def _(alt_id, unit_of_work: AbstractUnitOfWork):
             PackageResource(
                 id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
                 type="File Set",
-                alternate_identifier=AlternateIdentifier(
+                alternate_identifiers=[AlternateIdentifier(
                     id="xyzzy:00000001:00000001", type="DLXS"
-                ),
+                )],
                 events=[
                     PreservationEvent(
                         identifier="fe4c76e5-dbf1-4934-97fb-52ef5a68f073",

@@ -26,7 +26,7 @@ def sample_resources():
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
             type="Monograph",
             root=True,
-            alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
+            alternate_identifiers=[AlternateIdentifier(id="xyzzy:00000001", type="DLXS")],
             events=[
                 PreservationEvent(
                     identifier="abdcb901-721a-4be0-a981-14f514236633",
@@ -95,9 +95,9 @@ def sample_resources():
         PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000001001"),
             type="File Set",
-            alternate_identifier=AlternateIdentifier(
+            alternate_identifiers=[AlternateIdentifier(
                 id="xyzzy:00000001:00000001", type="DLXS"
-            ),
+            )],
             events=[
                 PreservationEvent(
                     identifier="fe4c76e5-dbf1-4934-97fb-52ef5a68f073",
@@ -188,6 +188,7 @@ def sample_resources():
         ),
     ]
 
+
 def test_generator_can_create_descriptor_files(sample_resources):
     file_provider = FilesystemFileProvider()
     package_path = Path("./tests/output/test_descriptor_generator")
@@ -196,8 +197,11 @@ def test_generator_can_create_descriptor_files(sample_resources):
     generator = DescriptorGenerator(package_path=package_path, resources=sample_resources)
     generator.write_files()
 
-    assert (package_path / "00000000-0000-0000-0000-000000000001" / "descriptor" / "00000000-0000-0000-0000-000000000001.monograph.mets2.xml" ).exists()
-    assert (package_path / "00000000-0000-0000-0000-000000001001" / "descriptor" / "00000000-0000-0000-0000-000000001001.file_set.mets2.xml" ).exists()
+    assert (package_path / "00000000-0000-0000-0000-000000000001" / "descriptor" /
+            "00000000-0000-0000-0000-000000000001.monograph.mets2.xml").exists()
+    assert (package_path / "00000000-0000-0000-0000-000000001001" / "descriptor" /
+            "00000000-0000-0000-0000-000000001001.file_set.mets2.xml").exists()
+
 
 def test_generator_can_return_entries(sample_resources):
     file_provider = FilesystemFileProvider()
