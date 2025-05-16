@@ -20,7 +20,13 @@ from redis import Redis
 from rq import Queue
 
 from dor.config import config
-from dor.providers import operations
+from dor.providers.operations import (
+    AppendUses,
+    CompressSourceImage,
+    CreateTextAnnotationData,
+    ExtractImageText,
+    ExtractImageTextCoordinates
+)
 from dor.providers.build_file_set import build_file_set, Input, Command
 from dor.providers.file_set_identifier import FileSetIdentifier
 
@@ -68,18 +74,40 @@ def now():
     return datetime.now().isoformat()
 
 
+PROFILE_COMMANDS: dict[str, list[Command]] = {
+    "compress-source": [Command(operation=CompressSourceImage, kwargs={})],
+    "extract-text": [
+        Command(operation=ExtractImageTextCoordinates, kwargs={}),
+        Command(operation=ExtractImageText, kwargs={}),
+        Command(operation=CreateTextAnnotationData, kwargs={})
+    ],
+    "extract-text-plain": [
+        Command(operation=ExtractImageText, kwargs={}),
+    ],
+    "label-service": [
+        Command(operation=AppendUses, kwargs={
+            "target": {
+                "function": ["function:source"],
+                "format": "format:text-plain"
+            },
+            "uses": ["function:service"]
+        })
+    ]
+}
+
+
 # This is the real "job":
-def creates_a_file_set_from_uploaded_materials(fsid: FileSetIdentifier, job_idx: int, commands: dict[str, Any]):
+def creates_a_file_set_from_uploaded_materials(
+    fsid: FileSetIdentifier, job_idx: int, file_profiles: dict[str, list[str]]
+):
     job_dir = fileset_workdir(fsid) / str(job_idx)
     src_dir = job_dir / "src"
     build_dir = job_dir / "build"
 
     inputs = []
-    for file_name in commands.keys():
-        file_commands = [
-            Command(operation=getattr(operations, command["operation"]), kwargs=command["args"])
-            for command in commands[file_name]
-        ]
+    for file_name in file_profiles.keys():
+        profiles = file_profiles[file_name]
+        file_commands = [command for profile in profiles for command in PROFILE_COMMANDS[profile]]
         inputs.append(Input(file_path=src_dir / file_name, commands=file_commands))
 
     success = build_file_set(file_set_identifier=fsid, inputs=inputs, output_path=build_dir)

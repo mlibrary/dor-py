@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+
 @pytest.mark.usefixtures("test_client")
 def test_filesets_api_returns_200_and_summary(
     test_client
@@ -21,11 +22,8 @@ def test_filesets_api_returns_200_and_summary(
     data = {
         "name": "test_image",
         "project_id": "today",
-        "commands": json.dumps({
-            "test_image.jpg": [{
-                "operation": "CompressSourceImage",
-                "args": {}
-            }]
+        "file_profiles": json.dumps({
+            "test_image.jpg": ["compress-source"]
         })
     }
     response = test_client.post("api/v1/filesets", files=upload_files, data=data)
@@ -52,25 +50,8 @@ def test_filesets_api_returns_200_and_summary_for_image_with_ocr(
     data = {
         "name": "quick-brown",
         "project_id": "today",
-        "commands": json.dumps({
-            "quick-brown.tiff": [
-                {
-                    "operation": "CompressSourceImage",
-                    "args": {}
-                },
-                {
-                    "operation": "ExtractImageTextCoordinates",
-                    "args": {}
-                },
-                {
-                    "operation": "ExtractImageText",
-                    "args": {}
-                },
-                {
-                    "operation": "CreateTextAnnotationData",
-                    "args": {}
-                },
-            ]
+        "file_profiles": json.dumps({
+            "quick-brown.tiff": ["compress-source", "extract-text"]
         })
     }
 
