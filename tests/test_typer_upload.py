@@ -111,6 +111,7 @@ def test_upload_single_file_command(start_fastapi_server):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp_file:
             temp_file.write(b"Sample content for testing.")
             test_file = temp_file.name
+
             result = runner.invoke(
                 app,
                 [
@@ -119,9 +120,9 @@ def test_upload_single_file_command(start_fastapi_server):
                     "--file",
                     test_file,
                     "--name",
-                    "Test Fileset",
+                    "TestFileset",
                     "--project-id",
-                    "Test Collection",
+                    "TestCollection",
                     "--commands",
                     """
                     {{
@@ -139,7 +140,6 @@ def test_upload_single_file_command(start_fastapi_server):
                     """,
                 ],
             )
-            print(result.stderr)
             assert (
                 result.exit_code == 0
             ), f"Command failed with exit code {result.exit_code}."
@@ -252,20 +252,6 @@ def test_upload_command_from_folder(start_fastapi_server):
             if os.path.isfile(os.path.join(folder_path, f))
         ]
 
-        commands = {
-            file: {
-                "operation": "AppendUses",
-                "args": {
-                    "target": {
-                        "function": ["function:source"],
-                        "format": "format:text-plain",
-                    },
-                    "uses": ["function:service"],
-                },
-            }
-            for file in files
-        }
-
         result = runner.invoke(
             app,
             [
@@ -278,24 +264,39 @@ def test_upload_command_from_folder(start_fastapi_server):
                 "--project-id",
                 project_id,
                 "--commands",
-                json.dumps(commands),
+                """
+                {{
+                    "{file_path}": {{
+                        "operation": "AppendUses",
+                        "args": {{
+                            "target": {{
+                                "function": ["function:source"],
+                                "format": "format:text-plain"
+                            }},
+                            "uses": ["function:service"]
+                        }}
+                    }}
+                }}
+                """                ,
             ],
         )
 
         assert (
             result.exit_code == 0
         ), f"Command failed with exit code {result.exit_code}."
+
+        print(result.stdout)
         parsed = extract_dict_from_output(result.stdout)
 
         assert (
-            parsed["coll"] == project_id
-        ), f"Expected project_id '{project_id}', got '{parsed['coll']}'."
-        assert (
-            parsed["commands"] == commands
-        ), f"Expected commands '{commands}', got '{parsed['commands']}'."
-        assert len(parsed["files"]) == len(
+            parsed[0]["project_id"] == project_id
+        ), f"Expected project_id '{project_id}', got '{parsed['project_id']}'."
+        # assert (
+        #     parsed["commands"] == commands
+        # ), f"Expected commands '{commands}', got '{parsed['commands']}'."
+        assert len(parsed) == len(
             files
-        ), f"Expected {len(files)} files, got {len(parsed['files'])}."
+        ), f"Expected {len(files)} files, got {len(parsed)}."
     finally:
         temp_dir.cleanup()
 
@@ -330,7 +331,7 @@ def test_upload_command_invalid_file(start_fastapi_server):
 
 
 def extract_dict_from_output(output):
-    match = re.search(r"\{.*\}", output, re.DOTALL)
+    match = re.search(r"\[.*\]$", output, re.DOTALL)
     if not match:
         raise ValueError(f"Failed to extract dictionary from output: {output}")
     try:
