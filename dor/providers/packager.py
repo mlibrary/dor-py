@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
+from dor.providers.op_client import FakeOPClient
 from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
 
 
@@ -32,10 +33,11 @@ class Packager:
     def generate_package(self, metadata: dict[str, Any]) -> PackageResult:
         result = PackageGenerator(
             file_provider=FilesystemFileProvider(),
+            op_client=FakeOPClient(),
             metadata=metadata,
             deposit_group=self.deposit_group,
             output_path=self.inbox_path,
-            file_set_path=self.pending_path,
+            file_sets_path=self.pending_path,
             timestamp=self.timestamper()
         ).generate()
         return result

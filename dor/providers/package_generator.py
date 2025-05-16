@@ -16,6 +16,7 @@ from dor.providers.models import (
     StructMapItem,
     StructMapType
 )
+from dor.providers.op_client import OPClient
 from dor.settings import template_env
 
 
@@ -56,23 +57,30 @@ class PackageGenerator:
     def __init__(
         self,
         file_provider: FileProvider,
+        op_client: OPClient,
         metadata: dict[str, Any],
         deposit_group: DepositGroup,
         output_path: Path,
-        file_set_path: Path,
-        timestamp: datetime
+        file_sets_path: Path,
+        timestamp: datetime,
     ):
         self.file_provider = file_provider
         self.metadata = metadata
         self.deposit_group = deposit_group
         self.output_path = output_path
-        self.file_set_path = file_set_path
+        self.file_sets_path = file_sets_path
         self.timestamp = timestamp
+        self.op_client = op_client
 
         self.root_resource_identifier: str = self.metadata["identifier"]
         self.type: str = self.metadata["type"]
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
+
+        self.file_set_directories = [
+            entry.name for entry in self.file_sets_path.iterdir()
+            if entry.is_dir()
+        ]
 
     def clear_package_path(self):
         self.file_provider.delete_dir_and_contents(self.package_path)
@@ -145,26 +153,14 @@ class PackageGenerator:
             )
         return struct_maps
 
-    def incorporate_file_sets(self, physical_struct_map: StructMap) -> Tuple[list[str], list[str]]:
-        """Copy in file set resources, keeping track of those incorporated and missing"""
-
-        file_set_directories = [
-            entry.name for entry in self.file_set_path.iterdir()
-            if entry.is_dir()
-        ]
-        incorporated_file_set_ids = []
-        missing_file_set_ids = []
-        for struct_map_item in physical_struct_map.items:
-            file_set_id = struct_map_item.file_set_id
-            if file_set_id in file_set_directories:
-                self.file_provider.clone_directory_structure(
-                    self.file_set_path / file_set_id,
-                    self.package_path / file_set_id
-                )
-                incorporated_file_set_ids.append(file_set_id)
-            else:
-                missing_file_set_ids.append(file_set_id)
-        return incorporated_file_set_ids, missing_file_set_ids
+    def incorporate_file_set(self, file_set_id: str) -> bool:
+        if file_set_id in self.file_set_directories:
+            self.file_provider.clone_directory_structure(
+                self.file_sets_path / file_set_id,
+                self.package_path / file_set_id
+            )
+            return True
+        return False
 
     def create_root_descriptor_file(
         self,
@@ -212,7 +208,21 @@ class PackageGenerator:
                 )
             )
         physical_struct_map = physical_struct_maps[0]
-        incorporated_file_set_ids, missing_file_set_ids = self.incorporate_file_sets(physical_struct_map)
+
+        missing_file_set_ids = []
+        file_set_ids = []
+        for struct_map_item in physical_struct_map.items:
+            file_set_id = struct_map_item.file_set_id
+            incorporated = self.incorporate_file_set(file_set_id)
+            if incorporated:
+                file_set_ids.append(file_set_id)
+            else:
+                search_results = self.op_client.search_for_file_set(file_set_id)
+                if search_results:
+                    file_set_ids.append(file_set_id)
+                else:
+                    missing_file_set_ids.append(file_set_id)
+
         if len(missing_file_set_ids) > 0:
             self.clear_package_path()
             return self.get_package_result(
@@ -275,14 +285,14 @@ class PackageGenerator:
             data_files=[],
             struct_maps=struct_maps
         )
-        self.create_root_descriptor_file(resource, incorporated_file_set_ids)
+        self.create_root_descriptor_file(resource, file_set_ids)
 
         dor_info = {
             "Action": "store",
             "Deposit-Group-Identifier": self.deposit_group.identifier,
             "Deposit-Group-Date": self.deposit_group.date,
             "Root-Identifier": self.root_resource_identifier,
-            "Identifier": incorporated_file_set_ids,
+            "Identifier": file_set_ids,
         }
         bag = BagAdapter.make(self.package_path, self.file_provider)
         bag.add_dor_info(dor_info=dor_info)

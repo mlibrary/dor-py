@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from dor.providers.file_system_file_provider import FilesystemFileProvider
+from dor.providers.op_client import FakeOPClient, FileSetSearchResult, OPClient
 from dor.providers.package_generator import DepositGroup, PackageGenerator, PackageResult
 
 
@@ -38,10 +39,11 @@ def test_generator_generates_package(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClient(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_set_path=fixtures_path / "file_sets",
+        file_sets_path=fixtures_path / "file_sets",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
@@ -76,6 +78,48 @@ def test_generator_generates_package(
     )
 
 
+class FakeOPClientWithResult(OPClient):
+    results: dict[str, list[FileSetSearchResult]] = {
+        "00000000-0000-0000-0000-000000002001": [
+            FileSetSearchResult(
+            file_set_identifier="00000000-0000-0000-0000-000000002001",
+            bin_identifier="00000000-0000-0000-0000-000000000001"
+        )]
+    }
+
+    def search_for_file_set(self, file_set_identifier: str) -> list[FileSetSearchResult]:
+        return self.results[file_set_identifier]
+
+
+def test_generator_generates_package_with_referenced_dorop_fileset(
+    fixtures_path: Path, test_output_path: Path, deposit_group: DepositGroup
+) -> None:
+    metadata_path = fixtures_path / "sample_package_metadata_with_referenced_file_set.json"
+    metadata = json.loads(metadata_path.read_text())
+
+    generator = PackageGenerator(
+        file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClientWithResult(),
+        metadata=metadata,
+        deposit_group=deposit_group,
+        output_path=test_output_path,
+        file_sets_path=fixtures_path / "file_sets",
+        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+    )
+    result = generator.generate()
+
+    root_identifier = "00000000-0000-0000-0000-000000000001"
+    package_identifier = f"{root_identifier}_19700101000000"
+
+    # Package result returned
+    assert result == PackageResult(
+        package_identifier=package_identifier,
+        deposit_group_identifier=deposit_group.identifier,
+        success=True,
+        message="Generated package successfully!"
+    )
+
+
 def test_generator_fails_when_metadata_references_missing_file_set(
     fixtures_path: Path, test_output_path: Path, deposit_group: DepositGroup
 ) -> None:
@@ -84,10 +128,11 @@ def test_generator_fails_when_metadata_references_missing_file_set(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClient(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_set_path=fixtures_path / "file_sets",
+        file_sets_path=fixtures_path / "file_sets",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
@@ -110,10 +155,11 @@ def test_generator_fails_when_metadata_is_missing_file_data(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClient(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_set_path=Path("tests/fixtures/test_package_generator/file_sets"),
+        file_sets_path=fixtures_path / "file_sets",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
@@ -139,10 +185,11 @@ def test_generator_fails_when_metadata_is_missing_struct_map(
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
+        op_client=FakeOPClient(),
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_set_path=fixtures_path / "file_sets",
+        file_sets_path=fixtures_path / "file_sets",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
