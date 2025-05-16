@@ -52,20 +52,7 @@ async def test_run_upload_fileset():
                 folder=None,
                 name="Test Fileset",
                 project_id="Test Collection",
-                commands="""
-                {{
-                    "{file_path}": {{
-                        "operation": "AppendUses",
-                        "args": {{
-                            "target": {{
-                                "function": ["function:source"],
-                                "format": "format:text-plain"
-                            }},
-                            "uses": ["function:service"]
-                        }}
-                    }}
-                }}
-                """,
+                commands="--config",
             )
             output = result[0]
             assert "fileset_id" in output
@@ -124,20 +111,7 @@ def test_upload_single_file_command(start_fastapi_server):
                     "--project-id",
                     "TestCollection",
                     "--commands",
-                    """
-                    {{
-                        "{file_path}": {{
-                            "operation": "AppendUses",
-                            "args": {{
-                                "target": {{
-                                    "function": ["function:source"],
-                                    "format": "format:text-plain"
-                                }},
-                                "uses": ["function:service"]
-                            }}
-                        }}
-                    }}
-                    """,
+                    "--config",
                 ],
             )
             assert (
@@ -191,7 +165,6 @@ def test_upload_single_file_command(start_fastapi_server):
 #                 """,
 #             ],
 #         )
-#         print(result.output)
 #         # Assert the command executed successfully
 #         assert (
 #             result.exit_code == 0
@@ -264,20 +237,7 @@ def test_upload_command_from_folder(start_fastapi_server):
                 "--project-id",
                 project_id,
                 "--commands",
-                """
-                {{
-                    "{file_path}": {{
-                        "operation": "AppendUses",
-                        "args": {{
-                            "target": {{
-                                "function": ["function:source"],
-                                "format": "format:text-plain"
-                            }},
-                            "uses": ["function:service"]
-                        }}
-                    }}
-                }}
-                """                ,
+                "--config",
             ],
         )
 
@@ -285,15 +245,12 @@ def test_upload_command_from_folder(start_fastapi_server):
             result.exit_code == 0
         ), f"Command failed with exit code {result.exit_code}."
 
-        print(result.stdout)
         parsed = extract_dict_from_output(result.stdout)
 
         assert (
             parsed[0]["project_id"] == project_id
         ), f"Expected project_id '{project_id}', got '{parsed['project_id']}'."
-        # assert (
-        #     parsed["commands"] == commands
-        # ), f"Expected commands '{commands}', got '{parsed['commands']}'."
+
         assert len(parsed) == len(
             files
         ), f"Expected {len(files)} files, got {len(parsed)}."

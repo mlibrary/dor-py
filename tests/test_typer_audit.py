@@ -62,7 +62,7 @@ def test_audit_success(start_fastapi_server):
     result = runner.invoke(app, ["audit", "run", "--project", "dor123"])
 
     output = strip_ansi(result.output)
-    print(output)
+
     assert result.exit_code == 0
     assert "Upload status for project dor123:" in output
     assert "Group: batch001" in output
