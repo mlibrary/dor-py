@@ -114,8 +114,42 @@ def test_upload_command_works_for_image(fixture_path, start_fastapi_server):
             "compress-source"
         ],
     )
-    print(result.stdout)
     assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}."    
+
+def test_upload_command_works_for_image_and_text(fixture_path, start_fastapi_server):
+    result = runner.invoke(
+        app,
+        [
+            "fileset",
+            "upload",
+            "--folder",
+            fixture_path,
+            "--project-id",
+            "Test Collection",
+            "--image",
+            "compress-source",
+            "--text",
+            "label-service",
+        ],
+    )
+    assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}."
+
+
+def test_upload_command_works_for_text(fixture_path, start_fastapi_server):
+    result = runner.invoke(
+        app,
+        [
+            "fileset",
+            "upload",
+            "--folder",
+            fixture_path,
+            "--project-id",
+            "Test Collection",
+            "--text",
+            "label-service",
+        ],
+    )
+    assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}."
 
 
 # def test_upload_single_file_command(start_fastapi_server):

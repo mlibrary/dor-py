@@ -24,19 +24,25 @@ def run_upload(
     # name: str = typer.Option(..., help="Name of the file or fileset."),
     project_id: str = typer.Option(..., help="Collection to upload to."),
     image: List[str] = typer.Option(default_factory=list, help="image processing"),
+    text: List[str] = typer.Option(default_factory=list, help="text processing"),
     # commands: str = typer.Option(..., help="Profile to use for the upload."),
 ):
-    asyncio.run(_run_upload(folder, project_id, image))
+    asyncio.run(_run_upload(folder, project_id, image,text))
 
 
 async def _run_upload(
     folder: str,
     project_id: str,
     image: list[str],
+    text: list[str],
 ):
     base_url = config.api_url
-
-    profiles = generate_profiles(folder_path=Path(folder), type_profiles={"image": image})
+    type_profiles: dict[str, List[str]] = {}
+    if image:
+        type_profiles["image"] = image
+    if text:
+        type_profiles["text"] = text
+    profiles = generate_profiles(folder_path=Path(folder), type_profiles=type_profiles)
     fileset_profiles: dict[str,dict] = {}
     for file_name in profiles:
         name = Path(file_name).stem

@@ -45,7 +45,7 @@ async def run_upload_fileset(
         params = {
             "name": name,
             "project_id": project_id,
-            "profiles": json.dumps(profiles),  # Serialize commands to JSON
+            "file_profiles": json.dumps(profiles),  # Serialize commands to JSON
         }
         params = {k: v for k, v in params.items() if v is not None}
 
