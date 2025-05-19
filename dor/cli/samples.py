@@ -10,7 +10,7 @@ from dor.builders.resource import build_resource
 import sys
 import datetime
 
-app = typer.Typer()
+app = typer.Typer(no_args_is_help=True)
 
 """
 ## About the Sample Generator
