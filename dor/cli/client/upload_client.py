@@ -90,49 +90,17 @@ def prepare_files(file_paths: List[str]) -> List[Tuple[str, Tuple[str, Any]]]:
     return upload_files
 
 
-def generate_profiles(folder_path: Path, type_profiles: dict[str, List[str]]) -> dict[str,List[str]]:
+def generate_profiles(folder_path: Path, type_profiles: dict[str, List[str]]) -> dict[str, List[str]]:
     file_paths = [file_path for file_path in folder_path.iterdir() if file_path.is_file()]
+    profiles: dict[str, list[str]] = {}
     for file_path in file_paths:
-        file_name = file_path.stem
-        mime_type = mimetypes.guess_type(file_path)
-        file_type = mime_type[0]
-        
-    # # Define operations based on MIME type
-    # mime_operations = {
-    #     "text/plain": {
-    #         "operation": "AppendUses",
-    #         "args": {
-    #             "target": {
-    #                 "function": ["function:source"],
-    #                 "format": "format:text-plain",
-    #             },
-    #             "uses": ["function:service"],
-    #         },
-    #     },
-    #     "image/jpeg": {
-    #         "operation": "CompressSourceImage",
-    #         "args": {},
-    #     },
-    #     "image/jpg": {
-    #         "operation": "CompressSourceImage",
-    #         "args": {},
-    #     },
-    #     "image/jp2": {
-    #         "operation": "CompressSourceImage",
-    #         "args": {},
-    #     },
-    #     "image/tiff": {
-    #         "operation": "CompressSourceImage",
-    #         "args": {},
-    #     },
-    # }
-
-    # if mime_type not in mime_operations:
-    #     raise ValueError(f"Unsupported MIME type: {mime_type}")
-
-    # operation = mime_operations[mime_type]
-
-    # return {os.path.basename(file_path): operation}
+        file_name = file_path.name
+        mime_type = mimetypes.guess_type(file_path)[0]
+        if mime_type is None: raise Exception(f"Cannot guess mimetype for {file_path}")
+        file_type = mime_type.split("/")[0]
+        if file_type in type_profiles:
+            profiles[file_name] = type_profiles[file_type]
+    return profiles
 
 
 async def upload_individual_files(
