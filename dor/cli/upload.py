@@ -1,9 +1,7 @@
 import asyncio
-from email.policy import default
 from pathlib import Path
 import typer
 import httpx
-import os
 
 from dor.cli.client.upload_client import UploadError, generate_profiles, run_upload_fileset
 from dor.config import config
@@ -15,17 +13,12 @@ upload_app = typer.Typer()
 
 @upload_app.command(name = "upload")
 def run_upload(
-    # file: List[str] = typer.Option(
-    #     None, help="Paths to files to upload. Can be specified multiple times."
-    # ),
     folder: str = typer.Option(
         None, help="Path to a folder containing files to upload."
     ),
-    # name: str = typer.Option(..., help="Name of the file or fileset."),
     project_id: str = typer.Option(..., help="Collection to upload to."),
     image: List[str] = typer.Option(default_factory=list, help="image processing"),
     text: List[str] = typer.Option(default_factory=list, help="text processing"),
-    # commands: str = typer.Option(..., help="Profile to use for the upload."),
 ):
     asyncio.run(_run_upload(folder, project_id, image,text))
 

@@ -1,4 +1,3 @@
-import copy
 import json
 import mimetypes
 from pathlib import Path
