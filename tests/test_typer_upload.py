@@ -1,5 +1,6 @@
 import ast
 import json
+from pathlib import Path
 from dor.providers.operations import Operation
 import pytest
 import tempfile
@@ -34,6 +35,39 @@ async def mock_upload_fileset():
     }
 
 
+@pytest.fixture
+def fixture_path():
+    return Path("tests/fixtures/test_cli_upload")
+
+def run_server():
+    config = uvicorn.Config(fastapi_app, host="0.0.0.0", port=8000, log_level="error")
+    server = uvicorn.Server(config)
+    server.run()
+
+
+def wait_for_port(port, host="0.0.0.0", timeout=5.0):
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            with socket.create_connection((host, port), timeout=0.5):
+                return True
+        except (OSError, ConnectionRefusedError):
+            time.sleep(0.1)
+    return False
+
+
+@pytest.fixture(scope="module")
+def start_fastapi_server():
+    api_proc = multiprocessing.Process(target=run_server)
+    api_proc.start()
+    assert wait_for_port(8000, "0.0.0.0"), "FastAPI did not start in time"
+
+    yield
+
+    api_proc.terminate()
+    api_proc.join()
+
+
 @pytest.mark.asyncio
 async def test_run_upload_fileset():
     temp_files = []
@@ -50,8 +84,7 @@ async def test_run_upload_fileset():
             result = await run_upload_fileset(
                 client,
                 base_url="http://test",
-                file=temp_files,  # Provide the list of files here
-                folder=None,
+                folder="/tmp",
                 name="Test Fileset",
                 project_id="Test Collection",
                 profiles=profiles,
@@ -66,33 +99,23 @@ async def test_run_upload_fileset():
             os.remove(temp_file)
 
 
-# def run_server():
-#     config = uvicorn.Config(fastapi_app, host="0.0.0.0", port=8000, log_level="error")
-#     server = uvicorn.Server(config)
-#     server.run()
+def test_upload_command_works_for_image(fixture_path, start_fastapi_server):
 
-
-# def wait_for_port(port, host="0.0.0.0", timeout=5.0):
-#     start = time.time()
-#     while time.time() - start < timeout:
-#         try:
-#             with socket.create_connection((host, port), timeout=0.5):
-#                 return True
-#         except (OSError, ConnectionRefusedError):
-#             time.sleep(0.1)
-#     return False
-
-
-# @pytest.fixture(scope="module")
-# def start_fastapi_server():
-#     api_proc = multiprocessing.Process(target=run_server)
-#     api_proc.start()
-#     assert wait_for_port(8000, "0.0.0.0"), "FastAPI did not start in time"
-
-#     yield
-
-#     api_proc.terminate()
-#     api_proc.join()
+    result = runner.invoke(
+        app,
+        [
+            "fileset",
+            "upload",
+            "--folder",
+            fixture_path,
+            "--project-id",
+            "Test Collection",
+            "--image",
+            "compress-source"
+        ],
+    )
+    print(result.stdout)
+    assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}."    
 
 
 # def test_upload_single_file_command(start_fastapi_server):

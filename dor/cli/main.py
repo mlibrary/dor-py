@@ -7,7 +7,7 @@ from dor.cli.audit import audit_app
 app = typer.Typer()
 app.add_typer(samples.app, name="samples")
 app.add_typer(repo.app, name="repo")
-app.add_typer(upload_app, name="upload")
+app.add_typer(upload_app, name="fileset")
 app.add_typer(audit_app, name="audit")
 
 

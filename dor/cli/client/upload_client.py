@@ -22,37 +22,25 @@ class UploadError(Exception):
 async def run_upload_fileset(
     client: httpx.AsyncClient,
     base_url: str,
-    file: List[str],
     profiles: dict[str, list[str]],
-    folder: Optional[str] = None,
-    name: Optional[str] = None,
-    project_id: Optional[str] = None,
+    folder: str,
+    name: str,
+    project_id: str,
     process_individually: bool = True,
 ) -> Any:
     """Upload fileset with dynamic profile-based commands."""
     upload_files = []
     try:
-        # Determine file paths
-        if folder:
-            if not os.path.exists(folder) or not os.path.isdir(folder):
-                raise UploadError(
-                    f"Folder '{folder}' does not exist or is not a directory.", code=404
-                )
-            file_paths = [
-                os.path.join(folder, f)
-                for f in os.listdir(folder)
-                if os.path.isfile(os.path.join(folder, f))
-            ]
-            if not file_paths:
-                raise UploadError(f"No files found in folder '{folder}'.", code=404)
-        elif file:
-            file_paths = file
-        else:
-            raise UploadError("Either 'file' or 'folder' must be provided.", code=400)
+
+        if not os.path.exists(folder) or not os.path.isdir(folder):
+            raise UploadError(
+                f"Folder '{folder}' does not exist or is not a directory.", code=404
+            )
+        file_paths = [
+            Path(folder)/file_name for file_name in profiles.keys()
+        ]    
 
         upload_files = prepare_files(file_paths)
-
-
 
         params = {
             "name": name,
@@ -73,16 +61,16 @@ async def run_upload_fileset(
             upload_file_fh.close()
 
 
-def prepare_files(file_paths: List[str]) -> List[Tuple[str, Tuple[str, Any]]]:
-    upload_files = []
+def prepare_files(file_paths: List[Path]) -> List[Tuple[str, Tuple[str, Any]]]:
+    upload_files: List[Tuple[str, Tuple[str, Any]]] = []
     for file_path in file_paths:
-        if not os.path.exists(file_path):
+        if not file_path.exists():
             raise UploadError(f"File '{file_path}' does not exist.", code=404)
         upload_files.append(
             (
                 "files",
                 (
-                    os.path.basename(file_path),
+                    file_path.name,
                     open(file_path, "rb"),
                 ),
             )
