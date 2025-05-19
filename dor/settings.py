@@ -1,8 +1,27 @@
 from dataclasses import dataclass, field
 from enum import Enum
 import pathlib
+from importlib import resources
 
 from PIL import ImageFont
+
+RESOURCE_ROOT = resources.files("etc")
+FONT_ROOT = RESOURCE_ROOT / "fonts"
+
+
+@dataclass
+class FontFile:
+    directory: str = "DepartureMono-1.420"
+    family: str = "DepartureMono"
+    variant: str = "Regular"
+    format: str = "woff2"
+    filename: str = f"{family}-{variant}.{format}"
+
+    _path: str = f"{directory}/{filename}"
+
+    def load(self, dpi: int = 72) -> ImageFont.FreeTypeFont:
+        with resources.as_file(FONT_ROOT / self._path) as file:
+            return ImageFont.truetype(file, dpi)
 
 
 class ActionChoices(str, Enum):
@@ -24,6 +43,7 @@ class Settings:
     total: int = 1
     output_pathname: str = None
     seed: int = -1
+    text_font: ImageFont.FreeTypeFont = FontFile().load()
 
     def update(self, **kw):
         for key, value in kw.items():
@@ -42,11 +62,4 @@ template_env = Environment(
         pathlib.Path(__file__).resolve().parent.parent.joinpath("templates")
     ),
     autoescape=select_autoescape(),
-)
-
-text_font = ImageFont.truetype(
-    pathlib.Path(__file__)
-    .resolve()
-    .parent.parent.joinpath("etc/fonts/DepartureMono-1.420/DepartureMono-Regular.woff2"),
-    72,
 )
