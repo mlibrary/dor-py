@@ -89,7 +89,7 @@ async def test_run_upload_fileset():
                 project_id="Test Collection",
                 profiles=profiles,
             )
-            output = result[0]
+            output = result
             assert "fileset_id" in output
             assert output["fileset_id"] == "fileset001"
             assert output["status"] == "uploaded"
@@ -150,6 +150,22 @@ def test_upload_command_works_for_text(fixture_path, start_fastapi_server):
         ],
     )
     assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}."
+
+
+def test_upload_command_works_for_no_profile(fixture_path, start_fastapi_server):
+    result = runner.invoke(
+        app,
+        [
+            "fileset",
+            "upload",
+            "--folder",
+            fixture_path,
+            "--project-id",
+            "Test Collection",
+        ],
+    )
+    assert result.exit_code == 1
+    assert result.output == "No profiles provided. Use --image or --text to specify profiles.\n"
 
 
 # def test_upload_single_file_command(start_fastapi_server):

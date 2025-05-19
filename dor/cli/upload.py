@@ -38,10 +38,14 @@ async def _run_upload(
 ):
     base_url = config.api_url
     type_profiles: dict[str, List[str]] = {}
+    
     if image:
         type_profiles["image"] = image
     if text:
         type_profiles["text"] = text
+    if not type_profiles:
+        typer.echo("No profiles provided. Use --image or --text to specify profiles.")
+        raise typer.Exit(1)
     profiles = generate_profiles(folder_path=Path(folder), type_profiles=type_profiles)
     fileset_profiles: dict[str,dict] = {}
     for file_name in profiles:

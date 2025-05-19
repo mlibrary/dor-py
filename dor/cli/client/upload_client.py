@@ -26,7 +26,6 @@ async def run_upload_fileset(
     folder: str,
     name: str,
     project_id: str,
-    process_individually: bool = True,
 ) -> Any:
     """Upload fileset with dynamic profile-based commands."""
     upload_files = []
@@ -49,12 +48,9 @@ async def run_upload_fileset(
         }
         params = {k: v for k, v in params.items() if v is not None}
 
-        # Process files individually or as a group
-        if process_individually:
-            return await upload_individual_files(client, base_url, upload_files, params)
-        else:
-            return await upload_grouped_files(client, base_url, upload_files, params)
-
+        response = await client.post(f"{base_url}/api/v1/filesets", files=upload_files, data=params)
+        response.raise_for_status()
+        return response.json()
     finally:
         # Ensure all file streams are closed
         for _, (_, upload_file_fh) in upload_files:
@@ -89,37 +85,3 @@ def generate_profiles(folder_path: Path, type_profiles: dict[str, List[str]]) ->
         if file_type in type_profiles:
             profiles[file_name] = type_profiles[file_type]
     return profiles
-
-
-async def upload_individual_files(
-    client: httpx.AsyncClient,
-    base_url: str,
-    upload_files: List[Tuple[str, Tuple[str, Any]]],
-    params: dict,
-) -> List[Any]:
-    """Upload files individually."""
-    response_bodies = []
-
-    for upload_file in upload_files:
-
-        response = await client.post(
-            f"{base_url}/api/v1/filesets", files=[upload_file], data=params
-        )
-        response.raise_for_status()
-        response_bodies.append(response.json())
-
-    return response_bodies
-
-
-async def upload_grouped_files(
-    client: httpx.AsyncClient,
-    base_url: str,
-    upload_files: List[Tuple[str, Tuple[str, Any]]],
-    params: dict,
-) -> Any:
-    """Upload files as a group."""
-    response = await client.post(
-        f"{base_url}/api/v1/filesets", files=upload_files, data=params
-    )
-    response.raise_for_status()
-    return response.json()
