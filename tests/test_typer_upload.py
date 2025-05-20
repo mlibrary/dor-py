@@ -15,13 +15,13 @@ from dor.cli.main import app
 from dor.entrypoints.api.main import app as fastapi_app
 
 from fastapi import FastAPI, HTTPException
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from typer.testing import CliRunner
 from unittest.mock import patch
 
 mock_api = FastAPI()
 runner = CliRunner()
-
+transport = ASGITransport(app=mock_api)
 
 @mock_api.post("/api/v1/filesets")
 async def mock_upload_fileset():
@@ -77,7 +77,7 @@ async def test_run_upload_fileset():
             profiles[os.path.basename(temp_file.name)] = ["compress-source"]
             temp_files.append(temp_file.name)
 
-        async with AsyncClient(app=mock_api, base_url="http://test") as client:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
             result = await run_upload_fileset(
                 client,
                 base_url="http://test",

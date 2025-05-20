@@ -4,7 +4,7 @@ import time
 import socket
 import subprocess
 from fastapi import FastAPI
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from dor.cli.client.audit_client import fetch_audit_status
 from typer.testing import CliRunner
 from dor.cli.main import app
@@ -14,6 +14,7 @@ import re
 
 mock_api = FastAPI()
 runner = CliRunner()
+transport = ASGITransport(app=mock_api)
 
 @mock_api.get("/api/v1/filesets/status")
 async def get_status(
@@ -24,8 +25,7 @@ async def get_status(
 
 @pytest.mark.asyncio
 async def test_fetch_audit_status():
-    async with AsyncClient(
-        app=mock_api, base_url="http://test") as client:
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         result = await fetch_audit_status(client, "http://test", project="dor123")
         assert "group1" in result
         assert isinstance(result["group1"], list)
@@ -105,7 +105,6 @@ def test_audit_missing_project_argument(start_fastapi_server):
         result.exit_code == 2
     ), "Command should fail with exit code 2 when '--project' is missing."
     assert "Missing option '--project'" in output
-
 
 
 def strip_ansi(text):
