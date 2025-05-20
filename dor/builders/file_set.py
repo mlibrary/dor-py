@@ -3,7 +3,7 @@ from pathlib import Path
 from faker import Faker
 from PIL import Image, ImageDraw
 
-from dor.settings import S, text_font, template_env
+from dor.settings import S, template_env
 
 from .parts import (
     UseFormat,
@@ -43,11 +43,11 @@ def build_image(use, seq, version):
 
     message = f"Page v{version}.{seq}"
 
-    _, _, w, h = d.textbbox((0, 0), message, font=text_font)
+    _, _, w, h = d.textbbox((0, 0), message, font=S.text_font)
     d.text(
         ((IMAGE_WIDTH - w) / 2, (IMAGE_HEIGHT - h) / 2),
         message,
-        font=text_font,
+        font=S.text_font,
         fill=text_color,
     )
 
