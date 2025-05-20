@@ -29,7 +29,7 @@ requests = "^2.26.0"
 pytesseract = "^0.3.13"
 python-multipart = "^0.0.20"
 rq = "^2.2.0"
-rich = "^13.5.2"
+rich = "^14.0.0"
 httpx = {extras = ["http2"], version = "^0.28.1"}
 
 [tool.poetry.group.dev.dependencies]
