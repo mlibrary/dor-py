@@ -8,14 +8,14 @@ class FileSetSearchResult:
     bin_identifier: str
 
 
-class OPClient(ABC):
+class RepositoryClient(ABC):
 
     @abstractmethod
     def search_for_file_set(self, file_set_identifier: str) -> list[FileSetSearchResult]:
         raise NotImplementedError
 
 
-class FakeOPClient(OPClient):
+class FakeRepositoryClient(RepositoryClient):
 
     def search_for_file_set(self, file_set_identifier: str) -> list[FileSetSearchResult]:
         return []
