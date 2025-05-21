@@ -5,6 +5,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
+
 class _Enum(Enum):
     def __str__(self):
         return self.value
@@ -74,8 +75,8 @@ class StructMap:
 class PackageResource:
     id: uuid.UUID
     type: str
-    alternate_identifier: AlternateIdentifier
-    events: list[PreservationEvent]
+    alternate_identifiers: list[AlternateIdentifier] = field(default_factory=list)
+    events: list[PreservationEvent] = field(default_factory=list)
     metadata_files: list[FileMetadata] = field(default_factory=list)
     data_files: list[FileMetadata] = field(default_factory=list)
     struct_maps: list[StructMap] = field(default_factory=list)
@@ -91,3 +92,9 @@ class PackageResource:
             entries.append(Path(file_metadata.ref.locref))
 
         return entries
+
+    def has_alternate_identifier(self, identifier: AlternateIdentifier) -> bool:
+        for alt_identifier in self.alternate_identifiers:
+            if alt_identifier == identifier:
+                return True
+        return False

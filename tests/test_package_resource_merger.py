@@ -24,7 +24,7 @@ def current() -> list[PackageResource]:
         PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
             type="Monograph",
-            alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
+            alternate_identifiers=[AlternateIdentifier(id="xyzzy:00000001", type="DLXS")],
             events=[
                 PreservationEvent(
                     identifier="23b04e8b-f7fd-4331-a3bb-0157f9a057d6",
@@ -105,7 +105,7 @@ def incoming() -> list[PackageResource]:
         PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
             type="Monograph",
-            alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
+            alternate_identifiers=[AlternateIdentifier(id="xyzzy:00000001", type="DLXS")],
             events=[
                 PreservationEvent(
                     identifier="94032aff-e1a9-4c1b-8066-3e153f57df67",
@@ -186,7 +186,7 @@ def partial() -> list[PackageResource]:
         PackageResource(
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
             type="Monograph",
-            alternate_identifier=AlternateIdentifier(id="xyzzy:00000001", type="DLXS"),
+            alternate_identifiers=[AlternateIdentifier(id="xyzzy:00000001", type="DLXS")],
             events=[
                 PreservationEvent(
                     identifier="5c6a593d-afb8-49da-a91a-c12c91cfb4e8",
@@ -251,7 +251,8 @@ def test_merging_complete_resources(current: list[PackageResource], incoming: li
     results = merger.merge_changes()
 
     assert results[0].metadata_files == incoming[0].metadata_files
-    assert results[0].events == ( current[0].events + incoming[0].events )
+    assert results[0].events == (current[0].events + incoming[0].events)
+
 
 def test_merging_partial_resources(current: list[PackageResource], partial: list[PackageResource]):
     merger = PackageResourcesMerger(current=current, incoming=partial)
