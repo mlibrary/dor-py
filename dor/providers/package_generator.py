@@ -16,7 +16,7 @@ from dor.providers.models import (
     StructMapItem,
     StructMapType
 )
-from dor.providers.op_client import OPClient
+from dor.providers.repository_client import RepositoryClient
 from dor.settings import template_env
 
 
@@ -57,7 +57,7 @@ class PackageGenerator:
     def __init__(
         self,
         file_provider: FileProvider,
-        op_client: OPClient,
+        repository_client: RepositoryClient,
         metadata: dict[str, Any],
         deposit_group: DepositGroup,
         output_path: Path,
@@ -70,7 +70,7 @@ class PackageGenerator:
         self.output_path = output_path
         self.file_sets_path = file_sets_path
         self.timestamp = timestamp
-        self.op_client = op_client
+        self.repository_client = repository_client
 
         self.root_resource_identifier: str = self.metadata["identifier"]
         self.type: str = self.metadata["type"]
@@ -217,7 +217,7 @@ class PackageGenerator:
             if incorporated:
                 file_set_ids.append(file_set_id)
             else:
-                search_results = self.op_client.search_for_file_set(file_set_id)
+                search_results = self.repository_client.search_for_file_set(file_set_id)
                 if search_results:
                     file_set_ids.append(file_set_id)
                 else:
