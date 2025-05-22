@@ -1,12 +1,12 @@
 import asyncio
 from pathlib import Path
-import typer
+
 import httpx
+import typer
 
 from dor.cli.client.upload_client import UploadError, generate_profiles, run_upload_fileset
 from dor.config import config
 
-from typing import List
 
 upload_app = typer.Typer()
 
@@ -17,8 +17,8 @@ def run_upload(
         None, help="Path to a folder containing files to upload."
     ),
     project_id: str = typer.Option(..., help="Collection to upload to."),
-    image: List[str] = typer.Option(default_factory=list, help="image processing"),
-    text: List[str] = typer.Option(default_factory=list, help="text processing"),
+    image: list[str] = typer.Option(default_factory=list, help="image processing"),
+    text: list[str] = typer.Option(default_factory=list, help="text processing"),
 ):
     asyncio.run(_run_upload(folder, project_id, image,text))
 
@@ -30,7 +30,7 @@ async def _run_upload(
     text: list[str],
 ):
     base_url = config.api_url
-    type_profiles: dict[str, List[str]] = {}
+    type_profiles: dict[str, list[str]] = {}
     
     if image:
         type_profiles["image"] = image
@@ -39,38 +39,51 @@ async def _run_upload(
     if not type_profiles:
         typer.echo("No profiles provided. Use --image or --text to specify profiles.")
         raise typer.Exit(1)
+
     profiles = generate_profiles(folder_path=Path(folder), type_profiles=type_profiles)
-    fileset_profiles: dict[str,dict] = {}
+    fileset_profiles: dict[str, dict[str, list[str]]] = {}
     for file_name in profiles:
         name = Path(file_name).stem
         if name not in fileset_profiles:
-            fileset_profiles[name] = {}    
-        fileset_profiles[name][file_name] = profiles[file_name]    
-    for name in fileset_profiles:             
-        try:
-            async with httpx.AsyncClient(follow_redirects=True) as client:
-                result = await run_upload_fileset(
-                    client,
-                    base_url,
-                    profiles=fileset_profiles[name],
-                    folder=folder,
-                    name=name,
-                    project_id=project_id,                   
-                )
-            typer.echo(f"Fileset created successfully: {result}")
+            fileset_profiles[name] = {}
+        fileset_profiles[name][file_name] = profiles[file_name]
 
-        except UploadError as exc:
-            typer.secho(f"Upload error: {exc}", fg="white", bg="red", bold=True)
-            typer.echo(f"Details: {exc.message}, Code: {exc.code}", err=True)
-            raise typer.Exit(1)
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        tasks = []
+        for name in fileset_profiles:
+            tasks.append(run_upload_fileset(
+                client=client,
+                base_url=base_url,
+                project_id=project_id,
+                name=name,
+                profiles=fileset_profiles[name],
+                folder=folder,
+            ))
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        except httpx.RequestError as exc:
-            typer.echo(f"An error occurred while making the request: {exc}", err=True)
-            raise typer.Exit(1)
+    exceptions = []
+    data_results = []
+    for result in results:
+        if isinstance(result, Exception):
+            exceptions.append(exceptions)
+        else:
+            data_results.append(data_results)
 
-        except httpx.HTTPStatusError as exc:
+    typer.echo(f"{len(data_results)} filesets created successfully: {data_results}")
+
+    for exception in exceptions:
+        if isinstance(exception, UploadError):
+            typer.secho(f"Upload error: {exception}", fg="white", bg="red", bold=True)
+            typer.echo(f"Details: {exception.message}, Code: {exception.code}", err=True)
+        elif isinstance(exception, httpx.RequestError):
+            typer.echo(f"An error occurred while making a request: {exception}", err=True)
+        elif isinstance(exception, httpx.HTTPStatusError):
             typer.echo( 
-                f"HTTP error occurred: {exc.response.status_code} - {exc.response.text}",
+                f"HTTP error occurred: {exception.response.status_code} - {exception.response.text}",
                 err=True,
             )
-            raise typer.Exit(1)
+        else:
+            typer.echo("Unknown exception occurred: {exception}")
+
+    if exceptions:
+        raise typer.Exit(1)
