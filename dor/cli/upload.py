@@ -4,7 +4,11 @@ from pathlib import Path
 import httpx
 import typer
 
-from dor.cli.client.upload_client import UploadError, generate_profiles, run_upload_fileset
+from dor.cli.client.upload_client import (
+    generate_profiles,
+    run_upload_fileset_with_limit,
+    UploadError
+)
 from dor.config import config
 
 
@@ -48,10 +52,13 @@ async def _run_upload(
             fileset_profiles[name] = {}
         fileset_profiles[name][file_name] = profiles[file_name]
 
+    semaphore = asyncio.Semaphore(10)
+
     async with httpx.AsyncClient(follow_redirects=True) as client:
         tasks = []
         for name in fileset_profiles:
-            tasks.append(run_upload_fileset(
+            tasks.append(run_upload_fileset_with_limit(
+                sempahore=semaphore,
                 client=client,
                 base_url=base_url,
                 project_id=project_id,
