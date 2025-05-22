@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # PYTHON image
 # Use the official Docker Python image because it has the absolute latest bugfix version of Python
 # it has the absolute latest system packages
