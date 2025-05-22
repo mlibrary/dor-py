@@ -86,6 +86,16 @@ COPY pyproject.toml poetry.lock README.md ./
 #Use poetry to create a requirements.txt file. Dont include development dependencies
 RUN poetry export --without dev -f requirements.txt --output requirements.txt
 
+#######
+FROM poetry AS cli-build
+
+COPY . /app
+RUN poetry install
+RUN poetry build
+
+CMD ["sha256sum", "dist/*"]
+
+
 # We want poetry on in development
 FROM poetry AS development
 RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \
