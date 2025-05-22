@@ -38,7 +38,7 @@
             tags: 'mlibrary/dor-cli:latest'
             file: Dockerfile
             target: cli-publish
-            build_args: |
+            secrets: |
               POETRY_REPOSITORIES_DOR_URL=${{ vars.POETRY_REPOSITORIES_DOR_URL }}
               POETRY_HTTP_BASIC_DOR_USERNAME="${{ vars.POETRY_HTTP_BASIC_DOR_USERNAME }}
               POETRY_HTTP_BASIC_DOR_PASSWORD="${{ secrets.POETRY_HTTP_BASIC_DOR_PASSWORD }}
