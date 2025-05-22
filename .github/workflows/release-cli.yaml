@@ -35,6 +35,7 @@
           with:
             context: .
             push: false
+            load: true
             tags: 'mlibrary/dor-cli:latest'
             file: Dockerfile
             target: cli-build
