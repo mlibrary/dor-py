@@ -96,6 +96,14 @@ RUN poetry build
 CMD ["sha256sum", "dist/*"]
 
 
+#######
+FROM cli-build AS cli-publish
+ARG POETRY_REPOSITORIES_DOR_URL
+ARG POETRY_HTTP_BASIC_DOR_USERNAME
+ARG POETRY_HTTP_BASIC_DOR_PASSWORD
+
+RUN poetry publish -r dor
+
 # We want poetry on in development
 FROM poetry AS development
 RUN apt-get update -yqq && apt-get install -yqq --no-install-recommends \

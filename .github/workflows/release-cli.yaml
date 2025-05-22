@@ -30,20 +30,15 @@
         - name: Checkout
           uses: actions/checkout@v4
 
-        - name: Build CLI package
+        - name: Build and publish CLI package
           uses: docker/build-push-action@v5
           with:
             context: .
             push: false
-            load: true
             tags: 'mlibrary/dor-cli:latest'
             file: Dockerfile
-            target: cli-build
-
-        - name: Publish CLI package with Poetry
-          run: |
-            docker run --rm \
-            -e POETRY_REPOSITORIES_DOR_URL="${{ vars.POETRY_REPOSITORIES_DOR_URL }}" \
-            -e POETRY_HTTP_BASIC_DOR_USERNAME="${{ vars.POETRY_HTTP_BASIC_DOR_USERNAME }}" \
-            -e POETRY_HTTP_BASIC_DOR_PASSWORD="${{ secrets.POETRY_HTTP_BASIC_DOR_PASSWORD }}" \
-            mlibrary/dor-cli poetry publish -r dor
+            target: cli-publish
+            build_args: |
+              POETRY_REPOSITORIES_DOR_URL=${{ vars.POETRY_REPOSITORIES_DOR_URL }}
+              POETRY_HTTP_BASIC_DOR_USERNAME="${{ vars.POETRY_HTTP_BASIC_DOR_USERNAME }}
+              POETRY_HTTP_BASIC_DOR_PASSWORD="${{ secrets.POETRY_HTTP_BASIC_DOR_PASSWORD }}
