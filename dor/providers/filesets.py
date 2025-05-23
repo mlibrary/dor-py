@@ -11,13 +11,10 @@
 # it from the worker out in fileset-processor.py. Everything can be moved around
 # and partitioned better as we go.
 import re
-from typing import Any
 
 from pathlib import Path
 from datetime import datetime
 from fastapi import UploadFile
-from redis import Redis
-from rq import Queue
 
 from dor.config import config
 from dor.providers.operations import (
@@ -29,14 +26,6 @@ from dor.providers.operations import (
 )
 from dor.providers.build_file_set import build_file_set, Input, Command
 from dor.providers.file_set_identifier import FileSetIdentifier
-
-# FIXME: Move redis connection to a service?
-redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
-
-# TODO: Move queue registry? Build out as a member of something? Leave here?
-queues: dict[str, Queue] = {
-    "fileset": Queue("fileset", connection=redis)
-}
 
 
 # Utility method, where should it live?

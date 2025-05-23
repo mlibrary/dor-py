@@ -1,11 +1,11 @@
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from dor.adapters import catalog
 from fastapi import FastAPI, APIRouter, Request, status
 import logging
 
 from .catalog import catalog_router
 from .filesets import filesets_router
+from .packages import packages_router
 
 app = FastAPI()
 
@@ -20,4 +20,5 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(catalog_router)
 api_router.include_router(filesets_router)
+api_router.include_router(packages_router)
 app.include_router(api_router)

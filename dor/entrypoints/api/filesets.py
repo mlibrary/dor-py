@@ -3,8 +3,9 @@ import json
 from typing import Annotated, Optional
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 
-from dor.providers.filesets import queues, setup_job_dir, creates_a_file_set_from_uploaded_materials
+from dor.providers.filesets import setup_job_dir, creates_a_file_set_from_uploaded_materials
 from dor.providers.file_set_identifier import FileSetIdentifier
+from dor.queues import queues
 
 filesets_router = APIRouter(prefix="/filesets")
 
