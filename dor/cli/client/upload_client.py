@@ -27,7 +27,7 @@ async def run_upload_fileset(
     name: str,
     profiles: dict[str, list[str]],
     folder: str,
-) -> Any:
+) -> dict[str, Any]:
     """Upload fileset with dynamic profile-based commands."""
     upload_files = []
     try:
@@ -66,9 +66,9 @@ async def run_upload_fileset_with_limit(
     name: str,
     profiles: dict[str, list[str]],
     folder: str,
-):
+) -> dict[str, Any]:
     async with sempahore:
-        await run_upload_fileset(
+        result = await run_upload_fileset(
             client=client,
             base_url=base_url,
             project_id=project_id,
@@ -76,6 +76,7 @@ async def run_upload_fileset_with_limit(
             profiles=profiles,
             folder=folder
         )
+    return result
 
 
 def prepare_files(file_paths: list[Path]) -> list[Tuple[str, Tuple[str, Any]]]:
