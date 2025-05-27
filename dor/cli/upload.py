@@ -2,8 +2,8 @@ import asyncio
 from pathlib import Path
 
 import httpx
-import typer
 import rich
+import typer
 
 from dor.cli.client.upload_client import (
     generate_profiles,
