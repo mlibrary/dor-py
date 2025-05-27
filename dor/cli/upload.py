@@ -3,6 +3,7 @@ from pathlib import Path
 
 import httpx
 import typer
+import rich
 
 from dor.cli.client.upload_client import (
     generate_profiles,
@@ -18,7 +19,7 @@ upload_app = typer.Typer()
 @upload_app.command(name = "upload")
 def run_upload(
     folder: str = typer.Option(
-        None, help="Path to a folder containing files to upload."
+        ..., help="Path to a folder containing files to upload."
     ),
     project_id: str = typer.Option(..., help="Collection to upload to."),
     image: list[str] = typer.Option(default_factory=list, help="image processing"),
@@ -68,15 +69,16 @@ async def _run_upload(
             ))
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    exceptions = []
     data_results = []
+    exceptions = []
     for result in results:
         if isinstance(result, Exception):
             exceptions.append(exceptions)
         else:
-            data_results.append(data_results)
+            data_results.append(result)
 
-    typer.echo(f"{len(data_results)} filesets created successfully: {data_results}")
+    typer.echo(f"Successfully submitted {len(data_results)} fileset(s) for creation.")
+    rich.print(data_results)
 
     for exception in exceptions:
         if isinstance(exception, UploadError):
