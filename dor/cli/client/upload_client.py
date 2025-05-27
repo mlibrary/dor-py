@@ -37,7 +37,7 @@ async def run_upload_fileset(
                 f"Folder '{folder}' does not exist or is not a directory.", code=404
             )
         file_paths = [
-            Path(folder)/file_name for file_name in profiles.keys()
+            Path(folder) / file_name for file_name in profiles.keys()
         ]    
 
         upload_files = prepare_files(file_paths)
@@ -45,9 +45,8 @@ async def run_upload_fileset(
         params = {
             "name": name,
             "project_id": project_id,
-            "file_profiles": json.dumps(profiles),  # Serialize commands to JSON
+            "file_profiles": json.dumps(profiles),  # Serialize profiles to JSON
         }
-        params = {k: v for k, v in params.items() if v is not None}
 
         response = await client.post(f"{base_url}/api/v1/filesets", files=upload_files, data=params)
         response.raise_for_status()
