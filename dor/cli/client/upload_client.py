@@ -40,7 +40,7 @@ async def run_upload_fileset(
             Path(folder) / file_name for file_name in profiles.keys()
         ]    
 
-        upload_files = prepare_files(file_paths)
+        upload_files = prepare_files_form_param(file_paths)
 
         params = {
             "name": name,
@@ -78,7 +78,7 @@ async def run_upload_fileset_with_limit(
     return result
 
 
-def prepare_files(file_paths: list[Path]) -> list[Tuple[str, Tuple[str, Any]]]:
+def prepare_files_form_param(file_paths: list[Path]) -> list[Tuple[str, Tuple[str, Any]]]:
     upload_files: list[Tuple[str, Tuple[str, Any]]] = []
     for file_path in file_paths:
         if not file_path.exists():
