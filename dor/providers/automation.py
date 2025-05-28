@@ -1,7 +1,7 @@
 from dor.queues import queues
 
-def run_automation(event: str, **kwargs):
 
+def run_automation(event: str, **kwargs):
     match event:
         case "package.create":
             from dor.providers.packages import create_package_from_metadata
