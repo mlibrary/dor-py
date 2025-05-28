@@ -6,8 +6,8 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends
 
 from dor.entrypoints.api.dependencies import get_inbox_path
+from dor.providers.automation import run_automation
 from dor.providers.package_generator import DepositGroup
-from dor.providers.packages import create_package_from_metadata
 from dor.queues import queues
 
 
@@ -31,8 +31,9 @@ async def create_package(
         datetime.fromisoformat(deposit_group["date"])
     )
 
-    queues["package"].enqueue(
-        create_package_from_metadata,
+    queues["automation"].enqueue(
+        run_automation,
+        "package.create",
         deposit_group_,
         package_metadata,
         inbox_path
