@@ -11,3 +11,7 @@ def get_db_session():
 
 def get_inbox_path():
     return config.inbox_path
+
+
+def get_pending_path():
+    return config.filesets_path
