@@ -1,9 +1,11 @@
 from datetime import datetime
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 
+from dor.entrypoints.api.dependencies import get_inbox_path
 from dor.providers.package_generator import DepositGroup
 from dor.providers.packages import create_package_from_metadata
 from dor.queues import queues
@@ -20,8 +22,9 @@ class PackageResponse:
 
 @packages_router.post("/")
 async def create_package(
+    deposit_group: Annotated[dict[str, str], Body(...)],
     package_metadata: Annotated[dict, Body(...)],
-    deposit_group: Annotated[dict[str, str], Body(...)]
+    inbox_path: Path=Depends(get_inbox_path)
 ) -> PackageResponse:
     deposit_group_ = DepositGroup(
         deposit_group["identifier"],
@@ -31,7 +34,8 @@ async def create_package(
     queues["package"].enqueue(
         create_package_from_metadata,
         deposit_group_,
-        package_metadata
+        package_metadata,
+        inbox_path
     )
 
     return PackageResponse(
