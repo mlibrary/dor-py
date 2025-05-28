@@ -31,4 +31,4 @@ def create_package_from_metadata(
     #     timestamp=datetime.now(tz=UTC)
     # ).generate()
 
-    queues["automation"].enqueue(run_automation, "package.success", identifier)
+    queues["automation"].enqueue(run_automation, "package.success", package_identifier=identifier)

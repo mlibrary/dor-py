@@ -34,9 +34,9 @@ async def create_package(
     queues["automation"].enqueue(
         run_automation,
         "package.create",
-        deposit_group_,
-        package_metadata,
-        inbox_path
+        deposit_group=deposit_group_,
+        package_metadata=package_metadata,
+        inbox_path=inbox_path
     )
 
     return PackageResponse(
