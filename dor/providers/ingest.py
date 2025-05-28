@@ -1,4 +1,4 @@
-# from dor.domain.events import PackageSubmitted
+from dor.domain.events import PackageSubmitted
 from dor.providers.automation import run_automation
 from dor.queues import queues
 from dor.service_layer.framework import workframe
@@ -9,10 +9,11 @@ def ingest_package(package_identifier: str) -> None:
     message_bus, uow = workframe()
 
     tracking_identifier = minter()
-    # event = PackageSubmitted(
-    #     package_identifier=package_identifier,
-    #     tracking_identifier=tracking_identifier
-    # )
+    event = PackageSubmitted(
+        package_identifier=package_identifier,
+        tracking_identifier=tracking_identifier
+    )
+    # TODO: Uncomment once create_package_from_metadata is working
     # message_bus.handle(event, uow)
 
     queues["automation"].enqueue(

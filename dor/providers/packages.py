@@ -23,6 +23,7 @@ def create_package_from_metadata(
 
     identifier = package_metadata["identifier"]
 
+    # TODO: Uncomment once PackageGenerator is updated to handle fileset paths
     # PackageGenerator(
     #     file_provider=FilesystemFileProvider(),
     #     repository_client=FakeRepositoryClient(),
