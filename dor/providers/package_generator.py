@@ -1,4 +1,5 @@
 import json
+import os
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
@@ -52,6 +53,39 @@ def serialize_provenance(data: Any) -> str:
     return xmldata
 
 
+class FileSetsPendingError(Exception):
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+        self.message = message
+
+
+class FileSetsPending:
+    def __init__(self, file_provider: FileProvider, root_path: Path):
+        self.file_provider = file_provider
+        self.root_path = root_path
+
+    def pending(self, file_set_id: str) -> bool:
+        return (self.root_path / file_set_id).exists()
+
+    def push(self, file_set_id: str, destination_path: Path) -> None:
+        if not self.pending(file_set_id):
+            raise FileSetsPendingError(
+                f"Expected file set \"{file_set_id}\" to be pending"
+            )
+
+        file_set_directories = [
+            entry.name for entry in sorted((self.root_path / file_set_id).iterdir(), key=os.path.getmtime, reverse=True)
+            if entry.is_dir()
+        ]
+
+        self.file_provider.clone_directory_structure(
+            self.root_path / file_set_id / file_set_directories[0],
+            destination_path / file_set_id
+        )
+
+
 class PackageGenerator:
 
     def __init__(
@@ -69,6 +103,7 @@ class PackageGenerator:
         self.deposit_group = deposit_group
         self.output_path = output_path
         self.file_sets_path = file_sets_path
+        self.file_sets_pending = FileSetsPending(self.file_provider, self.file_sets_path)
         self.timestamp = timestamp
         self.repository_client = repository_client
 
@@ -76,11 +111,6 @@ class PackageGenerator:
         self.type: str = self.metadata["type"]
         self.package_identifier = self.root_resource_identifier + "_" + self.timestamp.strftime("%Y%m%d%H%M%S")
         self.package_path: Path = self.output_path / self.package_identifier
-
-        self.file_set_directories = [
-            entry.name for entry in self.file_sets_path.iterdir()
-            if entry.is_dir()
-        ]
 
     def clear_package_path(self):
         self.file_provider.delete_dir_and_contents(self.package_path)
@@ -153,15 +183,6 @@ class PackageGenerator:
             )
         return struct_maps
 
-    def incorporate_file_set(self, file_set_id: str) -> bool:
-        if file_set_id in self.file_set_directories:
-            self.file_provider.clone_directory_structure(
-                self.file_sets_path / file_set_id,
-                self.package_path / file_set_id
-            )
-            return True
-        return False
-
     def create_root_descriptor_file(
         self,
         resource: PackageResource,
@@ -213,8 +234,8 @@ class PackageGenerator:
         file_set_ids = []
         for struct_map_item in physical_struct_map.items:
             file_set_id = struct_map_item.file_set_id
-            incorporated = self.incorporate_file_set(file_set_id)
-            if incorporated:
+            if self.file_sets_pending.pending(file_set_id=file_set_id):
+                self.file_sets_pending.push(file_set_id=file_set_id, destination_path=self.package_path)
                 file_set_ids.append(file_set_id)
             else:
                 search_results = self.repository_client.search_for_file_set(file_set_id)
