@@ -1,7 +1,6 @@
 import dataclasses
 import uuid
 from datetime import datetime, UTC
-from pathlib import Path
 from typing import Generator
 
 import pytest
@@ -11,7 +10,7 @@ from fastapi.testclient import TestClient
 from dor.adapters.sqlalchemy import Base
 from dor.config import config
 from dor.domain.models import Revision
-from dor.entrypoints.api.dependencies import get_db_session, get_inbox_path, get_pending_path
+from dor.entrypoints.api.dependencies import get_db_session
 from dor.entrypoints.api.main import app
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
