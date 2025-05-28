@@ -1,9 +1,28 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
+
+from dor.entrypoints.api.dependencies import get_inbox_path, get_pending_path
+from dor.entrypoints.api.main import app
+
+
+@pytest.fixture
+def package_test_client() -> Generator[TestClient, None, None]:
+    def get_inbox_path_override():
+        return Path("tests/output/test_packages_api/test_inbox")
+
+    def get_pending_path_override():
+        return Path("tests/fixtures/test_packages_api/test_pending")
+
+    app.dependency_overrides[get_inbox_path] = get_inbox_path_override
+    app.dependency_overrides[get_pending_path] = get_pending_path_override
+    test_client = TestClient(app)
+    yield test_client
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -11,7 +30,6 @@ def fixtures_path() -> Path:
     return Path("tests/fixtures/test_packages_api")
 
 
-@pytest.mark.usefixtures("package_test_client")
 def test_packages_api_returns_200_and_summary(package_test_client: TestClient, fixtures_path: Path):
     package_metadata_path = fixtures_path / "sample_package_metadata.json"
     package_metadata = json.loads(package_metadata_path.read_text())
