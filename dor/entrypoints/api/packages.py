@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, Depends
 
@@ -23,7 +23,7 @@ class PackageResponse:
 @packages_router.post("/")
 async def create_package(
     deposit_group: Annotated[dict[str, str], Body(...)],
-    package_metadata: Annotated[dict, Body(...)],
+    package_metadata: Annotated[dict[str, Any], Body(...)],
     inbox_path: Path=Depends(get_inbox_path),
     pending_path: Path=Depends(get_pending_path),
 ) -> PackageResponse:
