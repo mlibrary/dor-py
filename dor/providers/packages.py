@@ -3,6 +3,8 @@ from typing import Any
 from pathlib import Path
 
 # from dor.config import config
+from dor.providers.automation import run_automation
+from dor.queues import queues
 # from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.package_generator import (DepositGroup, ) # PackageGenerator
 # from dor.providers.repository_client import FakeRepositoryClient
@@ -17,6 +19,8 @@ def create_package_from_metadata(
     print(package_metadata)
     print(inbox_path)
 
+    identifier = package_metadata["identifier"]
+
     # PackageGenerator(
     #     file_provider=FilesystemFileProvider(),
     #     repository_client=FakeRepositoryClient(),
@@ -26,3 +30,5 @@ def create_package_from_metadata(
     #     file_sets_path=Path(config.filesets_path),
     #     timestamp=datetime.now(tz=UTC)
     # ).generate()
+
+    queues["automation"].enqueue(run_automation, "package.success", identifier)

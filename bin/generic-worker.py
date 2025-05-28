@@ -6,5 +6,5 @@ from dor.queues import redis
 # it would be specific to fileset processing or overall orchestration; we
 # simply have not made any decisions on the dispatch or job-type boundaries.
 
-w = Worker(['fileset', 'package'], connection=redis)
+w = Worker(['fileset', 'automation', 'package'], connection=redis)
 w.work()
