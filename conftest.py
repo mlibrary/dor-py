@@ -53,21 +53,6 @@ def test_client(db_session) -> Generator[TestClient, None, None]:
 
 
 @pytest.fixture
-def package_test_client() -> Generator[TestClient, None, None]:
-    def get_inbox_path_override():
-        return Path("tests/output/test_inbox")
-
-    def get_pending_path_override():
-        return Path("tests/fixtures/test_inbox")
-
-    app.dependency_overrides[get_inbox_path] = get_inbox_path_override
-    app.dependency_overrides[get_pending_path] = get_pending_path_override
-    test_client = TestClient(app)
-    yield test_client
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
 def sample_revision() -> Revision:
     return Revision(
         identifier=uuid.UUID("00000000-0000-0000-0000-000000000001"),
