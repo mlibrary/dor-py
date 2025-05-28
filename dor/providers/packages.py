@@ -13,11 +13,13 @@ from dor.providers.package_generator import (DepositGroup, ) # PackageGenerator
 def create_package_from_metadata(
     deposit_group: DepositGroup,
     package_metadata: dict[str, Any],
-    inbox_path: Path
+    inbox_path: Path,
+    pending_path: Path
 ):
     print(deposit_group)
     print(package_metadata)
     print(inbox_path)
+    print(pending_path)
 
     identifier = package_metadata["identifier"]
 
@@ -27,7 +29,7 @@ def create_package_from_metadata(
     #     metadata=package_metadata,
     #     deposit_group=deposit_group,
     #     output_path=inbox_path,
-    #     file_sets_path=Path(config.filesets_path),
+    #     file_sets_path=pending_path,
     #     timestamp=datetime.now(tz=UTC)
     # ).generate()
 

@@ -11,8 +11,8 @@ def fixtures_path() -> Path:
     return Path("tests/fixtures/test_packages_api")
 
 
-@pytest.mark.usefixtures("test_client")
-def test_packages_api_returns_200_and_summary(test_client: TestClient, fixtures_path: Path):
+@pytest.mark.usefixtures("package_test_client")
+def test_packages_api_returns_200_and_summary(package_test_client: TestClient, fixtures_path: Path):
     package_metadata_path = fixtures_path / "sample_package_metadata.json"
     package_metadata = json.loads(package_metadata_path.read_text())
     body = {
@@ -22,5 +22,5 @@ def test_packages_api_returns_200_and_summary(test_client: TestClient, fixtures_
         },
         "package_metadata": package_metadata
     }
-    response = test_client.post("api/v1/packages", json=body)
+    response = package_test_client.post("api/v1/packages", json=body)
     assert response.status_code == 200

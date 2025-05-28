@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from dor.adapters.sqlalchemy import Base
 from dor.config import config
 from dor.domain.models import Revision
-from dor.entrypoints.api.dependencies import get_db_session, get_inbox_path
+from dor.entrypoints.api.dependencies import get_db_session, get_inbox_path, get_pending_path
 from dor.entrypoints.api.main import app
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
@@ -46,11 +46,22 @@ def test_client(db_session) -> Generator[TestClient, None, None]:
     def get_db_session_override():
         return db_session
 
+    app.dependency_overrides[get_db_session] = get_db_session_override
+    test_client = TestClient(app)
+    yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def package_test_client() -> Generator[TestClient, None, None]:
     def get_inbox_path_override():
         return Path("tests/output/test_inbox")
 
-    app.dependency_overrides[get_db_session] = get_db_session_override
+    def get_pending_path_override():
+        return Path("tests/fixtures/test_inbox")
+
     app.dependency_overrides[get_inbox_path] = get_inbox_path_override
+    app.dependency_overrides[get_pending_path] = get_pending_path_override
     test_client = TestClient(app)
     yield test_client
     app.dependency_overrides.clear()

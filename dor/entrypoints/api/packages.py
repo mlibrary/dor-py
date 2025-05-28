@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends
 
-from dor.entrypoints.api.dependencies import get_inbox_path
+from dor.entrypoints.api.dependencies import get_inbox_path, get_pending_path
 from dor.providers.automation import run_automation
 from dor.providers.package_generator import DepositGroup
 from dor.queues import queues
@@ -24,7 +24,8 @@ class PackageResponse:
 async def create_package(
     deposit_group: Annotated[dict[str, str], Body(...)],
     package_metadata: Annotated[dict, Body(...)],
-    inbox_path: Path=Depends(get_inbox_path)
+    inbox_path: Path=Depends(get_inbox_path),
+    pending_path: Path=Depends(get_pending_path),
 ) -> PackageResponse:
     deposit_group_ = DepositGroup(
         deposit_group["identifier"],
@@ -36,7 +37,8 @@ async def create_package(
         "package.create",
         deposit_group=deposit_group_,
         package_metadata=package_metadata,
-        inbox_path=inbox_path
+        inbox_path=inbox_path,
+        pending_path=pending_path
     )
 
     return PackageResponse(

@@ -1,6 +1,4 @@
 from dor.queues import queues
-from tests.test_package_generator import deposit_group
-
 
 def run_automation(event: str, **kwargs):
 
@@ -9,10 +7,18 @@ def run_automation(event: str, **kwargs):
             from dor.providers.packages import create_package_from_metadata
             queues["package"].enqueue(
                 create_package_from_metadata,
-                **kwargs
+                deposit_group=kwargs["deposit_group"],
+                package_metadata=kwargs["package_metadata"],
+                inbox_path=kwargs["inbox_path"],
+                pending_path=kwargs["pending_path"]
             )
         case "package.success":
-            print(kwargs.get("package_identifier"))
+            from dor.providers.ingest import ingest_package
+            queues["ingest"].enqueue(
+                ingest_package,
+                package_identifier=kwargs["package_identifier"]
+            )
+        case "ingest.success":
+            print(kwargs)
         case _:
             raise Exception
-    
