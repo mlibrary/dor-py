@@ -64,7 +64,7 @@ class FileSetsPendingError(Exception):
 class FileSetsPending:
 
     @classmethod
-    def PosixPathToInt(cls, path: Path):
+    def sort_job_index_key(cls, path: Path):
         return int(os.path.basename(path))
 
     def __init__(self, file_provider: FileProvider, root_path: Path):
@@ -81,7 +81,7 @@ class FileSetsPending:
             )
 
         file_set_directories = [
-            entry.name for entry in sorted((self.root_path / file_set_id).iterdir(), key=self.PosixPathToInt, reverse=True)
+            entry.name for entry in sorted((self.root_path / file_set_id).iterdir(), key=self.sort_job_index_key, reverse=True)
             if entry.is_dir()
         ]
 
