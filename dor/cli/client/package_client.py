@@ -54,12 +54,13 @@ async def upload_packages(
     deposit_group: DepositGroup,
     package_metadatas: list[dict[str, Any]]
 ) -> list[dict[str, Any] | BaseException]:
-    tasks = []
-    for package_metadata in package_metadatas:
-        tasks.append(upload_package(
-            client=client,
-            deposit_group=deposit_group,
-            package_metadata=package_metadata
-        ))
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    async with client:
+        tasks = []
+        for package_metadata in package_metadatas:
+            tasks.append(upload_package(
+                client=client,
+                deposit_group=deposit_group,
+                package_metadata=package_metadata
+            ))
+        results = await asyncio.gather(*tasks, return_exceptions=True)
     return results
