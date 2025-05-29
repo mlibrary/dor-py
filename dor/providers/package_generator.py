@@ -81,7 +81,7 @@ class FileSetsPending:
         ]
 
         self.file_provider.clone_directory_structure(
-            self.root_path / file_set_id / file_set_directories[0],
+            self.root_path / file_set_id / file_set_directories[0] / "build" / file_set_id,
             destination_path / file_set_id
         )
 
