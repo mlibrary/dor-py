@@ -14,7 +14,7 @@ def fixtures_path():
     return Path("tests/fixtures/test_cli_package_upload")
 
 
-def test_package_upload_command_works_for_image(fixtures_path):
+def test_package_upload_command_runs(fixtures_path):
     packet_path = fixtures_path / "test_packet.jsonl"
 
     result = runner.invoke(
@@ -26,3 +26,15 @@ def test_package_upload_command_works_for_image(fixtures_path):
         ],
     )
     assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}."
+
+
+def test_package_upload_fails_with_fake_path():
+    result = runner.invoke(
+        cli_app,
+        [
+            "package",
+            "upload",
+            "some/fake/path"
+        ],
+    )
+    assert result.exit_code == 1, f"Command failed with exit code {result.exit_code}."
