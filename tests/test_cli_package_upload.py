@@ -25,8 +25,7 @@ def test_package_upload_command_runs(fixtures_path):
             str(packet_path)
         ],
     )
-    assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}."
-    print(result.stdout)
+    assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}; stdout: {result.stdout}."
 
 
 def test_package_upload_fails_with_fake_path():
