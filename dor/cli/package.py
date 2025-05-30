@@ -24,18 +24,18 @@ def upload(
 ):
     packet_path = Path(packet)
     if not packet_path.exists():
-        typer.echo("Packet file was not found at the path provided.")
+        typer.echo("Packet file was not found at the path provided.", err=True)
         raise typer.Exit(1)
 
     deposit_group = create_deposit_group()
     typer.echo(
         "Deposit Group\n"
-        f"  Identifier: {deposit_group.identifier}\n"
-        f"  Date: {deposit_group.date.isoformat()}"
+        f"- Identifier: {deposit_group.identifier}\n"
+        f"- Date: {deposit_group.date.isoformat()}"
     )
 
     package_metadatas = get_package_metadatas(packet_path)
-    typer.echo(f"{len(package_metadatas)} package(s) to be uploaded.")
+    typer.echo(f"{len(package_metadatas)} package metadata records to be uploaded.")
 
     httpx_client = httpx.AsyncClient(base_url=config.api_url + "/api/v1/")
 
@@ -45,7 +45,7 @@ def upload(
         package_metadatas=package_metadatas
     ))
 
-    typer.echo(f"Successfully submitted {len(result.response_datas)} packages(s) for creation.")
+    typer.echo(f"Successfully submitted metadata for {len(result.response_datas)} packages(s).")
     rich.print(result.response_datas)
 
     for exception in result.exceptions:
