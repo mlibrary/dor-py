@@ -48,7 +48,7 @@ def test_get_package_metadatas_parses_packet_file(fixtures_path: Path, deposit_g
     assert len(package_metadatas) == 1
 
 
-def test_upload_package_makes_request(
+def test_upload_package_uploads(
     fixtures_path: Path,
     deposit_group: DepositGroup,
     mocked_httpx_client: httpx.AsyncClient
@@ -62,7 +62,6 @@ def test_upload_package_makes_request(
         deposit_group=deposit_group,
         package_metadata=package_metadata
     ))
-    print(result)
     assert result is not None
 
 
@@ -81,3 +80,28 @@ def test_upload_packages_uploads_one_package(
     ))
     assert len(results) == 1
     assert not isinstance(results[0], Exception)
+
+
+def test_upload_packages_returns_exception(
+    fixtures_path: Path,
+    deposit_group: DepositGroup,
+):
+    async def handler(request):
+        return httpx.Response(status_code=500)
+
+    httpx_client = httpx.AsyncClient(
+        base_url="http://localhost:8000/api/v1/",
+        transport=httpx.MockTransport(handler)
+    )
+
+    packet_path = fixtures_path / "test_packet.jsonl"
+    package_metadatas = get_package_metadatas(packet_path)
+
+    results = asyncio.run(upload_packages(
+        client=httpx_client,
+        deposit_group=deposit_group,
+        package_metadatas=package_metadatas
+    ))
+
+    assert len(results) == 1
+    assert isinstance(results[0], httpx.HTTPStatusError)
