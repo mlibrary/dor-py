@@ -49,15 +49,33 @@ async def upload_package(
     return response.json()
 
 
+async def upload_package_with_limit(
+    sempahore: asyncio.Semaphore,
+    client: httpx.AsyncClient,
+    deposit_group: DepositGroup,
+    package_metadata: dict[str, Any]
+) -> dict[str, Any]:
+    async with sempahore:
+        result = await upload_package(
+            client=client,
+            deposit_group=deposit_group,
+            package_metadata=package_metadata
+        )
+    return result
+
+
 async def upload_packages(
     client: httpx.AsyncClient,
     deposit_group: DepositGroup,
     package_metadatas: list[dict[str, Any]]
 ) -> list[dict[str, Any] | BaseException]:
+    semaphore = asyncio.Semaphore(10)
+
     async with client:
         tasks = []
         for package_metadata in package_metadatas:
-            tasks.append(upload_package(
+            tasks.append(upload_package_with_limit(
+                sempahore=semaphore,
                 client=client,
                 deposit_group=deposit_group,
                 package_metadata=package_metadata
