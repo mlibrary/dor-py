@@ -82,16 +82,17 @@ async def _run_upload(
 
     for exception in exceptions:
         if isinstance(exception, UploadError):
-            typer.secho(f"Upload error: {exception}", fg="white", bg="red", bold=True)
-            typer.echo(f"Details: {exception.message}, Code: {exception.code}")
+            typer.secho(f"Upload error: {exception}", fg="white", bg="red", bold=True, err=True)
+            typer.echo(f"Details: {exception.message}, Code: {exception.code}", err=True)
         elif isinstance(exception, httpx.RequestError):
-            typer.echo(f"An error occurred while making a request: {exception}")
+            typer.echo(f"An error occurred while making a request: {exception}", err=True)
         elif isinstance(exception, httpx.HTTPStatusError):
             typer.echo( 
-                f"HTTP error occurred: {exception.response.status_code} - {exception.response.text}"
+                f"HTTP error occurred: {exception.response.status_code} - {exception.response.text}",
+                err=True
             )
         else:
-            typer.echo(f"Unknown exception occurred: {exception}")
+            typer.echo(f"Unknown exception occurred: {exception}", err=True)
 
     if exceptions:
         raise typer.Exit(1)
