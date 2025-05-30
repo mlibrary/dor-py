@@ -64,11 +64,17 @@ async def upload_package_with_limit(
     return result
 
 
+@dataclass
+class UploadResult:
+    response_datas: list[dict[str, Any]]
+    exceptions: list[BaseException]
+
+
 async def upload_packages(
     client: httpx.AsyncClient,
     deposit_group: DepositGroup,
     package_metadatas: list[dict[str, Any]]
-) -> list[dict[str, Any] | BaseException]:
+) -> UploadResult:
     semaphore = asyncio.Semaphore(10)
 
     async with client:
@@ -81,4 +87,16 @@ async def upload_packages(
                 package_metadata=package_metadata
             ))
         results = await asyncio.gather(*tasks, return_exceptions=True)
-    return results
+
+    response_datas = []
+    exceptions = []
+    for result in results:
+        if isinstance(result, BaseException):
+            exceptions.append(result)
+        else:
+            response_datas.append(result)
+
+    return UploadResult(
+        response_datas=response_datas,
+        exceptions=exceptions
+    )
