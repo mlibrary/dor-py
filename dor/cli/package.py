@@ -38,24 +38,16 @@ def upload(
 
     httpx_client = httpx.AsyncClient(base_url=config.api_url + "/api/v1/")
 
-    results = asyncio.run(upload_packages(
+    result = asyncio.run(upload_packages(
         client=httpx_client,
         deposit_group=deposit_group,
         package_metadatas=package_metadatas
     ))
 
-    data_results = []
-    exceptions = []
-    for result in results:
-        if isinstance(result, BaseException):
-            exceptions.append(result)
-        else:
-            data_results.append(result)
+    typer.echo(f"Successfully submitted {len(result.response_datas)} packages(s) for creation.")
+    rich.print(result.response_datas)
 
-    typer.echo(f"Successfully submitted {len(data_results)} packages(s) for creation.")
-    rich.print(data_results)
-
-    for exception in exceptions:
+    for exception in result.exceptions:
         if isinstance(exception, httpx.RequestError):
             typer.echo(f"An error occurred while making a request: {exception}", err=True)
         elif isinstance(exception, httpx.HTTPStatusError):
@@ -65,5 +57,5 @@ def upload(
             )
         else:
             typer.echo(f"Unknown exception occurred: {exception}", err=True)
-    if exceptions:
+    if result.exceptions:
         raise typer.Exit(1)
