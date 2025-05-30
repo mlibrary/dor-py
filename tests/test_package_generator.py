@@ -47,7 +47,7 @@ def test_generator_generates_package(
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_sets_path=fixtures_path / "file_sets",
+        file_sets_path=fixtures_path / "file_sets_pending",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
@@ -108,7 +108,7 @@ def test_generator_generates_package_with_referenced_dorop_fileset(
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_sets_path=fixtures_path / "file_sets",
+        file_sets_path=fixtures_path / "file_sets_pending",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
@@ -137,7 +137,7 @@ def test_generator_fails_when_metadata_references_missing_file_set(
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_sets_path=fixtures_path / "file_sets",
+        file_sets_path=fixtures_path / "file_sets_pending",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
@@ -164,7 +164,7 @@ def test_generator_fails_when_metadata_is_missing_file_data(
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_sets_path=fixtures_path / "file_sets",
+        file_sets_path=fixtures_path / "file_sets_pending",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
@@ -194,7 +194,7 @@ def test_generator_fails_when_metadata_is_missing_struct_map(
         metadata=metadata,
         deposit_group=deposit_group,
         output_path=test_output_path,
-        file_sets_path=fixtures_path / "file_sets",
+        file_sets_path=fixtures_path / "file_sets_pending",
         timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
     )
     result = generator.generate()
