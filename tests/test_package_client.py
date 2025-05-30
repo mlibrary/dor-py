@@ -16,7 +16,7 @@ from dor.cli.client.package_client import (
 
 @pytest.fixture
 def fixtures_path() -> Path:
-    return Path("tests/fixtures/test_cli_package_upload")
+    return Path("tests/fixtures/test_package_client")
 
 
 @pytest.fixture
