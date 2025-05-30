@@ -73,13 +73,13 @@ def test_upload_packages_uploads_one_package(
     packet_path = fixtures_path / "test_packet.jsonl"
     package_metadatas = get_package_metadatas(packet_path)
 
-    results = asyncio.run(upload_packages(
+    result = asyncio.run(upload_packages(
         client=mocked_httpx_client,
         deposit_group=deposit_group,
         package_metadatas=package_metadatas
     ))
-    assert len(results) == 1
-    assert not isinstance(results[0], Exception)
+    assert len(result.response_datas) == 1
+    assert len(result.exceptions) == 0
 
 
 def test_upload_packages_returns_exception(
@@ -97,11 +97,12 @@ def test_upload_packages_returns_exception(
     packet_path = fixtures_path / "test_packet.jsonl"
     package_metadatas = get_package_metadatas(packet_path)
 
-    results = asyncio.run(upload_packages(
+    result = asyncio.run(upload_packages(
         client=httpx_client,
         deposit_group=deposit_group,
         package_metadatas=package_metadatas
     ))
 
-    assert len(results) == 1
-    assert isinstance(results[0], httpx.HTTPStatusError)
+    assert len(result.response_datas) == 0
+    assert len(result.exceptions) == 1
+    assert isinstance(result.exceptions[0], httpx.HTTPStatusError)
