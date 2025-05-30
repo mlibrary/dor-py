@@ -7,7 +7,11 @@ import rich
 import typer
 
 from dor.config import config
-from dor.cli.client.package_client import create_deposit_group, get_package_metadatas, upload_packages
+from dor.cli.client.package_client import (
+    create_deposit_group,
+    get_package_metadatas,
+    upload_packages
+)
 
 
 package_app = typer.Typer()
@@ -53,12 +57,13 @@ def upload(
 
     for exception in exceptions:
         if isinstance(exception, httpx.RequestError):
-            typer.echo(f"An error occurred while making a request: {exception}")
+            typer.echo(f"An error occurred while making a request: {exception}", err=True)
         elif isinstance(exception, httpx.HTTPStatusError):
             typer.echo(
-                f"HTTP error occurred: {exception.response.status_code} - {exception.response.text}"
+                f"HTTP error occurred: {exception.response.status_code} - {exception.response.text}",
+                err=True
             )
         else:
-            typer.echo(f"Unknown exception occurred: {exception}")
+            typer.echo(f"Unknown exception occurred: {exception}", err=True)
     if exceptions:
         raise typer.Exit(1)
