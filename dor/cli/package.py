@@ -8,6 +8,7 @@ import typer
 
 from dor.config import config
 from dor.cli.client.package_client import (
+    PackageUploadError,
     create_deposit_group,
     get_package_metadatas,
     upload_packages
@@ -48,12 +49,10 @@ def upload(
     rich.print(result.response_datas)
 
     for exception in result.exceptions:
-        if isinstance(exception, httpx.RequestError):
-            typer.echo(f"An error occurred while making a request: {exception}", err=True)
-        elif isinstance(exception, httpx.HTTPStatusError):
+        if isinstance(exception, PackageUploadError):
             typer.echo(
-                f"HTTP error occurred: {exception.response.status_code} - {exception.response.text}",
-                err=True
+                f"Error occurred for package {exception.package_identifier}. " +
+                f"Message: {exception.message}"
             )
         else:
             typer.echo(f"Unknown exception occurred: {exception}", err=True)
