@@ -52,7 +52,8 @@ def upload(
         if isinstance(exception, PackageUploadError):
             typer.echo(
                 f"Error occurred for package {exception.package_identifier}. " +
-                f"Message: {exception.message}"
+                f"Message: {exception.message}",
+                err=True
             )
         else:
             typer.echo(f"Unknown exception occurred: {exception}", err=True)
