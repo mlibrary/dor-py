@@ -4,12 +4,13 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Tuple
+from typing import Any, Callable
 
 from dor.adapters.bag_adapter import BagAdapter
 from dor.providers.file_provider import FileProvider
 from dor.providers.models import (
     AlternateIdentifier,
+    DepositGroup,
     FileMetadata,
     FileReference,
     PackageResource,
@@ -19,12 +20,6 @@ from dor.providers.models import (
 )
 from dor.providers.repository_client import RepositoryClient
 from dor.settings import template_env
-
-
-@dataclass
-class DepositGroup:
-    identifier: str
-    date: datetime
 
 
 @dataclass

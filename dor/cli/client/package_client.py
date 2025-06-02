@@ -1,24 +1,10 @@
 import json
-import uuid
-from dataclasses import dataclass
-from datetime import datetime, UTC
 from pathlib import Path
-from typing import Any, Generator, Self
+from typing import Any, Generator
 
 import httpx
 
-
-@dataclass
-class DepositGroup:
-    identifier: str
-    date: datetime
-
-    @classmethod
-    def generate(cls) -> Self:
-        return cls(
-            identifier=str(uuid.uuid4()),
-            date=datetime.now(tz=UTC)
-        )
+from dor.providers.models import DepositGroup
 
 
 def get_package_metadata_records(packet_path: Path) -> Generator[dict[str, Any], None, None]:
