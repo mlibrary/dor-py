@@ -4,7 +4,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, UTC
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import httpx
 
@@ -14,12 +14,12 @@ class DepositGroup:
     identifier: str
     date: datetime
 
-
-def create_deposit_group() -> DepositGroup:
-    return DepositGroup(
-        identifier=str(uuid.uuid4()),
-        date=datetime.now(tz=UTC)
-    )
+    @classmethod
+    def generate(cls) -> Self:
+        return cls(
+            identifier=str(uuid.uuid4()),
+            date=datetime.now(tz=UTC)
+        )
 
 
 def get_package_metadatas(packet_path: Path) -> list[dict[str, Any]]:
