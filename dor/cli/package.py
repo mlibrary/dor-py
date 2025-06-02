@@ -8,8 +8,8 @@ import typer
 
 from dor.config import config
 from dor.cli.client.package_client import (
+    DepositGroup,
     PackageUploadError,
-    create_deposit_group,
     get_package_metadatas,
     upload_packages
 )
@@ -27,7 +27,7 @@ def upload(
         typer.echo("Packet file was not found at the path provided.", err=True)
         raise typer.Exit(1)
 
-    deposit_group = create_deposit_group()
+    deposit_group = DepositGroup.generate()
     typer.echo(
         "Deposit Group\n"
         f"- Identifier: {deposit_group.identifier}\n"
