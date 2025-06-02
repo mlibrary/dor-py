@@ -1,5 +1,6 @@
 import asyncio
 from pathlib import Path
+from typing import Annotated
 
 import httpx
 import rich
@@ -18,9 +19,7 @@ upload_app = typer.Typer()
 
 @upload_app.command(name = "upload")
 def run_upload(
-    folder: str = typer.Option(
-        ..., help="Path to a folder containing files to upload."
-    ),
+    folder: Annotated[str, typer.Argument(help="Path to a folder containing files to upload.")],
     project_id: str = typer.Option(..., help="Collection to upload to."),
     image: list[str] = typer.Option(default_factory=list, help="image processing"),
     text: list[str] = typer.Option(default_factory=list, help="text processing"),
