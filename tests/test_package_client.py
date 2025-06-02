@@ -8,9 +8,8 @@ import pytest
 from dor.cli.client.package_client import (
     DepositGroup,
     PackageUploadError,
-    get_package_metadatas,
-    upload_package,
-    upload_packages
+    get_package_metadata_records,
+    upload_package
 )
 
 
@@ -55,9 +54,9 @@ def mocked_failure_httpx_client() -> httpx.AsyncClient:
     return httpx_client
 
 
-def test_get_package_metadatas_parses_packet_file(fixtures_path: Path, deposit_group: DepositGroup):
+def test_get_package_metadata_records_parses_packet_file(fixtures_path: Path, deposit_group: DepositGroup):
     packet_path = fixtures_path / "test_packet.jsonl"
-    package_metadatas = get_package_metadatas(packet_path)
+    package_metadatas = list(get_package_metadata_records(packet_path))
     assert len(package_metadatas) == 1
 
 
@@ -67,7 +66,7 @@ def test_upload_package_uploads(
     mocked_httpx_client: httpx.AsyncClient
 ):
     packet_path = fixtures_path / "test_packet.jsonl"
-    package_metadatas = get_package_metadatas(packet_path)
+    package_metadatas = list(get_package_metadata_records(packet_path))
     package_metadata = package_metadatas[0]
 
     asyncio.run(upload_package(
@@ -83,7 +82,7 @@ def test_upload_package_raises_exception_on_http_error(
     mocked_failure_httpx_client: httpx.AsyncClient
 ):
     packet_path = fixtures_path / "test_packet.jsonl"
-    package_metadatas = get_package_metadatas(packet_path)
+    package_metadatas = list(get_package_metadata_records(packet_path))
     package_metadata = package_metadatas[0]
 
     with pytest.raises(PackageUploadError) as excinfo:
@@ -94,39 +93,3 @@ def test_upload_package_raises_exception_on_http_error(
         ))
     exception = excinfo.value
     assert exception.package_identifier == "00000000-0000-0000-0000-000000000001"
-
-
-def test_upload_packages_uploads_one_package(
-    fixtures_path: Path,
-    deposit_group: DepositGroup,
-    mocked_httpx_client: httpx.AsyncClient
-):
-    packet_path = fixtures_path / "test_packet.jsonl"
-    package_metadatas = get_package_metadatas(packet_path)
-
-    result = asyncio.run(upload_packages(
-        client=mocked_httpx_client,
-        deposit_group=deposit_group,
-        package_metadatas=package_metadatas
-    ))
-    assert len(result.response_datas) == 1
-    assert len(result.exceptions) == 0
-
-
-def test_upload_packages_returns_exception(
-    fixtures_path: Path,
-    deposit_group: DepositGroup,
-    mocked_failure_httpx_client: httpx.AsyncClient
-):
-    packet_path = fixtures_path / "test_packet.jsonl"
-    package_metadatas = get_package_metadatas(packet_path)
-
-    result = asyncio.run(upload_packages(
-        client=mocked_failure_httpx_client,
-        deposit_group=deposit_group,
-        package_metadatas=package_metadatas
-    ))
-
-    assert len(result.response_datas) == 0
-    assert len(result.exceptions) == 1
-    assert isinstance(result.exceptions[0], PackageUploadError)

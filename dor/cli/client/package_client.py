@@ -1,10 +1,9 @@
-import asyncio
 import json
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, UTC
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, Generator, Self
 
 import httpx
 
@@ -22,14 +21,12 @@ class DepositGroup:
         )
 
 
-def get_package_metadatas(packet_path: Path) -> list[dict[str, Any]]:
-    package_metadatas = []
+def get_package_metadata_records(packet_path: Path) -> Generator[dict[str, Any], None, None]:
     with open(packet_path, "r") as file:
         for line in file:
             if not line.strip(): continue
             metadata = json.loads(line)
-            package_metadatas.append(metadata)
-    return package_metadatas
+            yield metadata
 
 
 class PackageUploadError(Exception):
@@ -68,56 +65,3 @@ async def upload_package(
             message=f"An error occurred while making a request: {error}",
             package_identifier=package_identifier
         ) from error
-
-
-async def upload_package_with_limit(
-    sempahore: asyncio.Semaphore,
-    client: httpx.AsyncClient,
-    deposit_group: DepositGroup,
-    package_metadata: dict[str, Any]
-) -> dict[str, Any]:
-    async with sempahore:
-        result = await upload_package(
-            client=client,
-            deposit_group=deposit_group,
-            package_metadata=package_metadata
-        )
-    return result
-
-
-@dataclass
-class UploadResult:
-    response_datas: list[dict[str, Any]]
-    exceptions: list[BaseException]
-
-
-async def upload_packages(
-    client: httpx.AsyncClient,
-    deposit_group: DepositGroup,
-    package_metadatas: list[dict[str, Any]]
-) -> UploadResult:
-    semaphore = asyncio.Semaphore(10)
-
-    async with client:
-        tasks = []
-        for package_metadata in package_metadatas:
-            tasks.append(upload_package_with_limit(
-                sempahore=semaphore,
-                client=client,
-                deposit_group=deposit_group,
-                package_metadata=package_metadata
-            ))
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-    response_datas = []
-    exceptions = []
-    for result in results:
-        if isinstance(result, BaseException):
-            exceptions.append(result)
-        else:
-            response_datas.append(result)
-
-    return UploadResult(
-        response_datas=response_datas,
-        exceptions=exceptions
-    )
