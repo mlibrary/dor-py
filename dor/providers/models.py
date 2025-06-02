@@ -1,9 +1,9 @@
-from dataclasses import field, dataclass
-
 import uuid
-from datetime import datetime
+from dataclasses import field, dataclass
+from datetime import datetime, UTC
 from enum import Enum
 from pathlib import Path
+from typing import Self
 
 
 class _Enum(Enum):
@@ -98,3 +98,16 @@ class PackageResource:
             if alt_identifier == identifier:
                 return True
         return False
+
+
+@dataclass
+class DepositGroup:
+    identifier: str
+    date: datetime
+
+    @classmethod
+    def generate(cls) -> Self:
+        return cls(
+            identifier=str(uuid.uuid4()),
+            date=datetime.now(tz=UTC)
+        )
