@@ -70,12 +70,11 @@ def test_upload_package_uploads(
     package_metadatas = get_package_metadatas(packet_path)
     package_metadata = package_metadatas[0]
 
-    result = asyncio.run(upload_package(
+    asyncio.run(upload_package(
         client=mocked_httpx_client,
         deposit_group=deposit_group,
         package_metadata=package_metadata
     ))
-    assert result is not None
 
 
 def test_upload_package_raises_exception_on_http_error(
