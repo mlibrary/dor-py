@@ -22,7 +22,7 @@ def file_set_identifier() -> FileSetIdentifier:
 
 @pytest.fixture
 def input_path() -> Path:
-    return Path("tests/fixtures/test_basic_copy_transcript")
+    return Path("tests/fixtures/test_file_set_processor_transcript")
 
 
 @pytest.fixture

@@ -20,7 +20,7 @@ def file_set_identifier() -> FileSetIdentifier:
 
 @pytest.fixture
 def input_path() -> Path:
-    return Path("tests/fixtures/test_basic_copy_needing_rotation")
+    return Path("tests/fixtures/test_file_set_processor_needing_rotation")
 
 
 @pytest.fixture

@@ -23,7 +23,7 @@ def file_set_identifier() -> FileSetIdentifier:
 
 @pytest.fixture
 def input_path() -> Path:
-    return Path("tests/fixtures/test_basic_copy_contone_transcribed")
+    return Path("tests/fixtures/test_file_set_processor_contone_transcribed")
 
 
 @pytest.fixture

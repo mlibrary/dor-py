@@ -24,7 +24,7 @@ def file_set_identifier() -> FileSetIdentifier:
 
 @pytest.fixture
 def input_path() -> Path:
-    return Path("tests/fixtures/test_basic_copy_with_ocr")
+    return Path("tests/fixtures/test_file_set_processor_with_ocr")
 
 
 @pytest.fixture

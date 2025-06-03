@@ -19,7 +19,7 @@ def file_set_identifier() -> FileSetIdentifier:
 
 @pytest.fixture
 def input_path() -> Path:
-    return Path("tests/fixtures/test_basic_copy")
+    return Path("tests/fixtures/test_file_set_processor")
 
 
 @pytest.fixture
