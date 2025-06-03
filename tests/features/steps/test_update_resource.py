@@ -10,7 +10,7 @@ from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
 
-scenario = partial(scenario, '../update_resource.feature')
+scenario = partial(scenario, './update_resource.feature')
 
 
 @scenario('Updating a resource for immediate release')

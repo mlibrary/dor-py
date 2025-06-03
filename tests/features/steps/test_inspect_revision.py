@@ -14,7 +14,7 @@ from dor.service_layer import catalog_service
 from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
 
-scenario = partial(scenario, '../inspect_revision.feature')
+scenario = partial(scenario, './inspect_revision.feature')
 
 
 @scenario('Revision summary')

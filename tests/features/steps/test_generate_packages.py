@@ -31,7 +31,7 @@ def logger() -> Logger:
     return logger
 
 
-scenario = partial(scenario, '../generate_packages.feature')
+scenario = partial(scenario, './generate_packages.feature')
 
 @scenario('Generate submission information packages')
 def test_generate_submission_information_packages():

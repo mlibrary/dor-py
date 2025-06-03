@@ -11,7 +11,7 @@ from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus
 from dor.service_layer.unit_of_work import AbstractUnitOfWork
 
 
-scenario = partial(scenario, '../store_resource.feature')
+scenario = partial(scenario, './store_resource.feature')
 
 
 @scenario('Storing a new resource for immediate release')

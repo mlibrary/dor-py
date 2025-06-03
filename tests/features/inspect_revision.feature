@@ -3,7 +3,7 @@ Feature: Inspect Revision
   does the repository have a revision for an identifier?
   what files are in the revision?
 
-  In order to confirm that a monnograph is in the repository
+  In order to confirm that a monograph is in the repository
   As a Collection Manager
   I want to find an associated revision using my local identifier.
 
