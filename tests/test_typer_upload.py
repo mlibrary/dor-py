@@ -103,8 +103,7 @@ def test_upload_command_works_for_image(fixture_path, start_fastapi_server):
         [
             "fileset",
             "upload",
-            "--folder",
-            fixture_path,
+            str(fixture_path),
             "--project-id",
             "Test Collection",
             "--image",
@@ -119,8 +118,7 @@ def test_upload_command_works_for_image_and_text(fixture_path, start_fastapi_ser
         [
             "fileset",
             "upload",
-            "--folder",
-            fixture_path,
+            str(fixture_path),
             "--project-id",
             "Test Collection",
             "--image",
@@ -138,8 +136,7 @@ def test_upload_command_works_for_text(fixture_path, start_fastapi_server):
         [
             "fileset",
             "upload",
-            "--folder",
-            fixture_path,
+            str(fixture_path),
             "--project-id",
             "Test Collection",
             "--text",
@@ -155,8 +152,7 @@ def test_upload_command_works_for_no_profile(fixture_path, start_fastapi_server)
         [
             "fileset",
             "upload",
-            "--folder",
-            fixture_path,
+            str(fixture_path),
             "--project-id",
             "Test Collection",
         ],
