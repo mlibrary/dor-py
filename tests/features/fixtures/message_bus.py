@@ -36,7 +36,7 @@ def message_bus(unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
         file_provider=FilesystemFileProvider()
     )
 
-    handlers: dict[Type[Event], list[Callable]] = {
+    event_handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [
             lambda event: record_workflow_event(event, unit_of_work),
             lambda event: receive_package(event, unit_of_work, translocator)
@@ -68,5 +68,5 @@ def message_bus(unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
             lambda event: record_workflow_event(event, unit_of_work),
         ]
     }
-    message_bus = MemoryMessageBus(handlers)
+    message_bus = MemoryMessageBus(event_handlers=event_handlers, command_handlers={})
     return message_bus
