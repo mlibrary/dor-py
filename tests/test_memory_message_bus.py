@@ -4,7 +4,7 @@ from typing import Callable
 
 from dor.domain.commands import Command
 from dor.domain.events import Event
-from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus, NoHandlerForEventError
+from dor.service_layer.message_bus.memory_message_bus import MemoryMessageBus, NoHandlerForEventError, CommandHandlerAlreadyRegistered
 from dor.service_layer.unit_of_work import UnitOfWork
 from gateway.fake_repository_gateway import FakeRepositoryGateway
 
@@ -61,8 +61,8 @@ def test_message_bus_can_handle_cascading_events() -> None:
 
     uow = UnitOfWork(FakeRepositoryGateway())
     event_handlers: dict[type[Event], list[Callable]] = {
-        EventA: [lambda event: respond_to_a(event, uow)],
-        EventB: [lambda event: respond_to_b(event, uow)]
+        EventA: [respond_to_a],
+        EventB: [respond_to_b],
     }
     message_bus = MemoryMessageBus(event_handlers)
     
@@ -78,7 +78,7 @@ def test_message_bus_with_single_event() -> None:
 
     uow = UnitOfWork(FakeRepositoryGateway())
     event_handlers: dict[type[Event], list[Callable]] = {
-        EventA: [lambda event: respond_to_a(event, uow)]
+        EventA: [respond_to_a]
     }
     message_bus = MemoryMessageBus(event_handlers)
     
@@ -105,7 +105,7 @@ def test_message_bus_can_handle_multiple_handlers_for_same_event() -> None:
 
     uow = UnitOfWork(FakeRepositoryGateway())
     event_handlers: dict[type[Event], list[Callable]] = {
-        EventA: [lambda event: first_handler(event, uow), lambda event: second_handler(event, uow)]
+        EventA: [first_handler, second_handler]
     }
     message_bus = MemoryMessageBus(event_handlers)
 
@@ -113,3 +113,35 @@ def test_message_bus_can_handle_multiple_handlers_for_same_event() -> None:
 
     assert events_seen == ["first: 1", "second: 1"]          
 
+def test_events_registered_at_runtime_are_handled() -> None:
+    events_seen: list[str] = []
+
+    def handle(event: EventA, uow: UnitOfWork):
+        events_seen.append(event.id)
+
+    uow = UnitOfWork(FakeRepositoryGateway())
+    message_bus = MemoryMessageBus({}, {})
+    message_bus.register_event_handler(EventA, handle)
+
+    message_bus.handle(EventA("dynamic"), uow)
+
+    assert events_seen == ["dynamic"]
+
+def test_commands_registered_at_runtime_are_handled() -> None:
+    def handle(command: Echo, uow: UnitOfWork):
+        return command.value
+
+    uow = UnitOfWork(FakeRepositoryGateway())
+    message_bus = MemoryMessageBus({}, {})
+    message_bus.register_command_handler(Echo, handle)
+
+    result = message_bus.handle(Echo("dynamic"), uow)
+
+    assert result == "dynamic"
+
+def test_commands_support_only_one_handler() -> None:
+    message_bus = MemoryMessageBus({}, {})
+    message_bus.register_command_handler(Echo, lambda x: x)
+
+    with pytest.raises(CommandHandlerAlreadyRegistered, match="'Echo'"):
+        message_bus.register_command_handler(Echo, lambda x: x)

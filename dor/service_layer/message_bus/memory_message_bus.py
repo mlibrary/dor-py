@@ -20,6 +20,11 @@ class MemoryMessageBus:
             self.event_handlers[event_type] = []
         self.event_handlers[event_type].append(handler)    
 
+    def register_command_handler(self, command_type: Type[Command], handler: Callable):
+        if command_type in self.command_handlers:
+            raise CommandHandlerAlreadyRegistered(command_type)
+        self.command_handlers[command_type] = handler
+
     def handle(self, message: Message, uow: AbstractUnitOfWork):
         # Handles a message, which must be an event.
         if isinstance(message, Event):
@@ -38,7 +43,7 @@ class MemoryMessageBus:
         while queue:
             next_event = queue.pop(0)
             for handler in self.event_handlers[type(next_event)]:
-                handler(next_event)
+                handler(next_event, uow)
             another_event = uow.pop_event()
             if another_event:
                 queue.append(another_event)
@@ -53,3 +58,12 @@ class MemoryMessageBus:
               
 class NoHandlerForEventError(Exception):
     pass
+
+class CommandHandlerAlreadyRegistered(Exception):
+    def __init__(self, command: Type[Command]):
+        super().__init__(self._message(command))
+        self.command = command
+
+    def _message(self, command):
+        return f"The command type '{command.__name__}' already has a handler registered; "
+        "refusing to override."
