@@ -39,10 +39,7 @@ def test_message_bus_command_returns_result() -> None:
     command_handlers: dict[type[Command], Callable] = {
         Echo: echo
     }
-    message_bus = MemoryMessageBus(
-        event_handlers={},
-        command_handlers=command_handlers
-    )
+    message_bus = MemoryMessageBus({}, command_handlers)
 
     value = message_bus.handle(Echo("hello"), uow)
 
@@ -64,7 +61,7 @@ def test_message_bus_can_handle_cascading_events() -> None:
         EventA: [respond_to_a],
         EventB: [respond_to_b],
     }
-    message_bus = MemoryMessageBus(event_handlers)
+    message_bus = MemoryMessageBus(event_handlers, {})
     
     message_bus.handle(EventA(id="1"), uow)
 
@@ -80,7 +77,7 @@ def test_message_bus_with_single_event() -> None:
     event_handlers: dict[type[Event], list[Callable]] = {
         EventA: [respond_to_a]
     }
-    message_bus = MemoryMessageBus(event_handlers)
+    message_bus = MemoryMessageBus(event_handlers, {})
     
     message_bus.handle(EventA(id="1"), uow)
 
@@ -89,7 +86,7 @@ def test_message_bus_with_single_event() -> None:
 def test_message_bus_throws_error_for_event_with_no_handlers() -> None:
     uow = UnitOfWork(FakeRepositoryGateway())
     event_handlers: dict[type[Event], list[Callable]] = {}
-    message_bus = MemoryMessageBus(event_handlers)
+    message_bus = MemoryMessageBus(event_handlers, {})
 
     with pytest.raises(NoHandlerForEventError):
         message_bus.handle(EventA(id="1"), uow)
@@ -107,7 +104,7 @@ def test_message_bus_can_handle_multiple_handlers_for_same_event() -> None:
     event_handlers: dict[type[Event], list[Callable]] = {
         EventA: [first_handler, second_handler]
     }
-    message_bus = MemoryMessageBus(event_handlers)
+    message_bus = MemoryMessageBus(event_handlers, {})
 
     message_bus.handle(EventA(id="1"), uow)
 

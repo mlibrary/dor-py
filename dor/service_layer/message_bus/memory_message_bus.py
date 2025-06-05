@@ -9,7 +9,7 @@ class MemoryMessageBus:
     def __init__(
         self,
         event_handlers: dict[Type[Event], list[Callable]],
-        command_handlers: dict[Type[Command], Callable] = {}
+        command_handlers: dict[Type[Command], Callable]
     ):
         # In-memory storage for event handlers
         self.event_handlers = event_handlers
