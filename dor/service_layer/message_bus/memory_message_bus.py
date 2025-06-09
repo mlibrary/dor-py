@@ -9,9 +9,11 @@ class MemoryMessageBus:
     def __init__(
         self,
         event_handlers: dict[Type[Event], list[Callable]],
-        command_handlers: dict[Type[Command], Callable]
+        command_handlers: dict[Type[Command], Callable],
+        uow: AbstractUnitOfWork,
     ):
         # In-memory storage for event handlers
+        self.uow = uow
         self.event_handlers = event_handlers
         self.command_handlers = command_handlers
 
@@ -25,33 +27,36 @@ class MemoryMessageBus:
             raise CommandHandlerAlreadyRegistered(command_type)
         self.command_handlers[command_type] = handler
 
-    def handle(self, message: Message, uow: AbstractUnitOfWork):
-        # Handles a message, which must be an event.
-        if isinstance(message, Event):
-            self._handle_event(message, uow)
-        elif isinstance(message, Command):
-            return self._handle_command(message, uow)
-        else:
-            raise ValueError(f"Message of type {type(message)} is not a valid Command or Event")
+    def handle(self, message: Message):
+        self.queue = [message]
+        while self.queue:
+            message = self.queue.pop()
+            if isinstance(message, Event):
+                self._handle_event(message)
+            elif isinstance(message, Command):
+                self._handle_command(message)
+            else:
+                raise ValueError(f"Message of type {type(message)} is not a valid Command or Event")
 
-    def _handle_event(self, event: Event, uow: AbstractUnitOfWork):
+    def _handle_event(self, event: Event):
         # Handles an event by executing its registered handlers.
         if event.__class__ not in self.event_handlers:
             raise NoHandlerForEventError(f"No handler found for event type {type(event)}")
     
-        queue = [event]
-        while queue:
-            next_event = queue.pop(0)
-            for handler in self.event_handlers[type(next_event)]:
-                handler(next_event, uow)
-            another_event = uow.pop_event()
-            if another_event:
-                queue.append(another_event)
+        for handler in self.event_handlers[type(event)]:
+            handler(event)
 
-    def _handle_command(self, command: Command, uow: AbstractUnitOfWork):
+        another_event = self.uow.pop_event()
+        if another_event:
+            self.queue.append(another_event)
+
+    def _handle_command(self, command: Command):
         try:
             handler = self.command_handlers[type(command)]
-            return handler(command, uow)
+            handler(command)
+            another_event = self.uow.pop_event()
+            if another_event:
+                self.queue.append(another_event)
         except:
             # TODO: log missing command handler
             raise

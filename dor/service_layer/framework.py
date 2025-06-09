@@ -81,5 +81,5 @@ def workframe() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
 
     command_handlers: dict[Type[Command], Callable] = {}
 
-    message_bus = MemoryMessageBus(event_handlers=event_handlers, command_handlers=command_handlers)
+    message_bus = MemoryMessageBus(event_handlers=event_handlers, command_handlers=command_handlers, uow=uow)
     return (message_bus, uow)

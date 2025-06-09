@@ -34,7 +34,7 @@ def _(unit_of_work: AbstractUnitOfWork):
     u'the Collection Manager places the packaged resource in the incoming location',
     target_fixture="tracking_identifier"
 )
-def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
+def _(message_bus: MemoryMessageBus):
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
     tracking_identifier = str(uuid.uuid4())
 
@@ -42,7 +42,7 @@ def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
         package_identifier=submission_id,
         tracking_identifier=tracking_identifier
     )
-    message_bus.handle(event, unit_of_work)
+    message_bus.handle(event)
     return tracking_identifier
 
 

@@ -37,13 +37,13 @@ def _(unit_of_work: AbstractUnitOfWork, message_bus: MemoryMessageBus):
         package_identifier=submission_id,
         tracking_identifier=tracking_identifier
     )
-    message_bus.handle(event, unit_of_work)
+    message_bus.handle(event)
 
 
 @when('the Collection Manager places the packaged resource in the incoming location',
       target_fixture="tracking_identifier"
       )
-def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
+def _(message_bus: MemoryMessageBus):
     """the Collection Manager places the packaged resource in the incoming location."""
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v1"
     tracking_identifier = "second-load"
@@ -52,7 +52,7 @@ def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
         tracking_identifier=tracking_identifier,
         update_flag=True,
     )
-    message_bus.handle(event, unit_of_work)
+    message_bus.handle(event)
     return tracking_identifier
 
 
@@ -81,7 +81,7 @@ def test_updating_only_metadata_of_a_resource_for_immediate_release():
     "the Collection Manager places the packaged resource with the metadata in the incoming location",
     target_fixture="tracking_identifier",
 )
-def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
+def _(message_bus: MemoryMessageBus):
     """the Collection Manager places the packaged resource with the metadata in the incoming location."""
     submission_id = "xyzzy-00000000-0000-0000-0000-000000000001-v2"
     tracking_identifier = "second-load"
@@ -91,5 +91,5 @@ def _(message_bus: MemoryMessageBus, unit_of_work: AbstractUnitOfWork):
         tracking_identifier=tracking_identifier,
         update_flag=True,
     )
-    message_bus.handle(event, unit_of_work)
+    message_bus.handle(event)
     return tracking_identifier

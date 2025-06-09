@@ -68,5 +68,5 @@ def message_bus(unit_of_work: AbstractUnitOfWork) -> MemoryMessageBus:
             lambda event: record_workflow_event(event, unit_of_work),
         ]
     }
-    message_bus = MemoryMessageBus(event_handlers=event_handlers, command_handlers={})
+    message_bus = MemoryMessageBus(event_handlers=event_handlers, command_handlers={}, uow=unit_of_work)
     return message_bus
