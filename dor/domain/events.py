@@ -19,7 +19,7 @@ class PackageEvent(Event):
 
 @dataclass
 class PackageSubmitted(PackageEvent):
-    pass
+    type = 'package.submitted'
 
 @dataclass
 class PackageReceived(PackageEvent):

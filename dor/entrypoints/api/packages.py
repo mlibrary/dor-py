@@ -5,6 +5,9 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, Depends
 
+from dor.adapters import eventpublisher
+from dor.domain import commands
+from dor.domain import events
 from dor.entrypoints.api.dependencies import get_inbox_path, get_pending_path
 from dor.providers.automation import run_automation
 from dor.providers.package_generator import DepositGroup
@@ -27,21 +30,13 @@ async def create_package(
     inbox_path: Path=Depends(get_inbox_path),
     pending_path: Path=Depends(get_pending_path),
 ) -> PackageResponse:
-    deposit_group_ = DepositGroup(
+    eventpublisher.publish(commands.CreatePackage(
         deposit_group["identifier"],
-        datetime.fromisoformat(deposit_group["date"])
-    )
-
-    queues["automation"].enqueue(
-        run_automation,
-        "package.create",
-        deposit_group=deposit_group_,
-        package_metadata=package_metadata,
-        inbox_path=inbox_path,
-        pending_path=pending_path
-    )
+        deposit_group["date"],
+        package_metadata,
+    ))
 
     return PackageResponse(
         identifier=package_metadata["identifier"],
-        deposit_group_identifier=deposit_group_.identifier
+        deposit_group_identifier=deposit_group["identifier"]
     )

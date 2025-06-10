@@ -2,6 +2,8 @@ from typing import Any
 from datetime import datetime, UTC
 from pathlib import Path
 
+from dor.adapters import eventpublisher
+from dor.domain.events import PackageSubmitted
 from dor.providers.automation import run_automation
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.repository_client import FakeRepositoryClient
@@ -32,4 +34,9 @@ def create_package_from_metadata(
         timestamp=datetime.now(tz=UTC)
     ).generate()
 
-    queues["automation"].enqueue(run_automation, "package.success", package_identifier=identifier)
+    event = PackageSubmitted(
+        package_identifier=identifier,
+        # FIXME: establish real tracking (submission) identifier
+        tracking_identifier=identifier,
+    )
+    eventpublisher.publish(event)

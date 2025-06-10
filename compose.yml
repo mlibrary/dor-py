@@ -5,6 +5,7 @@ services:
       - pocketbase
       - redis
       - jobs
+      - rabbitmq
     build: 
       context: .
       target: development
@@ -80,6 +81,15 @@ services:
     volumes:
       - redis-data:/data
 
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    ports:
+      - "5672:5672"   # RabbitMQ default port
+      - "15672:15672" # RabbitMQ management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
   jobs:
     depends_on:
       db:
@@ -98,6 +108,28 @@ services:
     env_file:
       - .env
     command: ["poetry", "run", "python", "bin/generic-worker.py"]
+    volumes:
+      - .:/app
+      - fileset-data:/data/filesets
+
+  packaging:
+    depends_on:
+      db:
+        condition: service_started
+      fix_ownership:
+        condition: service_completed_successfully
+    build: 
+      context: .
+      target: development
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        DEV: ${DEV:-false}
+        POETRY_VERSION: ${POETRY_VERSION:-1.8.4}
+    env_file:
+      - .env
+    command: ["poetry", "run", "python", "bin/packaging-worker.py"]
     volumes:
       - .:/app
       - fileset-data:/data/filesets
