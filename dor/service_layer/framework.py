@@ -51,7 +51,7 @@ def workframe() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
         file_provider=file_provider
     )
 
-    handlers: dict[Type[Event], list[Callable]] = {
+    event_handlers: dict[Type[Event], list[Callable]] = {
         PackageSubmitted: [
             lambda event: record_workflow_event(event, uow),
             lambda event: receive_package(event, uow, translocator)
@@ -78,5 +78,8 @@ def workframe() -> Tuple[MemoryMessageBus, SqlalchemyUnitOfWork]:
             lambda event: record_workflow_event(event, uow)
         ]
     }
-    message_bus = MemoryMessageBus(handlers)
+
+    command_handlers: dict[Type[Command], Callable] = {}
+
+    message_bus = MemoryMessageBus(event_handlers=event_handlers, command_handlers=command_handlers, uow=uow)
     return (message_bus, uow)
