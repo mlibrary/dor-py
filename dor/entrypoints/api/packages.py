@@ -9,7 +9,6 @@ from dor.adapters import eventpublisher
 from dor.domain import commands
 from dor.domain import events
 from dor.entrypoints.api.dependencies import get_inbox_path, get_pending_path
-from dor.providers.automation import run_automation
 from dor.providers.package_generator import DepositGroup
 from dor.queues import queues
 

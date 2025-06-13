@@ -23,7 +23,7 @@ channel.queue_declare('ingest')
 
 router = {
     commands.CreatePackage: 'packaging',
-    events.PackageSubmitted: 'packaging'
+    events.PackageGenerated: 'packaging'
 }
 
 def publish(message: Message) -> None:

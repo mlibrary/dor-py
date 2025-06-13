@@ -10,6 +10,26 @@ class Event:
     pass
 
 
+# integration event; moves to packaging
+@dataclass
+class PackageGenerated(Event):
+    type = 'package.generated'
+    package_identifier: str
+    tracking_identifier: str
+
+# integration event; moves to ingest
+# some naming considerations:
+#   - package ingested
+#   - submission processed
+#   - ingest successful
+#   - resource created
+#   - resource updated
+class PackageIngested(Event):
+    type = 'package.ingested'
+    package_identifier: str
+    tracking_identifier: str
+
+
 @dataclass(kw_only=True)
 class PackageEvent(Event):
     package_identifier: str
@@ -17,9 +37,10 @@ class PackageEvent(Event):
     update_flag: bool = False
 
 
+# internal/domain event; moves to ingest
 @dataclass
 class PackageSubmitted(PackageEvent):
-    type = 'package.submitted'
+    pass
 
 @dataclass
 class PackageReceived(PackageEvent):
