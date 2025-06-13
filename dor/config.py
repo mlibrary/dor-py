@@ -40,6 +40,7 @@ class Config:
     database: DatabaseConfig
     pocketbase: PocketbaseConfig
     redis: RedisConfig
+    rabbitmq: RabbitMqConfig  # Add this field
     api_url: str
 
     @classmethod
