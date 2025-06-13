@@ -3,14 +3,16 @@ import pika
 
 from dataclasses import asdict
 from typing import Union
+
+from dor.config import config
 from dor.domain import commands
 from dor.domain import events
 
 Message = Union[commands.Command, events.Event]
 
 conn = pika.BlockingConnection(pika.ConnectionParameters(
-    host='rabbitmq',
-    credentials=pika.PlainCredentials('admin', 'admin')
+    host=config.rabbitmq.host,
+    credentials=pika.PlainCredentials(config.rabbitmq.username, config.rabbitmq.password)
 ))
 
 channel = conn.channel()

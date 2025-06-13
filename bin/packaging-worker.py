@@ -11,8 +11,8 @@ inbox_path = config.inbox_path
 pending_path = config.filesets_path
 
 conn = pika.BlockingConnection(pika.ConnectionParameters(
-    host='rabbitmq',
-    credentials=pika.PlainCredentials('admin', 'admin')
+    host=config.rabbitmq.host,
+    credentials=pika.PlainCredentials(config.rabbitmq.username, config.rabbitmq.password)
 ))
 
 channel = conn.channel()
