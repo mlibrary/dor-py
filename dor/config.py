@@ -26,6 +26,12 @@ class RedisConfig:
     db: int
 
 @dataclass
+class RabbitMqConfig:
+    host: str
+    username: str
+    password: str
+
+@dataclass
 class Config:
     storage_path: Path
     inbox_path: Path
@@ -34,6 +40,7 @@ class Config:
     database: DatabaseConfig
     pocketbase: PocketbaseConfig
     redis: RedisConfig
+    rabbitmq: RabbitMqConfig
     api_url: str
 
     @classmethod
@@ -58,6 +65,11 @@ class Config:
                 host=os.getenv("REDIS_HOST", "redis"),
                 port=int(os.getenv("REDIS_PORT", "6379")),
                 db=int(os.getenv("REDIS_DB", "0")),
+            ),
+            rabbitmq=RabbitMqConfig(
+                host=os.getenv("RABBITMQ_HOST", "rabbitmq"),
+                username=os.getenv("RABBITMQ_USERNAME", "admin"),
+                password=os.getenv("RABBITMQ_PASSWORD", "admin"),
             ),
             api_url=os.getenv("API_URL", "http://api:8000"),
         )
