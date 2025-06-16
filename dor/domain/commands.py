@@ -12,3 +12,10 @@ class CreatePackage(Command):
     deposit_group_identifier: str
     date: str
     package_metadata: dict[str, Any]
+
+
+@dataclass
+class IngestPackage(Command):
+    type = 'package.ingest'
+    package_identifier: str
+

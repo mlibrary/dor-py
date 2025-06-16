@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import json
 import pika
-from datetime import datetime
 
 from dor.config import config
 from dor.providers.ingest import ingest_package
@@ -14,21 +13,20 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
 ))
 
 channel = conn.channel()
-channel.queue_declare('packaging')
-channel.queue_declare('ingest')
+channel.queue_declare('ingest.work')
 
 
 def route_message(ch, method, properties, body):
-    if properties.type == 'package.generated':
-        handle_package_generated(json.loads(body.decode("utf-8")))
+    if properties.type == 'package.ingest':
+        handle_package_ingest(json.loads(body.decode("utf-8")))
     else:
         print(properties)
         print(body.decode("utf-8"))
 
-def handle_package_generated(message):
-    # Consider translating to an explicit ingest command
+
+def handle_package_ingest(message):
     ingest_package(message["package_identifier"])
 
-## This should listen to a topic, rather than packaging's work queue
-channel.basic_consume(queue='packaging', on_message_callback=route_message, auto_ack=True)
+
+channel.basic_consume(queue='ingest.work', on_message_callback=route_message, auto_ack=True)
 channel.start_consuming()

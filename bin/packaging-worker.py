@@ -16,7 +16,7 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
 ))
 
 channel = conn.channel()
-channel.queue_declare('packaging')
+channel.queue_declare('packaging.work')
 
 
 def route_message(ch, method, properties, body):
@@ -25,6 +25,7 @@ def route_message(ch, method, properties, body):
     else:
         print(properties)
         print(body.decode("utf-8"))
+
 
 def handle_package_create(message):
     deposit_group = DepositGroup(
@@ -40,5 +41,8 @@ def handle_package_create(message):
         pending_path=pending_path
     )
 
-channel.basic_consume(queue='packaging', on_message_callback=route_message, auto_ack=True)
+
+channel.basic_consume(
+    queue='packaging.work', on_message_callback=route_message, auto_ack=True
+)
 channel.start_consuming()

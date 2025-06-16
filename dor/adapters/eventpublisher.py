@@ -18,18 +18,42 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
 channel = conn.channel()
 
 channel.queue_declare('fileset')
-channel.queue_declare('packaging')
-channel.queue_declare('ingest')
+channel.queue_declare('packaging.work')
+channel.queue_declare('ingest.work')
+
+channel.exchange_declare(exchange="packaging", exchange_type="fanout")
 
 router = {
-    commands.CreatePackage: 'packaging',
-    events.PackageGenerated: 'packaging'
+    commands.CreatePackage: 'packaging.work',
+    commands.IngestPackage: 'ingest.work'
 }
 
-def publish(message: Message) -> None:
-    key = router.get(type(message))
+def publish(command: commands.Command) -> None:
+    key = router.get(type(command))
     if key is None:
         raise Exception("Unhandled message type")
 
-    props = pika.BasicProperties(type=message.type)
-    channel.basic_publish(exchange='', routing_key=key, body=json.dumps(asdict(message)), properties=props)
+    props = pika.BasicProperties(type=command.type)
+    channel.basic_publish(
+        exchange='',
+        routing_key=key,
+        body=json.dumps(asdict(command)),
+        properties=props
+    )
+
+exchange_router: dict[type[events.Event], str] = {
+    events.PackageGenerated: 'packaging'
+}
+
+def publish_to_exchange(event: events.Event) -> None:
+    exchange = exchange_router.get(type(event))
+    if exchange is None:
+        raise Exception("Unhandled message type")
+
+    props = pika.BasicProperties(type=event.type)
+    channel.basic_publish(
+        exchange=exchange,
+        routing_key='',
+        body=json.dumps(asdict(event)),
+        properties=props
+    )
