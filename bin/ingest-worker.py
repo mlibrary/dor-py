@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import json
+from typing import Any
+
 import pika
 
 from dor.adapters import eventpublisher
@@ -23,15 +25,24 @@ queue_name = result.method.queue
 channel.queue_bind(queue=queue_name, exchange="packaging")
 
 
-def callback(ch, method, properties, body):
-    message = json.loads(body.decode('utf-8'))
+def handle_package_generated(message: dict[str, Any]):
     eventpublisher.publish(IngestPackage(
         package_identifier=message["package_identifier"]
     ))
 
 
+def route_packaging_message(ch, method, properties, body):
+    if properties.type == 'package.generated':
+        handle_package_generated(json.loads(body.decode("utf-8")))
+    else:
+        print(properties)
+        print(body.decode("utf-8"))
+
+
 channel.basic_consume(
-    queue=queue_name, on_message_callback=callback, auto_ack=True
+    queue=queue_name,
+    on_message_callback=route_packaging_message,
+    auto_ack=True
 )
 
 
@@ -39,7 +50,7 @@ channel.basic_consume(
 channel.queue_declare('ingest.work')
 
 
-def route_message(ch, method, properties, body):
+def route_ingest_message(ch, method, properties, body):
     if properties.type == 'package.ingest':
         handle_package_ingest(json.loads(body.decode("utf-8")))
     else:
@@ -51,6 +62,10 @@ def handle_package_ingest(message):
     ingest_package(message["package_identifier"])
 
 
-channel.basic_consume(queue='ingest.work', on_message_callback=route_message, auto_ack=True)
+channel.basic_consume(
+    queue='ingest.work',
+    on_message_callback=route_ingest_message,
+    auto_ack=True
+)
 
 channel.start_consuming()
