@@ -41,14 +41,6 @@ Some XPaths:
 * `//METS:mets/METS:metsHdr/METS:altRecordID[@TYPE="DLXS"]` returns the alternate identifier
 * `//METS:mets//PREMIS:event[PREMIS:eventType="ingest"]` returns the commit details
 
-In the structMap of the monograph:
-
-```
-<METS:div ORDERLABEL="5" TYPE="page" ORDER="5" LABEL="Page 5" ID="urn:dor:00000000-0000-0000-0000-000000001005">
-```
-
-The `ID` is the asset identifier: the `urn:dor:` prefix satisfies XML IDs constraints.
-
 """
 
 @app.command()
