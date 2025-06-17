@@ -4,7 +4,7 @@
     <METS:structMap ID="SM{{ loop.index }}" TYPE="{{ struct_map.type.value }}">
       <METS:div>
         {% for item in struct_map.items %}
-        <METS:div ORDERLABEL="{{ item.order }}" TYPE="{{ item.type }}" ORDER="{{ item.order }}" LABEL="{{ item.label }}" ID="{{ item.file_set_id }}">
+        <METS:div ORDERLABEL="{{ item.order }}" TYPE="{{ item.type }}" ORDER="{{ item.order }}" LABEL="{{ item.label }}">
           <METS:mptr LOCTYPE="URL" LOCREF="{{ struct_map_locref_data[item.file_set_id] }}" />
         </METS:div>
         {% endfor %}

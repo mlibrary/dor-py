@@ -19,7 +19,7 @@ class DescriptorGenerator:
         struct_map_locref_data = {}
         for resource in self.resources:
             if resource.type == "File Set":
-                identifier = f"urn:dor:{resource.id}"
+                identifier = str(resource.id)
                 struct_map_locref_data[identifier] = build_descriptor_file_path(resource)
 
         entity_template = template_env.get_template("preservation_mets.xml")

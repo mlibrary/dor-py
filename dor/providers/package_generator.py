@@ -196,8 +196,7 @@ class PackageGenerator:
 
         struct_map_locref_data = {}
         for file_set_id in file_set_ids:
-            identifier = "urn:dor:" + file_set_id
-            struct_map_locref_data[identifier] = Path(file_set_id) / "descriptor" / f"{file_set_id}.file_set.mets2.xml"
+            struct_map_locref_data[file_set_id] = Path(file_set_id) / "descriptor" / f"{file_set_id}.file_set.mets2.xml"
 
         entity_template = template_env.get_template("preservation_mets.xml")
         xmldata = entity_template.render(
