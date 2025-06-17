@@ -2,23 +2,26 @@ import json
 import os
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Callable
 
 from dor.adapters.bag_adapter import BagAdapter
 from dor.providers.file_provider import FileProvider
 from dor.providers.models import (
+    Agent,
     AlternateIdentifier,
     DepositGroup,
     FileMetadata,
     FileReference,
     PackageResource,
+    PreservationEvent,
     StructMap,
     StructMapItem,
     StructMapType
 )
 from dor.providers.repository_client import RepositoryClient
+from dor.providers.serializers import PreservationEventSerializer
 from dor.settings import template_env
 
 
@@ -152,6 +155,19 @@ class PackageGenerator:
             )
         )
 
+    def create_ingest_premis_event(self) -> PreservationEvent:
+        event = PreservationEvent(
+            identifier=str(uuid.uuid4()),
+            type="ingest",
+            datetime=datetime.now(tz=UTC),
+            detail="No detail provided.",
+            agent=Agent(
+                address="test@example.edu",
+                role="packaging"
+            )
+        )
+        return event
+
     def create_root_metadata_file(
         self,
         file_path: Path,
@@ -169,7 +185,7 @@ class PackageGenerator:
                 StructMapItem(
                     order=item["order"],
                     label=item["orderlabel"],
-                    file_set_id=item["locref"],
+                    file_set_id="urn:dor:" + item["locref"],
                     type=item.get("type")
                 )
                 for item in structure["items"]
@@ -233,7 +249,7 @@ class PackageGenerator:
         missing_file_set_ids = []
         file_set_ids = []
         for struct_map_item in physical_struct_map.items:
-            file_set_id = struct_map_item.file_set_id
+            file_set_id = struct_map_item.file_set_id.replace("urn:dor:", "")
             if self.file_sets_pending.pending(file_set_id=file_set_id):
                 self.file_sets_pending.push(file_set_id=file_set_id, destination_path=self.package_path)
                 file_set_ids.append(file_set_id)
@@ -294,6 +310,20 @@ class PackageGenerator:
         except PackageMetadataError as error:
             self.clear_package_path()
             return self.get_package_result(success=False, message=error.message)
+
+        event_file_path = self.get_metadata_file_path(".function:event.premis.xml")
+        (self.package_path / event_file_path).write_text(
+            PreservationEventSerializer(self.create_ingest_premis_event()).serialize()
+        )
+        metadata_file_metadatas.append(FileMetadata(
+            id="_" + str(uuid.uuid4()),
+            use="function:event",
+            ref=FileReference(
+                locref=str(event_file_path),
+                mdtype="PREMIS",
+                mimetype="text/xml+premis"
+            )
+        ))
 
         alternate_identifier = provenance_data["data"]["alternate_identifier"]
         resource = PackageResource(

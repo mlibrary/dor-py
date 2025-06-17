@@ -18,7 +18,7 @@ from dor.providers.models import Agent, PreservationEvent
 
 
 def create_preservation_event(
-    event_type: str, collection_manager_email: str, detail: str = ""
+    event_type: str, collection_manager_email: str, detail: str = "No detail provided."
 ):
     event = PreservationEvent(
         identifier=str(uuid.uuid4()),

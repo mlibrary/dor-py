@@ -14,4 +14,4 @@ def ingest_package(package_identifier: str) -> None:
 
     print(f"WOULD INGEST this package: {package_identifier}")
     # TODO: Uncomment once create_package_from_metadata is working
-    # message_bus.handle(event, uow)
+    message_bus.handle(event)
