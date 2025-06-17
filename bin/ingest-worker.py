@@ -2,10 +2,11 @@
 import json
 import pika
 
+from dor.adapters import eventpublisher
 from dor.config import config
+from dor.domain.commands import IngestPackage
 from dor.providers.ingest import ingest_package
 
-inbox_path = config.inbox_path
 
 conn = pika.BlockingConnection(pika.ConnectionParameters(
     host=config.rabbitmq.host,
@@ -13,6 +14,28 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
 ))
 
 channel = conn.channel()
+
+
+# Packaging events
+channel.exchange_declare('packaging', exchange_type='fanout')
+result = channel.queue_declare(queue='', exclusive=True)
+queue_name = result.method.queue
+channel.queue_bind(queue=queue_name, exchange="packaging")
+
+
+def callback(ch, method, properties, body):
+    message = json.loads(body.decode('utf-8'))
+    eventpublisher.publish(IngestPackage(
+        package_identifier=message["package_identifier"]
+    ))
+
+
+channel.basic_consume(
+    queue=queue_name, on_message_callback=callback, auto_ack=True
+)
+
+
+# Ingest commands
 channel.queue_declare('ingest.work')
 
 
@@ -29,4 +52,5 @@ def handle_package_ingest(message):
 
 
 channel.basic_consume(queue='ingest.work', on_message_callback=route_message, auto_ack=True)
+
 channel.start_consuming()

@@ -134,28 +134,6 @@ services:
       - .:/app
       - fileset-data:/data/filesets
 
-  packaging-listener:
-    depends_on:
-      db:
-        condition: service_started
-      fix_ownership:
-        condition: service_completed_successfully
-    build:
-      context: .
-      target: development
-      dockerfile: Dockerfile
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        DEV: ${DEV:-false}
-        POETRY_VERSION: ${POETRY_VERSION:-1.8.4}
-    env_file:
-      - .env
-    command: ["poetry", "run", "python", "bin/packaging-listener.py"]
-    volumes:
-      - .:/app
-      - fileset-data:/data/filesets
-
   ingest:
     depends_on:
       db:
