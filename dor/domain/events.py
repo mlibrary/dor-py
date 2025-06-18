@@ -15,7 +15,6 @@ class Event:
 class PackageGenerated(Event):
     type = 'package.generated'
     package_identifier: str
-    tracking_identifier: str
 
 # integration event; moves to ingest
 # some naming considerations:

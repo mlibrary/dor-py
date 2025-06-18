@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import json
-import pika
-from datetime import datetime
+from typing import Any
 
+import pika
+
+from dor.adapters import eventpublisher
 from dor.config import config
+from dor.domain.commands import DepositPackage
 from dor.providers.ingest import ingest_package
 
-inbox_path = config.inbox_path
 
 conn = pika.BlockingConnection(pika.ConnectionParameters(
     host=config.rabbitmq.host,
@@ -14,21 +16,58 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
 ))
 
 channel = conn.channel()
-channel.queue_declare('packaging')
-channel.queue_declare('ingest')
 
 
-def route_message(ch, method, properties, body):
+# Packaging events
+channel.exchange_declare('packaging', exchange_type='fanout')
+result = channel.queue_declare(queue='', exclusive=True)
+queue_name = result.method.queue
+channel.queue_bind(queue=queue_name, exchange="packaging")
+
+
+def handle_package_generated(message: dict[str, Any]):
+    eventpublisher.publish(DepositPackage(
+        package_identifier=message["package_identifier"]
+    ))
+
+
+def route_packaging_message(ch, method, properties, body):
     if properties.type == 'package.generated':
         handle_package_generated(json.loads(body.decode("utf-8")))
     else:
         print(properties)
         print(body.decode("utf-8"))
 
-def handle_package_generated(message):
-    # Consider translating to an explicit ingest command
+
+channel.basic_consume(
+    queue=queue_name,
+    on_message_callback=route_packaging_message,
+    auto_ack=True
+)
+
+
+# Ingest commands
+channel.queue_declare('ingest.work')
+
+
+def route_ingest_message(ch, method, properties, body):
+    if properties.type == 'package.deposit':
+        handle_package_deposit(json.loads(body.decode("utf-8")))
+    else:
+        print(properties)
+        print(body.decode("utf-8"))
+
+
+def handle_package_deposit(message):
     ingest_package(message["package_identifier"])
 
-## This should listen to a topic, rather than packaging's work queue
-channel.basic_consume(queue='packaging', on_message_callback=route_message, auto_ack=True)
+
+channel.basic_consume(
+    queue='ingest.work',
+    on_message_callback=route_ingest_message,
+    auto_ack=True
+)
+
 channel.start_consuming()
+
+conn.close()
