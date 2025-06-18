@@ -1,9 +1,14 @@
 services:
   app:
     depends_on:
-      - db
-      - pocketbase
-      - rabbitmq
+      fix_ownership:
+        condition: service_completed_successfully
+      db:
+        condition: service_started
+      pocketbase:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     build: 
       context: .
       target: development
