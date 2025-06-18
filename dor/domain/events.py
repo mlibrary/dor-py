@@ -9,6 +9,32 @@ from dor.providers.models import PackageResource
 class Event:
     pass
 
+# integration event
+@dataclass
+class FileSetCreated(Event):
+    type = 'fileset.created'
+    identifier: str
+    job_idx: int
+
+
+# integration event; moves to packaging
+@dataclass
+class PackageGenerated(Event):
+    type = 'package.generated'
+    package_identifier: str
+
+# integration event; moves to ingest
+# some naming considerations:
+#   - package ingested
+#   - submission processed
+#   - ingest successful
+#   - resource created
+#   - resource updated
+class PackageIngested(Event):
+    type = 'package.ingested'
+    package_identifier: str
+    tracking_identifier: str
+
 
 @dataclass(kw_only=True)
 class PackageEvent(Event):
@@ -17,6 +43,7 @@ class PackageEvent(Event):
     update_flag: bool = False
 
 
+# internal/domain event; moves to ingest
 @dataclass
 class PackageSubmitted(PackageEvent):
     pass

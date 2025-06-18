@@ -2,11 +2,11 @@ from typing import Any
 from datetime import datetime, UTC
 from pathlib import Path
 
-from dor.providers.automation import run_automation
+from dor.adapters import eventpublisher
+from dor.domain.events import PackageGenerated
 from dor.providers.file_system_file_provider import FilesystemFileProvider
 from dor.providers.repository_client import FakeRepositoryClient
 from dor.providers.package_generator import (DepositGroup, PackageGenerator)
-from dor.queues import queues
 
 
 def create_package_from_metadata(
@@ -20,9 +20,7 @@ def create_package_from_metadata(
     print(inbox_path)
     print(pending_path)
 
-    identifier = package_metadata["identifier"]
-
-    PackageGenerator(
+    package_result = PackageGenerator(
         file_provider=FilesystemFileProvider(),
         repository_client=FakeRepositoryClient(),
         metadata=package_metadata,
@@ -32,4 +30,7 @@ def create_package_from_metadata(
         timestamp=datetime.now(tz=UTC)
     ).generate()
 
-    queues["automation"].enqueue(run_automation, "package.success", package_identifier=identifier)
+    event = PackageGenerated(
+        package_identifier=package_result.package_identifier,
+    )
+    eventpublisher.publish_to_exchange(event)

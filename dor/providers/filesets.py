@@ -16,7 +16,9 @@ from pathlib import Path
 from datetime import datetime
 from fastapi import UploadFile
 
+from dor.adapters import eventpublisher
 from dor.config import config
+from dor.domain.events import FileSetCreated
 from dor.providers.operations import (
     AppendUses,
     CompressSourceImage,
@@ -100,3 +102,7 @@ def creates_a_file_set_from_uploaded_materials(
         inputs.append(Input(file_path=src_dir / file_name, commands=file_commands))
 
     success = build_file_set(file_set_identifier=fsid, inputs=inputs, output_path=build_dir)
+    if success:
+        eventpublisher.publish_to_exchange(
+            FileSetCreated(identifier=fsid.identifier, job_idx=job_idx)
+        )
