@@ -3,8 +3,6 @@ services:
     depends_on:
       - db
       - pocketbase
-      - redis
-      - jobs
       - rabbitmq
     build: 
       context: .
@@ -73,14 +71,6 @@ services:
       - ./pb_user_setup.sh:/pb/pb_user_setup.sh
     command: /bin/sh -c "/pb/pocketbase serve --http=0.0.0.0:8080 & /bin/sh /pb/pb_user_setup.sh && tail -f /dev/null"
 
-  redis:
-    image: redis:7-bookworm
-    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
-    ports:
-      - "127.0.0.1:6379:6379"
-    volumes:
-      - redis-data:/data
-
   rabbitmq:
     image: rabbitmq:4.1-management
     ports:
@@ -89,28 +79,6 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
-
-  jobs:
-    depends_on:
-      db:
-        condition: service_started
-      fix_ownership:
-        condition: service_completed_successfully
-    build: 
-      context: .
-      target: development
-      dockerfile: Dockerfile
-      args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        DEV: ${DEV:-false}
-        POETRY_VERSION: ${POETRY_VERSION:-1.8.4}
-    env_file:
-      - .env
-    command: ["poetry", "run", "python", "bin/generic-worker.py"]
-    volumes:
-      - .:/app
-      - fileset-data:/data/filesets
 
   filesets:
     depends_on:
@@ -180,5 +148,4 @@ services:
 
 volumes:
   db-data:
-  redis-data:
   fileset-data:
