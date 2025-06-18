@@ -9,6 +9,13 @@ from dor.providers.models import PackageResource
 class Event:
     pass
 
+# integration event
+@dataclass
+class FileSetCreated(Event):
+    type = 'fileset.created'
+    identifier: str
+    job_idx: int
+
 
 # integration event; moves to packaging
 @dataclass

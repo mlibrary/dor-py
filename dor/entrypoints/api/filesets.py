@@ -3,9 +3,10 @@ import json
 from typing import Annotated, Optional
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 
+from dor.adapters import eventpublisher
+from dor.domain.commands import CreateFileset
 from dor.providers.filesets import setup_job_dir, creates_a_file_set_from_uploaded_materials
 from dor.providers.file_set_identifier import FileSetIdentifier
-from dor.queues import queues
 
 filesets_router = APIRouter(prefix="/filesets")
 
@@ -21,13 +22,15 @@ async def create_fileset(
 
     fsid = FileSetIdentifier(project_id=project_id, file_name=name)
     job_dir = setup_job_dir(fsid, files)
-    job_idx = job_dir.name
+    job_idx = int(job_dir.name)
 
     # TODO: Think about how we want to handle logging
     # with (job_dir / "fileset.log").open("a") as log:
     #     log.write(f'[{now()}] - (totally fake) {profile} - Processing Queued for fileset: {name} [fsid: {fsid.identifier}]\n')
 
-    queues.get("fileset").enqueue(creates_a_file_set_from_uploaded_materials, fsid, int(job_idx), file_profiles_)
+    eventpublisher.publish(
+        CreateFileset(project_id, name, job_idx, file_profiles_)
+    )
 
     return {
         "id": fsid.identifier,

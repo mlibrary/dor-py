@@ -17,15 +17,16 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
 
 channel = conn.channel()
 
-channel.queue_declare('fileset')
+channel.queue_declare('filesets.work')
 channel.queue_declare('packaging.work')
 channel.queue_declare('ingest.work')
 
 channel.exchange_declare(exchange="packaging", exchange_type="fanout")
 
 router = {
+    commands.CreateFileset: 'filesets.work',
     commands.CreatePackage: 'packaging.work',
-    commands.DepositPackage: 'ingest.work'
+    commands.DepositPackage: 'ingest.work',
 }
 
 def publish(command: commands.Command) -> None:
