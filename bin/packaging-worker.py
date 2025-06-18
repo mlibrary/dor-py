@@ -46,3 +46,5 @@ channel.basic_consume(
     queue='packaging.work', on_message_callback=route_message, auto_ack=True
 )
 channel.start_consuming()
+
+conn.close()

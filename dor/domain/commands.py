@@ -15,7 +15,7 @@ class CreatePackage(Command):
 
 
 @dataclass
-class IngestPackage(Command):
-    type = 'package.ingest'
+class DepositPackage(Command):
+    type = 'package.deposit'
     package_identifier: str
 

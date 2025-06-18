@@ -6,7 +6,7 @@ import pika
 
 from dor.adapters import eventpublisher
 from dor.config import config
-from dor.domain.commands import IngestPackage
+from dor.domain.commands import DepositPackage
 from dor.providers.ingest import ingest_package
 
 
@@ -26,7 +26,7 @@ channel.queue_bind(queue=queue_name, exchange="packaging")
 
 
 def handle_package_generated(message: dict[str, Any]):
-    eventpublisher.publish(IngestPackage(
+    eventpublisher.publish(DepositPackage(
         package_identifier=message["package_identifier"]
     ))
 
@@ -51,14 +51,14 @@ channel.queue_declare('ingest.work')
 
 
 def route_ingest_message(ch, method, properties, body):
-    if properties.type == 'package.ingest':
-        handle_package_ingest(json.loads(body.decode("utf-8")))
+    if properties.type == 'package.deposit':
+        handle_package_deposit(json.loads(body.decode("utf-8")))
     else:
         print(properties)
         print(body.decode("utf-8"))
 
 
-def handle_package_ingest(message):
+def handle_package_deposit(message):
     ingest_package(message["package_identifier"])
 
 
@@ -69,3 +69,5 @@ channel.basic_consume(
 )
 
 channel.start_consuming()
+
+conn.close()

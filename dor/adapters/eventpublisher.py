@@ -25,7 +25,7 @@ channel.exchange_declare(exchange="packaging", exchange_type="fanout")
 
 router = {
     commands.CreatePackage: 'packaging.work',
-    commands.IngestPackage: 'ingest.work'
+    commands.DepositPackage: 'ingest.work'
 }
 
 def publish(command: commands.Command) -> None:
