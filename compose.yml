@@ -78,6 +78,11 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.1-management
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
     ports:
       - "5672:5672"   # RabbitMQ default port
       - "15672:15672" # RabbitMQ management UI
@@ -89,6 +94,8 @@ services:
     depends_on:
       db:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
       fix_ownership:
         condition: service_completed_successfully
     build:
@@ -111,6 +118,8 @@ services:
     depends_on:
       db:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
       fix_ownership:
         condition: service_completed_successfully
     build: 
@@ -133,6 +142,8 @@ services:
     depends_on:
       db:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
       fix_ownership:
         condition: service_completed_successfully
     build:
