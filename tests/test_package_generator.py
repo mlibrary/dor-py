@@ -48,7 +48,8 @@ def test_generator_generates_package(
         deposit_group=deposit_group,
         output_path=test_output_path,
         file_sets_path=fixtures_path / "file_sets_pending",
-        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+        timestamp=datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC),
+        collection_manager_email="test@test.edu"
     )
     result = generator.generate()
 
