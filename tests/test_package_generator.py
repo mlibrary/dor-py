@@ -60,6 +60,7 @@ def test_generator_generates_package(
     root_resource_metadata_path = package_data_path / root_identifier / "metadata"
     assert (root_resource_metadata_path / f"{root_identifier}.function:service.json").exists()
     assert (root_resource_metadata_path / f"{root_identifier}.function:source.json").exists()
+    assert (root_resource_metadata_path / f"{root_identifier}.function:event.premis.xml").exists()
     assert (root_resource_metadata_path / f"{root_identifier}.function:provenance.premis.xml").exists()
 
     # File sets were incorporated
