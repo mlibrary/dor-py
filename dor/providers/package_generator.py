@@ -2,24 +2,28 @@ import json
 import os
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any, Callable
 
 from dor.adapters.bag_adapter import BagAdapter
 from dor.providers.file_provider import FileProvider
 from dor.providers.models import (
+    Agent,
     AlternateIdentifier,
     DepositGroup,
     FileMetadata,
     FileReference,
     PackageResource,
+    PreservationEvent,
     StructMap,
     StructMapItem,
     StructMapType
 )
 from dor.providers.repository_client import RepositoryClient
+from dor.providers.serializers import PreservationEventSerializer
 from dor.settings import template_env
+from utils.minter import minter
 
 
 @dataclass
@@ -151,6 +155,19 @@ class PackageGenerator:
                 mimetype=metadata_data["mimetype"]
             )
         )
+
+    def create_ingest_premis_event(self) -> PreservationEvent:
+        event = PreservationEvent(
+            identifier=minter(),
+            type="ingest",
+            datetime=datetime.now(tz=UTC),
+            detail="No detail provided.",
+            agent=Agent(
+                address="test@example.edu",
+                role="packaging"
+            )
+        )
+        return event
 
     def create_root_metadata_file(
         self,
@@ -293,6 +310,20 @@ class PackageGenerator:
         except PackageMetadataError as error:
             self.clear_package_path()
             return self.get_package_result(success=False, message=error.message)
+
+        event_file_path = self.get_metadata_file_path(".function:event.premis.xml")
+        (self.package_path / event_file_path).write_text(
+            PreservationEventSerializer(self.create_ingest_premis_event()).serialize()
+        )
+        metadata_file_metadatas.append(FileMetadata(
+            id="_" + minter(),
+            use="function:event",
+            ref=FileReference(
+                locref=str(event_file_path),
+                mdtype="PREMIS",
+                mimetype="text/xml+premis"
+            )
+        ))
 
         alternate_identifier = provenance_data["data"]["alternate_identifier"]
         resource = PackageResource(
