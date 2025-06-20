@@ -101,6 +101,7 @@ class PackageGenerator:
         output_path: Path,
         file_sets_path: Path,
         timestamp: datetime,
+        collection_manager_email: str = "example@org.edu",
     ):
         self.file_provider = file_provider
         self.metadata = metadata
@@ -110,6 +111,7 @@ class PackageGenerator:
         self.file_sets_pending = FileSetsPending(self.file_provider, self.file_sets_path)
         self.timestamp = timestamp
         self.repository_client = repository_client
+        self.collection_manager_email = collection_manager_email
 
         self.root_resource_identifier: str = self.metadata["identifier"]
         self.type: str = self.metadata["type"]
@@ -162,10 +164,7 @@ class PackageGenerator:
             type="ingest",
             datetime=datetime.now(tz=UTC),
             detail="No detail provided.",
-            agent=Agent(
-                address="test@example.edu",
-                role="packaging"
-            )
+            agent=Agent(address=self.collection_manager_email, role="packaging")
         )
         return event
 
