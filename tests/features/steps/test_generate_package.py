@@ -1,4 +1,5 @@
 """Generate Packages feature tests."""
+import json
 from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
@@ -14,8 +15,9 @@ from pytest_bdd import (
 from dor.adapters.bag_adapter import BagAdapter
 from dor.config import config
 from dor.providers.file_system_file_provider import FilesystemFileProvider
-from dor.providers.packager import Packager
-from dor.providers.package_generator import PackageResult
+from dor.providers.models import DepositGroup
+from dor.providers.package_generator import PackageGenerator, PackageResult
+from dor.providers.repository_client import FakeRepositoryClient
 from utils.logger import Logger
 
 
@@ -31,19 +33,19 @@ def logger() -> Logger:
     return logger
 
 
-scenario = partial(scenario, './generate_packages.feature')
+scenario = partial(scenario, './generate_package.feature')
 
-@scenario('Generate submission information packages')
-def test_generate_submission_information_packages():
+@scenario('Generate submission information package')
+def test_generate_submission_information_package():
     pass
 
 
-@given('a JSONL dump file and file sets in pending', target_fixture="inbox_path")
+@given('package metadata and file sets in pending', target_fixture="inbox_path")
 def _(logger: Logger):
-    """a JSONL dump file and file sets in pending."""
+    """package metadata and file sets in pending."""
 
     file_provider = FilesystemFileProvider()
-    test_path = Path("tests/output/test_packager")
+    test_path = Path("tests/output/test_generate_package")
     inbox_path = test_path / Path("inbox")
 
     file_provider.delete_dir_and_contents(path=test_path)
@@ -54,29 +56,34 @@ def _(logger: Logger):
     return inbox_path
 
 
-@when('the Collection Manager invokes the packager')
+@when('the Collection Manager invokes the package generator')
 def _(inbox_path: Path, logger: Logger):
-    """the Collection Manager invokes the packager."""
-    
-    packager_fixtures_path = Path("tests/fixtures/packager/")
-    jsonl_dump_file_path = packager_fixtures_path / "sample-dump-1.jsonl"
-    config_file_path = packager_fixtures_path / "config.json"
+    """the Collection Manager invokes the package generator."""
+
+    packager_fixtures_path = Path("tests/fixtures/test_generate_package")
+    package_metadata = json.loads(
+        (packager_fixtures_path / "package-metadata.json").read_text()
+    )
+    deposit_group = DepositGroup(
+        identifier="23312082-44d8-489e-97f4-383329de9ac5",
+        date=datetime(1970, 1, 1, 0, 0, 0, 0, tzinfo=UTC)
+    )
     pending_path = packager_fixtures_path / "pending"
 
-    packager = Packager(
-        dump_file_path=jsonl_dump_file_path,
-        config_file_path=config_file_path,
-        pending_path=pending_path,
-        inbox_path=inbox_path,
-        timestamper=lambda: datetime(1970, 1, 1, 0, 0, 0, tzinfo=UTC)
+    generator = PackageGenerator(
+        file_provider=FilesystemFileProvider(),
+        repository_client=FakeRepositoryClient(),
+        metadata=package_metadata,
+        deposit_group=deposit_group,
+        output_path=inbox_path,
+        file_sets_path=pending_path,
+        timestamp=datetime(1970, 1, 1, 0, 0, 0, 0, tzinfo=UTC)
     )
-    package_results = packager.generate()
-
-    for package_result in package_results:
-        logger.log_result(package_result)
+    package_result = generator.generate()
+    logger.log_result(package_result)
 
 
-@then('the submission packages are generated in the inbox')
+@then('the submission package is generated in the inbox')
 def _(inbox_path):
     """the submission packages are generated in the inbox."""
 
@@ -87,9 +94,9 @@ def _(inbox_path):
     bag.validate()
 
 
-@then('the Collection Manager gets notified upon completion of the batch')
+@then('the Collection Manager gets notified upon completion')
 def _(logger: Logger):
-    """the Collection Manager gets notified upon completion of the batch."""
+    """the Collection Manager gets notified upon completion."""
 
     expected_package_identifier = "00000000-0000-0000-0000-000000000001_19700101000000"
     package_result = logger.search(expected_package_identifier)
