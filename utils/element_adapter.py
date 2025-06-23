@@ -24,7 +24,7 @@ class ElementAdapter:
 
     def find_optional(self, path: str) -> "ElementAdapter | None":
         result = self.elem.find(path, self.namespaces)
-        if result is None: return result
+        if result is None: return None
         return ElementAdapter(result, self.namespaces)
 
     @property
