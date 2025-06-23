@@ -21,6 +21,7 @@ channel.queue_declare('filesets.work')
 channel.queue_declare('packaging.work')
 channel.queue_declare('ingest.work')
 
+channel.exchange_declare(exchange="filesets", exchange_type="fanout")
 channel.exchange_declare(exchange="packaging", exchange_type="fanout")
 
 router = {
@@ -28,6 +29,7 @@ router = {
     commands.CreatePackage: 'packaging.work',
     commands.DepositPackage: 'ingest.work',
 }
+
 
 def publish(command: commands.Command) -> None:
     key = router.get(type(command))
@@ -42,9 +44,12 @@ def publish(command: commands.Command) -> None:
         properties=props
     )
 
+
 exchange_router: dict[type[events.Event], str] = {
-    events.PackageGenerated: 'packaging'
+    events.PackageGenerated: 'packaging',
+    events.FileSetCreated: 'filesets',
 }
+
 
 def publish_to_exchange(event: events.Event) -> None:
     exchange = exchange_router.get(type(event))

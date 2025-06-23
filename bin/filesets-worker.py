@@ -14,13 +14,18 @@ conn = pika.BlockingConnection(pika.ConnectionParameters(
 channel = conn.channel()
 channel.queue_declare('filesets.work')
 
+
 def handle_fileset_create(command):
-    fsid = FileSetIdentifier(command["project_id"], command["file_name"])
-    creates_a_file_set_from_uploaded_materials(
-        fsid,
-        command["job_idx"],
-        command["file_profiles"]
-    )
+    try:
+        fsid = FileSetIdentifier(command["project_id"], command["file_name"])
+        creates_a_file_set_from_uploaded_materials(
+            fsid,
+            command["job_idx"],
+            command["file_profiles"]
+        )
+    except Exception as e:
+        print(f"handle_fileset_create({command}): {e}")
+
 
 def route_message(ch, method, properties, body):
     if properties.type == 'fileset.create':
