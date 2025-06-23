@@ -31,6 +31,8 @@ services:
         condition: service_started
       fix_ownership:
         condition: service_completed_successfully
+      rabbitmq:
+        condition: service_started
     build: 
       context: .
       target: development
