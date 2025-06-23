@@ -43,7 +43,11 @@ class ElementAdapterTest(TestCase):
         with self.assertRaises(DataNotFoundError):
             self.elem.find("NoSuchTag")
 
-    def test_element_returns_none_when_finding_optional_element(self):
+    def test_element_can_find_optional_element(self):
+        result = self.elem.find_optional(".//METS:mdSec")
+        self.assertTrue(isinstance(result, ElementAdapter))
+
+    def test_element_returns_none_when_finding_missing_optional_element(self):
         result = self.elem.find_optional("NoSuchTag")
         self.assertIsNone(result)
 
