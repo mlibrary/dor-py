@@ -6,9 +6,11 @@
     </PREMIS:eventIdentifier>
     <PREMIS:eventType>{{ event.type }}</PREMIS:eventType>
     <PREMIS:eventDateTime>{{ event.date_time }}</PREMIS:eventDateTime>
+    {%- if event.detail %}
     <PREMIS:eventDetailInformation>
       <PREMIS:eventDetail>{{ event.detail }}</PREMIS:eventDetail>
     </PREMIS:eventDetailInformation>
+    {%- endif %}
     <PREMIS:linkingAgentIdentifier>
       <PREMIS:linkingAgentIdentifierType>{{ event.linking_agent.type }}</PREMIS:linkingAgentIdentifierType>
       <PREMIS:linkingAgentIdentifierValue>{{ event.linking_agent.value }}</PREMIS:linkingAgentIdentifierValue>

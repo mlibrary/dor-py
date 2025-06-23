@@ -28,7 +28,7 @@ class PreservationEvent:
     identifier: str
     type: str
     datetime: datetime
-    detail: str
+    detail: str | None
     agent: Agent
 
 

@@ -22,6 +22,11 @@ class ElementAdapter:
             raise DataNotFoundError(f"No element found for path {path}")
         return ElementAdapter(result, self.namespaces)
 
+    def find_optional(self, path: str) -> "ElementAdapter | None":
+        result = self.elem.find(path, self.namespaces)
+        if result is None: return result
+        return ElementAdapter(result, self.namespaces)
+
     @property
     def text(self) -> str:
         result = self.elem.text
