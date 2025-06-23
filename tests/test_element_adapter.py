@@ -43,6 +43,10 @@ class ElementAdapterTest(TestCase):
         with self.assertRaises(DataNotFoundError):
             self.elem.find("NoSuchTag")
 
+    def test_element_returns_none_when_finding_optional_element(self):
+        result = self.elem.find_optional("NoSuchTag")
+        self.assertIsNone(result)
+
     def test_element_returns_text(self):
         elem = ElementAdapter(self.item_metadata_tree, self.namespaces)
         result = elem.find(".//METS:altRecordID")

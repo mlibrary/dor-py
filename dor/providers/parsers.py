@@ -29,7 +29,8 @@ class PreservationEventFileParser:
         event_identifier = event_elem.find(".//PREMIS:eventIdentifierValue").text
         event_type = event_elem.find(".//PREMIS:eventType").text
         event_datetime = event_elem.find(".//PREMIS:eventDateTime").text
-        event_detail = event_elem.find(".//PREMIS:eventDetail").text
+        event_detail_elem = event_elem.find_optional(".//PREMIS:eventDetail")
+        event_detail = event_detail_elem.text if event_detail_elem else event_detail_elem
         agent_role = event_elem.find(".//PREMIS:linkingAgentIdentifierType").text
         agent_address = event_elem.find(".//PREMIS:linkingAgentIdentifierValue").text
         return PreservationEvent(
