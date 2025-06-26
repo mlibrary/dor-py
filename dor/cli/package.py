@@ -10,8 +10,7 @@ from dor.config import config
 from dor.cli.client.package_client import (
     DepositGroup,
     PackageUploadError,
-    get_package_metadata_records,
-    upload_package
+    upload_packages
 )
 
 
@@ -36,23 +35,16 @@ def upload(
 
     httpx_client = httpx.AsyncClient(base_url=config.api_url + "/api/v1/")
 
-    response_datas = []
-    exceptions = []
-    for package_metadata in get_package_metadata_records(packet_path):
-        try:
-            result = asyncio.run(upload_package(
-                client=httpx_client,
-                deposit_group=deposit_group,
-                package_metadata=package_metadata
-            ))
-            response_datas.append(result)
-        except Exception as exception:
-            exceptions.append(exception)
+    result = asyncio.run(upload_packages(
+        packet_path=packet_path,
+        httpx_client=httpx_client,
+        deposit_group=deposit_group
+    ))
 
-    typer.echo(f"Successfully submitted metadata for {len(response_datas)} package(s).")
-    rich.print(response_datas)
+    typer.echo(f"Successfully submitted metadata for {len(result.response_datas)} package(s).")
+    rich.print(result.response_datas)
 
-    for exception in exceptions:
+    for exception in result.exceptions:
         if isinstance(exception, PackageUploadError):
             typer.echo(
                 f"Error occurred for package {exception.package_identifier}. " +
@@ -61,5 +53,5 @@ def upload(
             )
         else:
             typer.echo(f"Unknown exception occurred: {exception}", err=True)
-    if exceptions:
+    if result.exceptions:
         raise typer.Exit(1)
