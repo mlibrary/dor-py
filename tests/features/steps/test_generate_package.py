@@ -60,15 +60,15 @@ def _(logger: Logger):
 def _(inbox_path: Path, logger: Logger):
     """the Collection Manager invokes the package generator."""
 
-    packager_fixtures_path = Path("tests/fixtures/test_generate_package")
+    fixtures_path = Path("tests/fixtures/test_generate_package")
     package_metadata = json.loads(
-        (packager_fixtures_path / "package-metadata.json").read_text()
+        (fixtures_path / "package_metadata.json").read_text()
     )
     deposit_group = DepositGroup(
         identifier="23312082-44d8-489e-97f4-383329de9ac5",
         date=datetime(1970, 1, 1, 0, 0, 0, 0, tzinfo=UTC)
     )
-    pending_path = packager_fixtures_path / "pending"
+    pending_path = fixtures_path / "pending"
 
     generator = PackageGenerator(
         file_provider=FilesystemFileProvider(),
