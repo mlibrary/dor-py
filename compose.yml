@@ -49,7 +49,7 @@ services:
       - fileset-data:/data/filesets
     tty: true
     stdin_open: true
-    command: ["poetry", "run", "fastapi", "dev", "dor/entrypoints/api/main.py", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["poetry", "run", "fastapi", "dev", "dor/app.py", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - ${API_PORT:-8000}:8000
   fix_ownership:
