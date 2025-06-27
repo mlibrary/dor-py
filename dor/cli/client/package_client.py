@@ -56,7 +56,7 @@ async def upload_package(
 
 @dataclass
 class PackagesUploadResult:
-    response_datas: list[dict[str, Any]]
+    response_bodies: list[dict[str, Any]]
     exceptions: list[Exception]
 
 
@@ -65,7 +65,7 @@ async def upload_packages(
     httpx_client: httpx.AsyncClient,
     deposit_group: DepositGroup
 ):
-    response_datas = []
+    response_bodies = []
     exceptions = []
 
     async with httpx_client:
@@ -76,11 +76,11 @@ async def upload_packages(
                     deposit_group=deposit_group,
                     package_metadata=package_metadata
                 )
-                response_datas.append(result)
+                response_bodies.append(result)
             except Exception as exception:
                 exceptions.append(exception)
 
     return PackagesUploadResult(
-        response_datas=response_datas,
+        response_bodies=response_bodies,
         exceptions=exceptions
     )

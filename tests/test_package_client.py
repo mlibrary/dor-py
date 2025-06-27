@@ -34,11 +34,11 @@ def mocked_httpx_client() -> httpx.AsyncClient:
         data = json.loads(request.content.decode("utf-8"))
         package_identifier = data["package_metadata"]["identifier"]
         deposit_group_identifier = data["deposit_group"]["identifier"]
-        data = {
+        body = {
             "identifier": package_identifier,
             "deposit_group_identifier": deposit_group_identifier
         }
-        return httpx.Response(200, json=data)
+        return httpx.Response(200, json=body)
 
     httpx_client = httpx.AsyncClient(
         base_url="http://localhost:8000/api/v1/",
@@ -118,7 +118,7 @@ def test_upload_packages_uploads(
         deposit_group=deposit_group
     ))
 
-    expected_response_datas = [
+    expected_response_bodies = [
         {
             "identifier": "00000000-0000-0000-0000-000000000001",
             "deposit_group_identifier": "1760d69d-2e5a-4296-bfe0-d847f9f4fd4b"
@@ -128,5 +128,5 @@ def test_upload_packages_uploads(
             "deposit_group_identifier": "1760d69d-2e5a-4296-bfe0-d847f9f4fd4b"
         },
     ]
-    assert result.response_datas == expected_response_datas
+    assert result.response_bodies == expected_response_bodies
     assert len(result.exceptions) == 0
