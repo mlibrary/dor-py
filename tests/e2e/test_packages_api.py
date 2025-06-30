@@ -6,8 +6,8 @@ from typing import Generator
 from fastapi.testclient import TestClient
 import pytest
 
+from dor.app import app
 from dor.entrypoints.api.dependencies import get_inbox_path, get_pending_path
-from dor.entrypoints.api.main import app
 
 
 @pytest.fixture

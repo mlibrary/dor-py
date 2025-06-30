@@ -10,8 +10,8 @@ from fastapi.testclient import TestClient
 from dor.adapters.sqlalchemy import Base
 from dor.config import config
 from dor.domain.models import Revision
+from dor.app import app
 from dor.entrypoints.api.dependencies import get_db_session
-from dor.entrypoints.api.main import app
 from dor.providers.models import (
     Agent, AlternateIdentifier, FileMetadata, FileReference, PackageResource,
     PreservationEvent, StructMap, StructMapItem, StructMapType

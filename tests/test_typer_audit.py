@@ -8,7 +8,7 @@ from httpx import AsyncClient, ASGITransport
 from dor.cli.client.audit_client import fetch_audit_status
 from typer.testing import CliRunner
 from dor.cli.main import app
-from dor.entrypoints.api.main import app as fastapi_app
+from dor.app import app as fastapi_app
 import uvicorn
 import re
 

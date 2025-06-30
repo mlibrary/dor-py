@@ -10,9 +10,9 @@ import subprocess
 import uvicorn
 
 
+from dor.app import app as fastapi_app
 from dor.cli.client.upload_client import run_upload_fileset
 from dor.cli.main import app
-from dor.entrypoints.api.main import app as fastapi_app
 
 from fastapi import FastAPI, HTTPException
 from httpx import AsyncClient, ASGITransport
