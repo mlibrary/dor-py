@@ -41,8 +41,8 @@ def upload(
         deposit_group=deposit_group
     ))
 
-    typer.echo(f"Successfully submitted metadata for {len(result.response_datas)} package(s).")
-    rich.print(result.response_datas)
+    typer.echo(f"Successfully submitted metadata for {len(result.response_bodies)} package(s).")
+    rich.print(result.response_bodies)
 
     for exception in result.exceptions:
         if isinstance(exception, PackageUploadError):
