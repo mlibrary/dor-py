@@ -15,12 +15,15 @@ from faker import Faker
 from dor.config import config
 import sqlalchemy.exc
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, Integer, LargeBinary, UniqueConstraint, select, String, Uuid
+    Column, DateTime, ForeignKey, Integer, LargeBinary, UniqueConstraint, func, select, String, Uuid
 )
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
+
+from rich.console import Console
+from rich.table import Table
 
 from dor.adapters.converter import converter
 from dor.adapters.sqlalchemy import Base
@@ -126,22 +129,87 @@ session = sqlalchemy.orm.Session(bind=connection)
 def seed_objects(num_objects: int=100):
 
     fake = Faker()
-    i = 0
+    
+    i = session.query(func.count(IntellectualObject.id)).join(LatestRevision).scalar()
 
     intellectual_objects = []
     while i < num_objects:
         num_scans = random.randint(1, 5)
         sequences = range(1, num_scans + 1)
 
-        bin_identifier = create_uuid_from_string(f"xyzzy:f{i+1:08d}")
+        bin_alternate_identifier = f"xyzzy:f{i+1:08d}"
+        bin_identifier = create_uuid_from_string(bin_alternate_identifier)
+
+        intellectual_object = IntellectualObject(
+            identifier=bin_identifier,
+            bin_identifier=bin_identifier,
+            alternate_identifiers=[bin_alternate_identifier],
+            type=random.choice(["type:monograph", "type:serial_issue", "type:newspaper_issue", "type:album", "type:artifact"]),
+            revision_number=1,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            title=fake.catch_phrase(),
+            description=fake.paragraph(nb_sentences=1),
+        )
+        session.add(intellectual_object)
+
+        for file_identifier in [
+                f"descriptor/{bin_identifier}.mets2.xml", 
+                f"metadata/{bin_identifier}.function:source.xml",
+                f"metadata/{bin_identifier}.function:service.xml"
+            ]:
+            digest = fake.sha256(raw_output=True)
+            file_set_file = FileSetFile(
+                identifier=file_identifier,
+                file_format="application/xml",
+                size=fake.random_int(min=600),
+                digest=digest,
+                revision_number=1,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                last_fixity_check=datetime.now()
+            )
+
+            intellectual_object.file_set_files.append(file_set_file)
+
+            event = PremisEvent(
+                identifier=fake.uuid4(),
+                type="ingestion start",
+            )
+            file_set_file.premis_events.append(event)
+            intellectual_object.premis_events.append(event)
+
+            checksum = Checksum(
+                algorithm="sha256",
+                digest=digest,
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            checksum.file_set_file = file_set_file
+            session.add(checksum)
+
+        event = PremisEvent(
+            identifier=fake.uuid4(),
+            type="accession ",
+        )
+        intellectual_object.premis_events.append(event)
+
+        # now just the intellectual object
+        revision = LatestRevision(
+            revision_number=intellectual_object.revision_number,
+            intellectual_object=intellectual_object,
+            intellectual_object_identifier=intellectual_object.identifier
+        )
+        session.add(revision)
+        session.commit()
 
         for seq in sequences:
-            alternate_identifier = f"xyzzy:{bin_identifier}:{seq:08d}"
+            alternate_identifier = f"{bin_alternate_identifier}:{seq:08d}"
             intellectual_object = IntellectualObject(
                 identifier=create_uuid_from_string(alternate_identifier),
                 bin_identifier=bin_identifier,
                 alternate_identifiers=[alternate_identifier],
-                type="File Set",
+                type="type:fileset",
                 revision_number=1,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
@@ -192,8 +260,7 @@ def seed_objects(num_objects: int=100):
                 intellectual_object=intellectual_object,
                 intellectual_object_identifier=intellectual_object.identifier
             )
-            session.add(revision)
-
+            session.add(revision)            
 
             session.commit()
             intellectual_objects.append(intellectual_object.id)
@@ -217,7 +284,7 @@ def seed_objects(num_objects: int=100):
             bin_identifier=intellectual_object.bin_identifier,
             identifier=intellectual_object.identifier,
             alternate_identifiers=intellectual_object.alternate_identifiers,
-            type="File Set",
+            type="type:fileset",
             revision_number=next_revision,
             created_at=datetime.now(),
             updated_at=datetime.now(),
@@ -297,17 +364,63 @@ def objects():
     possible_identifiers = session.execute(select(LatestRevision.intellectual_object_identifier)).all()
     random.shuffle(possible_identifiers)
 
+    table = Table(title="Intellectual Objects")
+    table.add_column("bin", no_wrap=True)
+    table.add_column("identifier", no_wrap=True)
+    table.add_column("alternate_identifiers", no_wrap=False)
+    table.add_column("type", no_wrap=True)
+    table.add_column("num_fileset_files", no_wrap=True)
+    table.add_column("revision_number", no_wrap=True)
+    table.add_column("created_at", no_wrap=True)
+    table.add_column("updated_at", no_wrap=True)
+    table.add_column("title", no_wrap=True)
+
     for identifier in random.sample(possible_identifiers, 100):
 
         identifier = identifier[0]
         intellectual_object = session.execute(select(IntellectualObject).join(LatestRevision).filter_by(intellectual_object_identifier=identifier)).scalar_one()
-        print(intellectual_object.id, intellectual_object.revision_number, intellectual_object.identifier)
-        for file_set_file in intellectual_object.file_set_files:
-            print("--", file_set_file.id, file_set_file.identifier)
+        table.add_row(
+            str(intellectual_object.bin_identifier),
+            str(intellectual_object.identifier),
+            "; ".join(intellectual_object.alternate_identifiers),
+            intellectual_object.type,
+            str(len(intellectual_object.file_set_files)),
+            str(intellectual_object.revision_number),
+            intellectual_object.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            intellectual_object.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+            intellectual_object.title
+        )
+        # for file_set_file in intellectual_object.file_set_files:
+        #     print("--", file_set_file.id, file_set_file.identifier)
+
+    console = Console()
+    console.print(table)
 
 
 @aptrust_app.command()
 def files():
     file_set_select = select(FileSetFile).join(LatestRevision, LatestRevision.intellectual_object_id == FileSetFile.intellectual_object_id)
+
+    table = Table(title="File Set Files")
+    table.add_column("identifier", no_wrap=True)
+    table.add_column("file_format", no_wrap=True)
+    table.add_column("size", no_wrap=True)
+    table.add_column("revision_number", no_wrap=True)
+    table.add_column("created_at", no_wrap=True)
+    table.add_column("updated_at", no_wrap=True)
+    table.add_column("last_fixity_check", no_wrap=True)
+
     for file_set_file in session.execute(file_set_select).scalars():
-        print(file_set_file.id, file_set_file.revision_number, file_set_file.identifier)
+        table.add_row(
+            file_set_file.identifier,
+            file_set_file.file_format,
+            str(file_set_file.size),
+            str(file_set_file.revision_number),
+            file_set_file.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            file_set_file.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+            file_set_file.last_fixity_check.strftime("%Y-%m-%d %H:%M:%S"),
+        )
+    
+    console = Console()
+    console.print(table)
+
