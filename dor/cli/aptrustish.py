@@ -132,13 +132,14 @@ def seed_objects(num_objects: int=100):
     
     i = session.query(func.count(IntellectualObject.id)).join(LatestRevision).scalar()
 
-    intellectual_objects = []
+    bins = []
     while i < num_objects:
         num_scans = random.randint(1, 5)
         sequences = range(1, num_scans + 1)
 
         bin_alternate_identifier = f"xyzzy:f{i+1:08d}"
         bin_identifier = create_uuid_from_string(bin_alternate_identifier)
+        bins.append(bin_identifier)
 
         intellectual_object = IntellectualObject(
             identifier=bin_identifier,
@@ -263,7 +264,6 @@ def seed_objects(num_objects: int=100):
             session.add(revision)            
 
             session.commit()
-            intellectual_objects.append(intellectual_object.id)
             print("--", i, intellectual_object.alternate_identifiers[0])
 
         i += 1
@@ -271,79 +271,83 @@ def seed_objects(num_objects: int=100):
     # randomly make some revisions
     current_revisions = {}
     last_revision = {}
-    versioned = random.choices(intellectual_objects, k=1_000)
-    for intellectual_object_id in versioned:
-        revision = current_revisions.setdefault(intellectual_object_id, 1)
+    versioned = random.choices(bins, k=1_000)
+
+    for bin_identifier in versioned:
+        revision = current_revisions.setdefault(bin_identifier, 1)
         next_revision = revision + 1
-        current_revisions[intellectual_object_id] = next_revision
+        current_revisions[bin_identifier] = next_revision
 
-        # this will always be selecting version 1, but who's counting?
-        intellectual_object = session.execute(select(IntellectualObject).filter_by(id=intellectual_object_id)).scalar_one()
+        # intellectual_objects = session.execute(select(IntellectualObject).filter_by(bin_identifier=bin_identifier)).scalars()
+        intellectual_objects = session.execute(select(IntellectualObject).filter_by(bin_identifier=bin_identifier).join(LatestRevision)).scalars()
 
-        next_intellectual_object = IntellectualObject(
-            bin_identifier=intellectual_object.bin_identifier,
-            identifier=intellectual_object.identifier,
-            alternate_identifiers=intellectual_object.alternate_identifiers,
-            type="type:fileset",
-            revision_number=next_revision,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-        )
-        session.add(next_intellectual_object)
-
-        for file_set_file in intellectual_object.file_set_files:
-            digest = fake.sha256(raw_output=True)
-            next_file_set_file = FileSetFile(
-                identifier=file_set_file.identifier,
-                file_format=file_set_file.file_format,
-                size=fake.random_int(min=600),
-                digest=digest,
+        for intellectual_object in intellectual_objects:
+            next_intellectual_object = IntellectualObject(
+                bin_identifier=intellectual_object.bin_identifier,
+                identifier=intellectual_object.identifier,
+                alternate_identifiers=intellectual_object.alternate_identifiers,
+                type=intellectual_object.type,
                 revision_number=next_revision,
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
-                last_fixity_check=datetime.now()
             )
+            session.add(next_intellectual_object)
 
-            next_intellectual_object.file_set_files.append(next_file_set_file)
+            for file_set_file in intellectual_object.file_set_files:
+                digest = fake.sha256(raw_output=True)
+                next_file_set_file = FileSetFile(
+                    identifier=file_set_file.identifier,
+                    file_format=file_set_file.file_format,
+                    size=fake.random_int(min=600),
+                    digest=digest,
+                    revision_number=next_revision,
+                    created_at=datetime.now(),
+                    updated_at=datetime.now(),
+                    last_fixity_check=datetime.now()
+                )
+
+                next_intellectual_object.file_set_files.append(next_file_set_file)
+
+                event = PremisEvent(
+                    identifier=fake.uuid4(),
+                    type="ingestion start",
+                )
+                next_file_set_file.premis_events.append(event)
+                next_intellectual_object.premis_events.append(event)
+
+                checksum = Checksum(
+                    algorithm="sha256",
+                    digest=digest,
+                    created_at=datetime.now(),
+                    updated_at=datetime.now()
+                )
+                checksum.file_set_file = next_file_set_file
+                session.add(checksum)
 
             event = PremisEvent(
                 identifier=fake.uuid4(),
-                type="ingestion start",
+                type="accession ",
             )
-            next_file_set_file.premis_events.append(event)
             next_intellectual_object.premis_events.append(event)
 
-            checksum = Checksum(
-                algorithm="sha256",
-                digest=digest,
-                created_at=datetime.now(),
-                updated_at=datetime.now()
-            )
-            checksum.file_set_file = next_file_set_file
-            session.add(checksum)
+            # now update the revision
+            # revision = session.execute(select(LatestRevision).filter_by(id=last_revision[bin_identifier])).scalar_one()
+            # if bin_identifier in last_revision:
+            # else:
+            #     revision = intellectual_object.revision
 
-        event = PremisEvent(
-            identifier=fake.uuid4(),
-            type="accession ",
-        )
-        next_intellectual_object.premis_events.append(event)
+            # if revision is None:
+            #     print(intellectual_object.id, next_revision)
 
-        # now update the revision
-        if intellectual_object_id in last_revision:
-            revision = session.execute(select(LatestRevision).filter_by(id=last_revision[intellectual_object_id])).scalar_one()
-        else:
             revision = intellectual_object.revision
+            revision.intellectual_object = next_intellectual_object
+            revision.revision_number = next_revision
+            session.add(revision)
+            session.commit()
+            print("∆", intellectual_object.alternate_identifiers, revision.revision_number)
 
-        if revision is None:
-            print(intellectual_object.id, next_revision)
-        revision.intellectual_object = next_intellectual_object
-        revision.revision_number = next_revision
-        session.add(revision)
-
-        session.commit()
-
-        last_revision[intellectual_object_id] = revision.id
-        print("∆", next_intellectual_object.alternate_identifiers[0], next_intellectual_object.revision_number)
+        # last_revision[bin_identifier] = revision.id
+        # print("∆", bin_identifier, revision.revision_number)
 
 
 aptrust_app = typer.Typer()
@@ -360,7 +364,7 @@ def seed(num_objects: int=100):
     seed_objects(num_objects)
 
 @aptrust_app.command()
-def objects():
+def objects(type:str=None):
     possible_identifiers = session.execute(select(LatestRevision.intellectual_object_identifier)).all()
     random.shuffle(possible_identifiers)
 
@@ -378,18 +382,24 @@ def objects():
     for identifier in random.sample(possible_identifiers, 100):
 
         identifier = identifier[0]
-        intellectual_object = session.execute(select(IntellectualObject).join(LatestRevision).filter_by(intellectual_object_identifier=identifier)).scalar_one()
-        table.add_row(
-            str(intellectual_object.bin_identifier),
-            str(intellectual_object.identifier),
-            "; ".join(intellectual_object.alternate_identifiers),
-            intellectual_object.type,
-            str(len(intellectual_object.file_set_files)),
-            str(intellectual_object.revision_number),
-            intellectual_object.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            intellectual_object.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
-            intellectual_object.title
-        )
+
+        query = select(IntellectualObject)
+        if type:
+            query = query.filter_by(type=type)
+        
+        intellectual_objects = session.execute(query.join(LatestRevision).filter_by(intellectual_object_identifier=identifier)).scalars()
+        for intellectual_object in intellectual_objects:
+            table.add_row(
+                str(intellectual_object.bin_identifier),
+                str(intellectual_object.identifier),
+                "; ".join(intellectual_object.alternate_identifiers),
+                intellectual_object.type,
+                str(len(intellectual_object.file_set_files)),
+                str(intellectual_object.revision_number),
+                intellectual_object.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                intellectual_object.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+                intellectual_object.title
+            )
         # for file_set_file in intellectual_object.file_set_files:
         #     print("--", file_set_file.id, file_set_file.identifier)
 
