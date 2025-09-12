@@ -129,6 +129,10 @@ class OcflPyRepositoryGateway():
 
         return version_infos
 
+    def purge_object(self, id: str) -> None:
+        self.storage_root.open_root_fs()
+        object_rel_path = self.storage_root.object_path(id)
+        self.storage_root.root_fs.removetree(str(object_rel_path))
 
     # def create_staged_object(self, id: str) -> None:
     #     pass
@@ -145,5 +149,3 @@ class OcflPyRepositoryGateway():
     # ) -> None:
     #     pass
 
-    # def purge_object(self, id: str) -> None:
-    #     pass

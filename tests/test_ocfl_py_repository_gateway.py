@@ -48,11 +48,14 @@ class OcflPyRepositoryGatewayTest(TestCase):
     def test_gateway_creates_new_object(self):
         gateway = OcflPyRepositoryGateway(self.pres_storage)
         gateway.create_repository()
+
+        timestamp = datetime.now(tz=UTC)
         gateway.create_new_object(
             id="deposit_one",
             src_path=self.deposit_one_path,
             coordinator=Coordinator("test", "test@example.edu"),
-            message="Adding first version!"
+            message="Adding first version!",
+            timestamp=timestamp
         )
  
         full_object_path = self.pres_storage / "deposit_one"
@@ -71,6 +74,7 @@ class OcflPyRepositoryGatewayTest(TestCase):
         self.assertEqual("Adding first version!", head_version["message"])
         self.assertEqual("test", head_version["user"]["name"])
         self.assertEqual("mailto:test@example.edu", head_version["user"]["address"])
+        self.assertEqual(timestamp.isoformat(), head_version["created"])
 
     def test_gateway_throws_error_when_creating_object_that_already_exists(self):
         gateway = OcflPyRepositoryGateway(self.pres_storage)
@@ -100,11 +104,13 @@ class OcflPyRepositoryGatewayTest(TestCase):
             message="Adding first version!"
         )
 
+        timestamp = datetime.now(tz=UTC)
         gateway.update_object(
             id="deposit_one",
             src_path=self.deposit_one_update_path,
             coordinator=Coordinator("test", "test@example.edu"),
-            message="Adding second version!"
+            message="Adding second version!",
+            timestamp=timestamp
         )
  
         full_object_path = self.pres_storage / "deposit_one"
@@ -127,6 +133,7 @@ class OcflPyRepositoryGatewayTest(TestCase):
         self.assertEqual("Adding second version!", head_version["message"])
         self.assertEqual("test", head_version["user"]["name"])
         self.assertEqual("mailto:test@example.edu", head_version["user"]["address"])
+        self.assertEqual(timestamp.isoformat(), head_version["created"])
 
     def test_gateway_throws_error_if_object_does_not_exist_on_update(self):
         gateway = OcflPyRepositoryGateway(self.pres_storage)
@@ -145,7 +152,7 @@ class OcflPyRepositoryGatewayTest(TestCase):
         gateway.create_repository()
         result = gateway.has_object("deposit_zero")
 
-        self.assertEqual(False, result)
+        self.assertFalse(result)
 
     def test_gateway_indicates_it_does_have_an_object(self):
         gateway = OcflPyRepositoryGateway(self.pres_storage)
@@ -158,7 +165,7 @@ class OcflPyRepositoryGatewayTest(TestCase):
         )
         result = gateway.has_object("deposit_one")
 
-        self.assertEqual(True, result)
+        self.assertTrue(result)
 
     def test_gateway_provides_object_files(self):
         gateway = OcflPyRepositoryGateway(self.pres_storage)
@@ -229,22 +236,18 @@ class OcflPyRepositoryGatewayTest(TestCase):
         gateway = OcflPyRepositoryGateway(self.pres_storage)
         gateway.create_repository()
 
-        first_timestamp = datetime.now(tz=UTC)
         gateway.create_new_object(
             id="deposit_one",
             src_path=self.deposit_one_path,
             coordinator=Coordinator("test", "test@example.edu"),
             message="Adding first version!",
-            timestamp=first_timestamp
         )
 
-        second_timestamp = datetime.now(tz=UTC)
         gateway.update_object(
             id="deposit_one",
             src_path=self.deposit_one_update_path,
             coordinator=Coordinator("test", "test@example.edu"),
-            message="Adding second version!",
-            timestamp=second_timestamp
+            message="Adding second version!"
         )
 
         log = gateway.log("deposit_one")
@@ -255,24 +258,37 @@ class OcflPyRepositoryGatewayTest(TestCase):
         gateway = OcflPyRepositoryGateway(self.pres_storage)
         gateway.create_repository()
 
-        first_timestamp = datetime.now(tz=UTC)
         gateway.create_new_object(
             id="deposit_one",
             src_path=self.deposit_one_path,
             coordinator=Coordinator("test", "test@example.edu"),
-            message="Adding first version!",
-            timestamp=first_timestamp
+            message="Adding first version!"
         )
 
-        second_timestamp = datetime.now(tz=UTC)
         gateway.update_object(
             id="deposit_one",
             src_path=self.deposit_one_update_path,
             coordinator=Coordinator("test", "test@example.edu"),
-            message="Adding second version!",
-            timestamp=second_timestamp
+            message="Adding second version!"
         )
 
         log = gateway.log("deposit_one", reversed=False)
         self.assertEqual(log[0].version, 1)
         self.assertEqual(log[1].version, 2)
+
+    def test_gateway_purges_object(self):
+        gateway = OcflPyRepositoryGateway(self.pres_storage)
+        gateway.create_repository()
+        gateway.create_new_object(
+            id="deposit_one",
+            src_path=self.deposit_one_path,
+            coordinator=Coordinator("test", "test@example.edu"),
+            message="Adding first version!"
+        )
+
+        full_object_path = self.pres_storage / "deposit_one"
+        self.assertTrue(full_object_path.exists())
+
+        gateway.purge_object("deposit_one")
+
+        self.assertFalse(full_object_path.exists())
