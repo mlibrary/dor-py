@@ -3,11 +3,4 @@
     "dockerComposeFile": "../compose.yml",
     "service": "app",
     "workspaceFolder": "/app",
-  "customizations": {
-    "pycharm": {
-      "extensions": [
-        "JetBrains.ai-assistant"
-      ]
-    },
-  },
 }
