@@ -1,0 +1,9 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+COPY publisher.py .
+
+# Install redis library
+RUN pip install redis
+
+CMD ["python", "publisher.py"]

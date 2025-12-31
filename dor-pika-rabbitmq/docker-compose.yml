@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    ports:
+      - "5672:5672"   # RabbitMQ default port
+      - "15672:15672" # RabbitMQ management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+
+  publisher:
+    build:
+      context: ./app/publisher
+    depends_on:
+      - rabbitmq
+    command: python publisher.py
+
+  subscriber:
+    build:
+      context: ./app/subscriber
+    depends_on:
+      - rabbitmq
+    command: python subscriber.py
